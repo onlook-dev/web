@@ -17,6 +17,7 @@ import { FrameNode } from './flow/custom-nodes';
 import './flow/styles.css';
 import { createFrameFromNode, createInitialNodes } from './flow/utils';
 import { HotkeysArea } from './hotkeys';
+import { Overlay } from './overlay';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3;
@@ -115,7 +116,7 @@ const FlowCanvas = observer(() => {
                     fitView={false}
                     snapToGrid={false}
                     onPaneClick={handleCanvasClick}
-                    elevateNodesOnSelect={false}
+                    elevateNodesOnSelect={true}
                     panOnScroll={!isPanning}
                     panOnDrag={isPanning}
                     selectionOnDrag={!isPanning}
@@ -123,8 +124,7 @@ const FlowCanvas = observer(() => {
                     className="react-flow-canvas"
                 >
                 </ReactFlow>
-                {/* <Overlay>
-                </Overlay> */}
+                <Overlay />
             </div>
         </HotkeysArea>
     );

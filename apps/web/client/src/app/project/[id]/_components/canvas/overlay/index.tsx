@@ -19,7 +19,7 @@ const MemoizedTextEditor = memo(TextEditor);
 const MemoizedChat = memo(OverlayChat);
 const MemoizedMeasurementOverlay = memo(MeasurementOverlay);
 
-export const Overlay = observer(({ children }: { children: React.ReactNode }) => {
+export const Overlay = observer(() => {
     const editorEngine = useEditorEngine();
 
     // Memoize overlay state values
@@ -41,6 +41,13 @@ export const Overlay = observer(({ children }: { children: React.ReactNode }) =>
         [isPreviewMode],
     );
 
+    const childrenStyle = useMemo(
+        () => ({
+            transform: `translate(${editorEngine.canvas.position.x}px, ${editorEngine.canvas.position.y}px) scale(${editorEngine.canvas.scale})`,
+        }),
+        [editorEngine.canvas.position.x, editorEngine.canvas.position.y, editorEngine.canvas.scale],
+    );
+
     // Memoize the clickRects rendering
     const clickRectsElements = useMemo(
         () =>
@@ -60,25 +67,23 @@ export const Overlay = observer(({ children }: { children: React.ReactNode }) =>
     );
 
     return (
-        <>
-            {children}
-            <div
-                style={containerStyle as React.CSSProperties}
-                id={EditorAttributes.OVERLAY_CONTAINER_ID}
-                className={cn(
-                    'transition-opacity duration-150',
-                    {
-                        'opacity-0': editorEngine.state.shouldHideOverlay,
-                    }
-                )}
-            >
+        <div
+            style={containerStyle as React.CSSProperties}
+            id={EditorAttributes.OVERLAY_CONTAINER_ID}
+            className={cn(
+                'transition-opacity duration-150',
                 {
-                    overlayState.hoverRect && (
-                        <HoverRect
-                            rect={overlayState.hoverRect.rect}
-                            isComponent={overlayState.hoverRect.isComponent}
-                        />
-                    )}
+                    'opacity-0': editorEngine.state.shouldHideOverlay,
+                }
+            )}
+        >
+            <div style={childrenStyle as React.CSSProperties}>
+                {overlayState.hoverRect && (
+                    <HoverRect
+                        rect={overlayState.hoverRect.rect}
+                        isComponent={overlayState.hoverRect.isComponent}
+                    />
+                )}
                 {overlayState.insertRect && <MemoizedInsertRect rect={overlayState.insertRect} />}
                 {clickRectsElements}
                 {
@@ -108,6 +113,6 @@ export const Overlay = observer(({ children }: { children: React.ReactNode }) =>
                     /> 
                 */}
             </div>
-        </>
+        </div>
     );
 });
