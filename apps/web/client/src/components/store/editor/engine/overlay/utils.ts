@@ -211,12 +211,16 @@ export function getRelativeMousePositionToFrame(
             return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
         
+        // Get the overlay container
+        const overlayContainer = document.getElementById(EditorAttributes.OVERLAY_CONTAINER_ID);
+        if (!overlayContainer) {
+            console.error('Overlay container not found');
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+        
         // Get the viewport transform matrix to extract the scale
         const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
         const scale = viewportTransform.a || 1; // Get scale from transform matrix
-        
-        // Get the node transform matrix
-        const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
         
         // Get the node's data attributes for debugging
         const frameId = frameNode.getAttribute('data-frame-id');
@@ -224,17 +228,17 @@ export function getRelativeMousePositionToFrame(
         
         // Get the node's bounding rectangle
         const nodeRect = frameNode.getBoundingClientRect();
+        const overlayRect = overlayContainer.getBoundingClientRect();
         
         // Calculate the position of the mouse relative to the iframe
-        // 1. The mouse position in client coordinates
-        
+        // We need to account for the scale factor to get accurate coordinates
         const rawOffsetX = e.clientX - rect.left;
         const rawOffsetY = e.clientY - rect.top;
         
         const adjustedX = rawOffsetX / scale;
         const adjustedY = rawOffsetY / scale;
         
-        console.log('Mouse position relative to frame (improved):', { 
+        console.log('Mouse position relative to frame (direct):', { 
             frameId,
             nodeId,
             original: { x: e.clientX, y: e.clientY },
@@ -250,13 +254,15 @@ export function getRelativeMousePositionToFrame(
                 width: nodeRect.width,
                 height: nodeRect.height
             },
+            overlayRect: {
+                left: overlayRect.left,
+                top: overlayRect.top,
+                width: overlayRect.width,
+                height: overlayRect.height
+            },
             rawOffset: { x: rawOffsetX, y: rawOffsetY },
             adjusted: { x: adjustedX, y: adjustedY },
             scale,
-            nodeTransform: {
-                x: nodeTransform.m41,
-                y: nodeTransform.m42
-            },
             viewportTransform: {
                 x: viewportTransform.m41,
                 y: viewportTransform.m42,
