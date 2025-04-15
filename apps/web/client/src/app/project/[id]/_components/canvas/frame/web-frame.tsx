@@ -130,8 +130,36 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
                 }
                 return contentDocument.readyState !== 'complete';
             },
-            getElementAtLoc: iframeRemote?.getElementAtLoc,
-            getDomElementByDomId: iframeRemote?.getDomElementByDomId,
+            getElementAtLoc: async (x: number, y: number, getStyle: boolean) => {
+                console.log('getElementAtLoc called with:', { x, y, getStyle });
+                if (!iframeRemote?.getElementAtLoc) {
+                    console.error('getElementAtLoc not available in iframeRemote');
+                    return null;
+                }
+                try {
+                    const element = await iframeRemote.getElementAtLoc(x, y, getStyle);
+                    console.log('getElementAtLoc result:', element);
+                    return element;
+                } catch (error) {
+                    console.error('Error in getElementAtLoc:', error);
+                    return null;
+                }
+            },
+            getDomElementByDomId: async (domId: string, getStyle: boolean) => {
+                console.log('getDomElementByDomId called with:', { domId, getStyle });
+                if (!iframeRemote?.getDomElementByDomId) {
+                    console.error('getDomElementByDomId not available in iframeRemote');
+                    return null;
+                }
+                try {
+                    const element = await iframeRemote.getDomElementByDomId(domId, getStyle);
+                    console.log('getDomElementByDomId result:', element);
+                    return element;
+                } catch (error) {
+                    console.error('Error in getDomElementByDomId:', error);
+                    return null;
+                }
+            },
             setFrameId: iframeRemote?.setFrameId,
         });
 
