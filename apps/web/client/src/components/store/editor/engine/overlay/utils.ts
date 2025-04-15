@@ -70,6 +70,7 @@ export function adaptRectToCanvas(
         }
         
         const wrapperRect = reactFlowWrapper.getBoundingClientRect();
+        const nodeRect = frameNode.getBoundingClientRect();
         
         // Get the viewport transform matrix (contains zoom and pan information)
         const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
@@ -86,25 +87,28 @@ export function adaptRectToCanvas(
         
         const scale = viewportTransform.a;
         
-        const nodeX = nodeTransform.m41;
-        const nodeY = nodeTransform.m42;
-        
-        const viewportX = viewportTransform.m41;
-        const viewportY = viewportTransform.m42;
-        
         // Get the node's data-frame-id attribute to help with debugging
         const frameId = frameNode.getAttribute('data-frame-id');
         const nodeId = frameNode.getAttribute('data-node-id');
         
         // Calculate the position of the element within the iframe
-        const iframeOffsetTop = iframeRect.top - frameNode.getBoundingClientRect().top;
-        const iframeOffsetLeft = iframeRect.left - frameNode.getBoundingClientRect().left;
+        const iframeOffsetTop = iframeRect.top - nodeRect.top;
+        const iframeOffsetLeft = iframeRect.left - nodeRect.left;
+        
+        // Calculate the position of the element relative to the iframe
+        const elementInIframeX = rect.left;
+        const elementInIframeY = rect.top;
         
         // Calculate the absolute position in the overlay space
-        const absoluteX = (rect.left * scale) + (iframeRect.left - wrapperRect.left) + (viewportX);
-        const absoluteY = (rect.top * scale) + (iframeRect.top - wrapperRect.top) + (viewportY);
+        // 1. The position of the element within the iframe
         
-        console.log('Overlay calculation:', {
+        const elementToWrapperX = iframeRect.left - wrapperRect.left + (elementInIframeX * scale);
+        const elementToWrapperY = iframeRect.top - wrapperRect.top + (elementInIframeY * scale);
+        
+        const absoluteX = elementToWrapperX + viewportTransform.m41;
+        const absoluteY = elementToWrapperY + viewportTransform.m42;
+        
+        console.log('Overlay calculation (improved):', {
             frameId,
             nodeId,
             rect,
@@ -112,19 +116,35 @@ export function adaptRectToCanvas(
             iframeRect: {
                 left: iframeRect.left,
                 top: iframeRect.top,
+                width: iframeRect.width,
+                height: iframeRect.height
             },
-            frameNodeRect: frameNode.getBoundingClientRect(),
+            nodeRect: {
+                left: nodeRect.left,
+                top: nodeRect.top,
+                width: nodeRect.width,
+                height: nodeRect.height
+            },
+            wrapperRect: {
+                left: wrapperRect.left,
+                top: wrapperRect.top
+            },
             iframeOffset: {
                 left: iframeOffsetLeft,
                 top: iframeOffsetTop,
             },
-            nodeTransform: {
-                x: nodeX,
-                y: nodeY,
+            elementInIframe: {
+                x: elementInIframeX,
+                y: elementInIframeY
+            },
+            elementToWrapper: {
+                x: elementToWrapperX,
+                y: elementToWrapperY
             },
             viewportTransform: {
-                x: viewportX,
-                y: viewportY,
+                x: viewportTransform.m41,
+                y: viewportTransform.m42,
+                scale
             },
             result: {
                 left: absoluteX,
@@ -199,25 +219,50 @@ export function getRelativeMousePositionToFrame(
         // Get the node transform matrix
         const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
         
-        // Calculate position relative to the iframe, accounting for React Flow scale and transforms
-        const nodeX = nodeTransform.m41;
-        const nodeY = nodeTransform.m42;
+        // Get the node's data attributes for debugging
+        const frameId = frameNode.getAttribute('data-frame-id');
+        const nodeId = frameNode.getAttribute('data-node-id');
         
-        // Get the viewport position
-        const viewportX = viewportTransform.m41;
-        const viewportY = viewportTransform.m42;
+        // Get the node's bounding rectangle
+        const nodeRect = frameNode.getBoundingClientRect();
         
-        // Adjust mouse position based on all transforms
-        const adjustedX = (e.clientX - rect.left) / scale;
-        const adjustedY = (e.clientY - rect.top) / scale;
+        // Calculate the position of the mouse relative to the iframe
+        // 1. The mouse position in client coordinates
         
-        console.log('Mouse position relative to frame:', { 
+        const rawOffsetX = e.clientX - rect.left;
+        const rawOffsetY = e.clientY - rect.top;
+        
+        const adjustedX = rawOffsetX / scale;
+        const adjustedY = rawOffsetY / scale;
+        
+        console.log('Mouse position relative to frame (improved):', { 
+            frameId,
+            nodeId,
             original: { x: e.clientX, y: e.clientY },
-            rect: { left: rect.left, top: rect.top },
+            rect: { 
+                left: rect.left, 
+                top: rect.top,
+                width: rect.width,
+                height: rect.height
+            },
+            nodeRect: {
+                left: nodeRect.left,
+                top: nodeRect.top,
+                width: nodeRect.width,
+                height: nodeRect.height
+            },
+            rawOffset: { x: rawOffsetX, y: rawOffsetY },
             adjusted: { x: adjustedX, y: adjustedY },
             scale,
-            node: { x: nodeX, y: nodeY },
-            viewport: { x: viewportX, y: viewportY }
+            nodeTransform: {
+                x: nodeTransform.m41,
+                y: nodeTransform.m42
+            },
+            viewportTransform: {
+                x: viewportTransform.m41,
+                y: viewportTransform.m42,
+                scale
+            }
         });
         
         return { x: adjustedX, y: adjustedY };
