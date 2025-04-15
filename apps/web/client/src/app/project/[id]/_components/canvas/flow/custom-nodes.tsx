@@ -20,7 +20,13 @@ export function FrameNode({ data, selected, id }: NodeProps) {
     }, [id, frame, editorEngine.state]);
 
     return (
-        <div className="relative nodrag" data-frame-id={frame.id} data-node-id={id}>
+        <div 
+            className="relative" 
+            data-frame-id={frame.id} 
+            data-node-id={id}
+            onMouseEnter={() => console.log(`Mouse entered node ${id} with frame ${frame.id}`)}
+            onMouseMove={(e) => console.log(`Mouse move in node ${id} at ${e.clientX},${e.clientY}`)}
+        >
             <FrameView frame={frame} />
         </div>
     );
