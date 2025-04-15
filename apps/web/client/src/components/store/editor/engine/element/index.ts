@@ -26,7 +26,10 @@ export class ElementsManager {
     }
 
     mouseover(domEl: DomElement, frameData: FrameData) {
+        console.log('Mouseover called with element:', domEl.tagName, domEl.rect);
+        
         if (this.hoveredElement?.domId && this.hoveredElement.domId === domEl.domId) {
+            console.log('Element already hovered, skipping');
             return;
         }
 
@@ -35,10 +38,16 @@ export class ElementsManager {
             frameId: frameData.frame.id,
         };
         const { view } = frameData;
+        
+        console.log('Before adaptRectToCanvas:', frameEl.rect);
         const adjustedRect = adaptRectToCanvas(frameEl.rect, view);
+        console.log('After adaptRectToCanvas:', adjustedRect);
+        
         const isComponent = !!domEl.instanceId;
         this.editorEngine.overlay.state.updateHoverRect(adjustedRect, isComponent);
         this.setHoveredElement(frameEl);
+        
+        console.log('Hover rect updated with:', adjustedRect);
     }
 
     shiftClick(domEl: DomElement, frameData: FrameData) {
