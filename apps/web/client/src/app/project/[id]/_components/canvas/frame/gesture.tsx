@@ -6,15 +6,34 @@ import { EditorMode, MouseAction } from '@onlook/models';
 import { cn } from '@onlook/ui/utils';
 import throttle from 'lodash/throttle';
 import { observer } from 'mobx-react-lite';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useReactFlow } from '@xyflow/react';
 import { RightClickMenu } from './right-click';
 
 export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, webFrame?: any }) => {
     const editorEngine = useEditorEngine();
+    const reactFlowInstance = useReactFlow();
     const isResizing = false;
+    const gestureRef = useRef<HTMLDivElement>(null);
+    
+    useEffect(() => {
+        console.log(`GestureScreen mounted/updated for frame ${frame.id}`, {
+            webFrameExists: !!webFrame,
+            nodeId: editorEngine.state.getNodeIdFromFrameId(frame.id),
+        });
+        
+        if (reactFlowInstance) {
+            const viewport = reactFlowInstance.getViewport();
+            console.log('React Flow viewport:', viewport);
+        }
+    }, [frame.id, webFrame, reactFlowInstance, editorEngine.state]);
 
     const getFrameData: () => FrameData | undefined = () => {
-        return editorEngine.frames.get(frame.id);
+        const frameData = editorEngine.frames.get(frame.id);
+        if (!frameData) {
+            console.error(`No frame data found for frame: ${frame.id}`);
+        }
+        return frameData;
     }
 
     const getRelativeMousePosition = (e: React.MouseEvent<HTMLDivElement>): ElementPosition => {
@@ -23,12 +42,15 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
             console.error('No frame data found for frame:', frame.id);
             return { x: 0, y: 0 };
         }
+        
         const { view } = frameData;
         console.log('Getting mouse position for frame:', frame.id, 'view:', view ? 'exists' : 'missing');
+        
         if (!view) {
             console.error('No view found for frame:', frame.id);
             return { x: 0, y: 0 };
         }
+        
         const position = getRelativeMousePositionToFrame(e, view);
         console.log('Mouse position relative to frame:', position);
         return position;
@@ -36,7 +58,10 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
 
     const handleMouseEvent = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>, action: MouseAction) => {
-            console.log(`handleMouseEvent called with action: ${action}`);
+            e.stopPropagation(); // Prevent event from bubbling up to React Flow
+            
+            console.log(`handleMouseEvent called with action: ${action} for frame ${frame.id}`);
+            
             const frameData = getFrameData();
             if (!frameData) {
                 console.error('Frame data not found');
@@ -44,6 +69,7 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
             }
             
             console.log('Frame data found:', frameData.frame.id);
+            
             const pos = getRelativeMousePosition(e);
             const shouldGetStyle = [MouseAction.MOUSE_DOWN, MouseAction.DOUBLE_CLICK].includes(action);
             
@@ -54,7 +80,7 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
             }
             
             try {
-                if (!frameData.view.getElementAtLoc) {
+                if (!frameData.view || !frameData.view.getElementAtLoc) {
                     console.error('getElementAtLoc function not available on frame view');
                     return;
                 }
@@ -103,7 +129,7 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
             throttle((e: React.MouseEvent<HTMLDivElement>) => {
                 handleMouseEvent(e, MouseAction.MOVE);
             }, 16),
-        [editorEngine, getRelativeMousePosition, handleMouseEvent],
+        [handleMouseEvent],
     );
 
     useEffect(() => {
@@ -114,15 +140,22 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
 
     const handleClick = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
+            e.stopPropagation(); // Prevent event from bubbling up to React Flow
+            console.log(`Click in gesture screen for frame ${frame.id}`);
             editorEngine.frames.select(frame);
         },
-        [editorEngine.frames],
+        [editorEngine.frames, frame],
     );
 
     function handleDoubleClick(e: React.MouseEvent<HTMLDivElement>) {
+        e.stopPropagation(); // Prevent event from bubbling up to React Flow
+        console.log(`Double click in gesture screen for frame ${frame.id}`);
     }
 
     function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+        e.stopPropagation(); // Prevent event from bubbling up to React Flow
+        console.log(`Mouse down in gesture screen for frame ${frame.id}`);
+        
         if (editorEngine.state.editorMode === EditorMode.DESIGN) {
             handleMouseEvent(e, MouseAction.MOUSE_DOWN);
         } else if (
@@ -133,27 +166,36 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
         }
     }
 
-    async function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
+    function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
+        e.stopPropagation(); // Prevent event from bubbling up to React Flow
+        console.log(`Mouse up in gesture screen for frame ${frame.id}`);
     }
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.stopPropagation(); // Prevent event from bubbling up to React Flow
+        e.preventDefault();
+        console.log(`Drag over in gesture screen for frame ${frame.id}`);
     };
 
     const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+        e.stopPropagation(); // Prevent event from bubbling up to React Flow
         e.preventDefault();
-        e.stopPropagation();
+        console.log(`Drop in gesture screen for frame ${frame.id}`);
     };
 
     const gestureScreenClassName = useMemo(() => {
         return cn(
-            'absolute inset-0 bg-transparent',
+            'absolute inset-0 bg-transparent z-10', // Higher z-index to ensure it captures events
             editorEngine.state.editorMode === EditorMode.PREVIEW && !isResizing ? 'hidden' : 'visible',
             editorEngine.state.editorMode === EditorMode.INSERT_DIV && 'cursor-crosshair',
             editorEngine.state.editorMode === EditorMode.INSERT_TEXT && 'cursor-text',
+            'nodrag', // Tell React Flow not to drag when interacting with this element
         );
     }, [editorEngine.state.editorMode, isResizing]);
 
-    const handleMouseOut = () => {
+    const handleMouseOut = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation(); // Prevent event from bubbling up to React Flow
+        console.log(`Mouse out in gesture screen for frame ${frame.id}`);
         editorEngine.elements.clearHoveredElement();
         editorEngine.overlay.state.removeHoverRect();
     }
@@ -161,6 +203,7 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
     return (
         <RightClickMenu>
             <div
+                ref={gestureRef}
                 className={gestureScreenClassName}
                 onClick={handleClick}
                 onMouseOut={handleMouseOut}
@@ -171,6 +214,9 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
                 onDoubleClick={handleDoubleClick}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
+                data-frame-id={frame.id}
+                data-testid={`gesture-screen-${frame.id}`}
+                style={{ pointerEvents: 'all' }}
             ></div>
         </RightClickMenu>
     );
