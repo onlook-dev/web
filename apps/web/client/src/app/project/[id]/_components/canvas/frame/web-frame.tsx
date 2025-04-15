@@ -61,11 +61,16 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     const setupIframe = useCallback(async (iframe: HTMLIFrameElement) => {
         try {
             await setupPenpalConnection(iframe);
-            editorEngine.frames.register(frame, iframe as WebFrameView);
+            setTimeout(() => {
+                if (iframe && iframe.contentWindow) {
+                    editorEngine.frames.register(frame, iframe as WebFrameView);
+                    console.log('Frame registered successfully:', frame.id);
+                }
+            }, 100); // Small delay to ensure iframe is fully loaded
         } catch (error) {
             console.error('Initialize penpal connection failed:', error);
         }
-    }, [setupPenpalConnection]);
+    }, [setupPenpalConnection, frame, editorEngine.frames]);
 
     const handleIframeLoad = useCallback(() => {
         const iframe = iframeRef.current;

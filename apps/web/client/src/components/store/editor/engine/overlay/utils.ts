@@ -45,63 +45,102 @@ export function adaptRectToCanvas(
     frameView: WebFrameView,
     inverse = false,
 ): RectDimensions {
-    const frameNode = frameView.closest('.react-flow__node');
-    if (!frameNode) {
-        console.error('React Flow node not found');
-        return rect;
-    }
+    try {
+        const frameNode = frameView.closest('.react-flow__node');
+        if (!frameNode) {
+            console.error('React Flow node not found');
+            return rect;
+        }
 
-    const iframeRect = frameView.getBoundingClientRect();
-    
-    const reactFlowViewport = document.querySelector('.react-flow__viewport');
-    if (!reactFlowViewport) {
-        console.error('React Flow viewport not found');
+        // Get the iframe's bounding rectangle
+        const iframeRect = frameView.getBoundingClientRect();
+        
+        // Get the React Flow viewport element
+        const reactFlowViewport = document.querySelector('.react-flow__viewport');
+        if (!reactFlowViewport) {
+            console.error('React Flow viewport not found');
+            return rect;
+        }
+        
+        // Get the React Flow wrapper element
+        const reactFlowWrapper = document.querySelector('.react-flow');
+        if (!reactFlowWrapper) {
+            console.error('React Flow wrapper not found');
+            return rect;
+        }
+        
+        const wrapperRect = reactFlowWrapper.getBoundingClientRect();
+        
+        // Get the viewport transform matrix (contains zoom and pan information)
+        const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
+        
+        // Get the node transform matrix (contains node position)
+        const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
+        
+        // Get the overlay container
+        const overlayContainer = document.getElementById(EditorAttributes.OVERLAY_CONTAINER_ID);
+        if (!overlayContainer) {
+            console.error('Overlay container not found');
+            return rect;
+        }
+        
+        const scale = viewportTransform.a;
+        
+        const nodeX = nodeTransform.m41;
+        const nodeY = nodeTransform.m42;
+        
+        // Get the viewport position
+        const viewportX = viewportTransform.m41;
+        const viewportY = viewportTransform.m42;
+        
+        // Calculate the position of the element within the iframe, accounting for scale
+        const elementX = rect.left * scale;
+        const elementY = rect.top * scale;
+        
+        // Calculate the absolute position by combining:
+        const absoluteX = elementX + (iframeRect.left - wrapperRect.left) + nodeX * scale + viewportX;
+        const absoluteY = elementY + (iframeRect.top - wrapperRect.top) + nodeY * scale + viewportY;
+        
+        console.log('Overlay calculation:', {
+            rect,
+            elementX,
+            elementY,
+            iframeRect: {
+                left: iframeRect.left,
+                top: iframeRect.top,
+            },
+            wrapperRect: {
+                left: wrapperRect.left,
+                top: wrapperRect.top,
+            },
+            nodeTransform: {
+                x: nodeX,
+                y: nodeY,
+            },
+            viewportTransform: {
+                x: viewportX,
+                y: viewportY,
+                scale,
+            },
+            result: {
+                left: absoluteX,
+                top: absoluteY,
+                width: rect.width * scale,
+                height: rect.height * scale,
+            }
+        });
+        
+        // Return the adjusted rectangle
+        return {
+            width: rect.width * scale,
+            height: rect.height * scale,
+            top: absoluteY,
+            left: absoluteX,
+        };
+    } catch (error) {
+        console.error('Error in adaptRectToCanvas:', error);
         return rect;
     }
-    
-    // Get the viewport transform matrix
-    const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
-    
-    // Get the node transform matrix
-    const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
-    
-    const overlayContainer = document.getElementById(EditorAttributes.OVERLAY_CONTAINER_ID);
-    if (!overlayContainer) {
-        console.error('Overlay container not found');
-        return rect;
-    }
-    
-    const overlayRect = overlayContainer.getBoundingClientRect();
-    
-    const reactFlowPane = document.querySelector('.react-flow__pane');
-    if (!reactFlowPane) {
-        console.error('React Flow pane not found');
-        return rect;
-    }
-    
-    const paneRect = reactFlowPane.getBoundingClientRect();
-    
-    // Calculate the scale
-    const scale = viewportTransform.a;
-    
-    // Get the node position relative to the viewport
-    const nodeX = nodeTransform.m41;
-    const nodeY = nodeTransform.m42;
-    
-    // Calculate the position relative to the React Flow viewport
-    const x = rect.left * scale;
-    const y = rect.top * scale;
-    
-    // Calculate the position relative to the overlay container
-    const absoluteX = x + iframeRect.left - paneRect.left + (nodeX * scale);
-    const absoluteY = y + iframeRect.top - paneRect.top + (nodeY * scale);
-    
-    return {
-        width: rect.width * scale,
-        height: rect.height * scale,
-        top: absoluteY,
-        left: absoluteX,
-    };
 }
 
 export function adaptValueToCanvas(value: number, inverse = false): number {
@@ -125,19 +164,25 @@ export function getRelativeMousePositionToFrame(
     frameView: WebFrameView,
     inverse: boolean = false,
 ): ElementPosition {
+    // Get the bounding rectangle of the iframe
     const rect = frameView.getBoundingClientRect();
     
+    // Get the React Flow viewport element
     const reactFlowViewport = document.querySelector('.react-flow__viewport');
     if (!reactFlowViewport) {
         console.error('React Flow viewport not found');
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
     
+    // Get the viewport transform matrix to extract the scale
     const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
     const scale = viewportTransform.a || 1; // Get scale from transform matrix
     
     // Calculate position relative to the iframe, accounting for React Flow scale
     const x = (e.clientX - rect.left) / scale;
     const y = (e.clientY - rect.top) / scale;
+    
+    console.log('Mouse position relative to frame:', { x, y, scale });
+    
     return { x, y };
 }

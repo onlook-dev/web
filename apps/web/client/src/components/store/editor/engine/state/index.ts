@@ -12,6 +12,8 @@ export class StateManager {
     private _canvasScrolling = false;
     canvasPanning = false;
 
+    private _nodeFrameMap: Map<string, string> = new Map();
+
     editorMode: EditorMode = EditorMode.DESIGN;
     settingsTab: SettingsTabValue = SettingsTabValue.PREFERENCES;
 
@@ -43,6 +45,27 @@ export class StateManager {
         }
     }
 
+    setNodeFrameMapping(nodeId: string, frameId: string) {
+        this._nodeFrameMap.set(nodeId, frameId);
+    }
+
+    removeNodeFrameMapping(nodeId: string) {
+        this._nodeFrameMap.delete(nodeId);
+    }
+
+    getFrameIdFromNodeId(nodeId: string): string | undefined {
+        return this._nodeFrameMap.get(nodeId);
+    }
+
+    getNodeIdFromFrameId(frameId: string): string | undefined {
+        for (const [nodeId, mappedFrameId] of this._nodeFrameMap.entries()) {
+            if (mappedFrameId === frameId) {
+                return nodeId;
+            }
+        }
+        return undefined;
+    }
+
     private resetCanvasScrolling() {
         this.resetCanvasScrollingDebounced();
     }
@@ -56,6 +79,7 @@ export class StateManager {
         this.settingsOpen = false;
         this.hotkeysOpen = false;
         this.publishOpen = false;
+        this._nodeFrameMap.clear();
         this.resetCanvasScrollingDebounced.cancel();
     }
 }
