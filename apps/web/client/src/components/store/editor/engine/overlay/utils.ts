@@ -101,8 +101,8 @@ export function adaptRectToCanvas(
         const iframeOffsetLeft = iframeRect.left - frameNode.getBoundingClientRect().left;
         
         // Calculate the absolute position in the overlay space
-        const absoluteX = (rect.left * scale) + (iframeRect.left - wrapperRect.left);
-        const absoluteY = (rect.top * scale) + (iframeRect.top - wrapperRect.top);
+        const absoluteX = (rect.left * scale) + (iframeRect.left - wrapperRect.left) + (viewportX);
+        const absoluteY = (rect.top * scale) + (iframeRect.top - wrapperRect.top) + (viewportY);
         
         console.log('Overlay calculation:', {
             frameId,
