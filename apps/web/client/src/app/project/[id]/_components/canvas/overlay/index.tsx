@@ -4,8 +4,8 @@ import { EditorAttributes } from '@onlook/constants';
 import { EditorMode } from '@onlook/models';
 import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
-import { memo, useEffect, useMemo, useRef } from 'react';
-import { useReactFlow } from '@xyflow/react';
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useReactFlow, useStore } from '@xyflow/react';
 import { OverlayChat } from './elements/chat';
 import { MeasurementOverlay } from './elements/measurement';
 import { ClickRect } from './elements/rect/click';
@@ -24,19 +24,36 @@ export const Overlay = observer(() => {
     const editorEngine = useEditorEngine();
     const reactFlowInstance = useReactFlow();
     const overlayRef = useRef<HTMLDivElement>(null);
+    
+    const { transform, width, height } = useStore();
 
     // Memoize overlay state values
     const overlayState = editorEngine.overlay.state;
     const isPreviewMode = editorEngine.state.editorMode === EditorMode.PREVIEW;
     const isSingleSelection = editorEngine.elements.selected.length === 1;
 
-    useEffect(() => {
+    const syncViewport = useCallback(() => {
         if (reactFlowInstance) {
             const { x, y, zoom } = reactFlowInstance.getViewport();
+            console.log('Syncing viewport:', { x, y, zoom });
             editorEngine.canvas.position = { x, y };
             editorEngine.canvas.scale = zoom;
         }
     }, [reactFlowInstance, editorEngine.canvas]);
+
+    useEffect(() => {
+        syncViewport();
+    }, [transform, syncViewport]);
+
+    useEffect(() => {
+        syncViewport();
+    }, [syncViewport]);
+
+    useEffect(() => {
+        if (overlayState.hoverRect) {
+            console.log('Hover rect updated:', overlayState.hoverRect.rect);
+        }
+    }, [overlayState.hoverRect]);
 
     // Memoize the container style object
     const containerStyle = useMemo(
@@ -71,6 +88,12 @@ export const Overlay = observer(() => {
         [overlayState.clickRects, isSingleSelection],
     );
 
+    const viewportTransform = useMemo(() => {
+        if (!reactFlowInstance) return '';
+        const { x, y, zoom } = reactFlowInstance.getViewport();
+        return `translate(${x}px, ${y}px) scale(${zoom})`;
+    }, [reactFlowInstance, transform]);
+
     return (
         <div
             ref={overlayRef}
@@ -82,15 +105,15 @@ export const Overlay = observer(() => {
                     'opacity-0': editorEngine.state.shouldHideOverlay,
                 }
             )}
+            onMouseMove={() => console.log('Mouse move on overlay container')}
         >
             <div 
                 className="react-flow__viewport"
                 style={{
-                    transform: reactFlowInstance ? 
-                        `translate(${reactFlowInstance.getViewport().x}px, ${reactFlowInstance.getViewport().y}px) scale(${reactFlowInstance.getViewport().zoom})` : 
-                        undefined,
+                    transform: viewportTransform,
                     transformOrigin: '0 0',
                 }}
+                onMouseMove={(e) => console.log('Mouse move on viewport container', e.clientX, e.clientY)}
             >
                 {overlayState.hoverRect && (
                     <HoverRect
