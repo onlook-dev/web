@@ -35,6 +35,11 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
             }
             const pos = getRelativeMousePosition(e);
             const shouldGetStyle = [MouseAction.MOUSE_DOWN, MouseAction.DOUBLE_CLICK].includes(action);
+            
+            if (action === MouseAction.MOVE) {
+                editorEngine.overlay.refreshOverlay();
+            }
+            
             const el: DomElement = await frameData.view.getElementAtLoc(pos.x, pos.y, shouldGetStyle);
             if (!el) {
                 console.log('No element found');
@@ -44,6 +49,7 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
             switch (action) {
                 case MouseAction.MOVE:
                     editorEngine.elements.mouseover(el, frameData);
+                    console.log('Mouse over element:', el.tagName, el.rect);
                     break;
                 case MouseAction.MOUSE_DOWN:
                     if (el.tagName.toLocaleLowerCase() === 'body') {
@@ -64,7 +70,7 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
                     break;
             }
         },
-        [getRelativeMousePosition, editorEngine],
+        [getRelativeMousePosition, editorEngine, frame],
     );
 
     const throttledMouseMove = useMemo(
