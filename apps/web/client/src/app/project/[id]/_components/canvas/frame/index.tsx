@@ -21,8 +21,7 @@ export const FrameView = observer(
 
         return (
             <div
-                className="flex flex-col fixed"
-                style={{ transform: `translate(${frame.position.x}px, ${frame.position.y}px)` }}
+                className="flex flex-col"
             >
                 <TopBar frame={frame}>
                 </TopBar>
@@ -32,7 +31,6 @@ export const FrameView = observer(
                     {webFrame && <GestureScreen frame={frame as WebFrame} webFrame={webFrame} />}
                     {/* {domFailed && shouldShowDomFailed && renderNotRunning()} */}
                 </div>
-
             </div>
         );
     });

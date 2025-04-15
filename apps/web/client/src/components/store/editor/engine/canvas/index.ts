@@ -80,7 +80,19 @@ export class CanvasManager {
     }
 
     set frames(frames: Frame[]) {
-        this._frames = frames;
+        this._frames = frames.map(frame => {
+          if (frame instanceof WebFrameImpl) {
+            return frame;
+          }
+          if ('url' in frame) {
+            return WebFrameImpl.fromJSON(frame as WebFrame);
+          }
+          return WebFrameImpl.fromJSON({
+            ...frame,
+            url: '',
+            type: FrameType.WEB
+          } as WebFrame);
+        });
         this.saveSettings();
     }
 
