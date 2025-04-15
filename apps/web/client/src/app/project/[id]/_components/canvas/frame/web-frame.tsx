@@ -61,16 +61,43 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     const setupIframe = useCallback(async (iframe: HTMLIFrameElement) => {
         try {
             await setupPenpalConnection(iframe);
+            
+            const enhancedIframe = iframe as WebFrameView;
+            
+            if (iframeRemote) {
+                enhancedIframe.getElementAtLoc = async (x, y, getStyle) => {
+                    return iframeRemote.getElementAtLoc(x, y, getStyle);
+                };
+                enhancedIframe.getDomElementByDomId = async (domId, getStyle) => {
+                    return iframeRemote.getDomElementByDomId(domId, getStyle);
+                };
+                enhancedIframe.setFrameId = iframeRemote.setFrameId;
+            }
+            
+            // Register the frame with a delay to ensure it's fully loaded
             setTimeout(() => {
                 if (iframe && iframe.contentWindow) {
-                    editorEngine.frames.register(frame, iframe as WebFrameView);
-                    console.log('Frame registered successfully:', frame.id);
+                    const existingFrame = editorEngine.frames.get(frame.id);
+                    if (!existingFrame) {
+                        editorEngine.frames.register(frame, enhancedIframe);
+                        console.log('Frame registered successfully:', frame.id);
+                        
+                        const nodeId = editorEngine.state.getNodeIdFromFrameId(frame.id);
+                        if (nodeId) {
+                            console.log(`Found existing node mapping: ${nodeId} -> ${frame.id}`);
+                        } else {
+                            console.log(`No node mapping found for frame ${frame.id}`);
+                        }
+                    } else {
+                        console.log(`Frame ${frame.id} already registered, updating view`);
+                        existingFrame.view = enhancedIframe;
+                    }
                 }
-            }, 100); // Small delay to ensure iframe is fully loaded
+            }, 200); // Slightly longer delay to ensure iframe is fully loaded
         } catch (error) {
             console.error('Initialize penpal connection failed:', error);
         }
-    }, [setupPenpalConnection, frame, editorEngine.frames]);
+    }, [setupPenpalConnection, frame, editorEngine.frames, editorEngine.state, iframeRemote]);
 
     const handleIframeLoad = useCallback(() => {
         const iframe = iframeRef.current;
@@ -93,7 +120,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     useImperativeHandle(ref, () => {
         const iframe = iframeRef.current!;
 
-        Object.assign(iframe, {
+        const enhancedIframe = Object.assign(iframe, {
             supportsOpenDevTools: () => {
                 const contentWindow = iframe.contentWindow;
                 return !!contentWindow && 'openDevTools' in contentWindow;
@@ -138,7 +165,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
                 }
                 try {
                     const element = await iframeRemote.getElementAtLoc(x, y, getStyle);
-                    console.log('getElementAtLoc result:', element);
+                    console.log('getElementAtLoc result:', element ? `${element.tagName} with rect ${JSON.stringify(element.rect)}` : 'null');
                     return element;
                 } catch (error) {
                     console.error('Error in getElementAtLoc:', error);
@@ -153,18 +180,40 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
                 }
                 try {
                     const element = await iframeRemote.getDomElementByDomId(domId, getStyle);
-                    console.log('getDomElementByDomId result:', element);
+                    console.log('getDomElementByDomId result:', element ? `${element.tagName} with rect ${JSON.stringify(element.rect)}` : 'null');
                     return element;
                 } catch (error) {
                     console.error('Error in getDomElementByDomId:', error);
                     return null;
                 }
             },
-            setFrameId: iframeRemote?.setFrameId,
+            setFrameId: async (frameId: string) => {
+                if (iframeRemote?.setFrameId) {
+                    return iframeRemote.setFrameId(frameId);
+                }
+                console.error('setFrameId not available in iframeRemote');
+                return null;
+            },
+            processDom: async () => {
+                if (iframeRemote?.processDom) {
+                    return iframeRemote.processDom();
+                }
+                console.error('processDom not available in iframeRemote');
+                return null;
+            }
         });
 
-        return iframe as WebFrameView;
-    }, [iframeRemote]);
+        // Register the frame with the editor engine if not already registered
+        setTimeout(() => {
+            const existingFrame = editorEngine.frames.get(frame.id);
+            if (!existingFrame) {
+                editorEngine.frames.register(frame, enhancedIframe as WebFrameView);
+                console.log('Frame registered in useImperativeHandle:', frame.id);
+            }
+        }, 100);
+
+        return enhancedIframe as WebFrameView;
+    }, [iframeRemote, frame, editorEngine.frames]);
     return (
         <iframe
             ref={iframeRef}
