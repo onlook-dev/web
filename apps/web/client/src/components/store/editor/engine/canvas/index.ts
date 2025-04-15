@@ -38,7 +38,7 @@ export class CanvasManager {
     }
 
     getDefaultPanPosition(): RectPosition {
-        if (!window) {
+        if (typeof window === 'undefined') {
             return DefaultSettings.PAN_POSITION;
         }
 
