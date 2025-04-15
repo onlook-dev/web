@@ -4,9 +4,6 @@ import { useEditorEngine } from '@/components/store';
 import { EditorAttributes } from '@onlook/constants';
 import { EditorMode } from '@onlook/models';
 import {
-    Background,
-    BackgroundVariant,
-    Controls,
     type Node,
     type NodeChange,
     ReactFlow,
@@ -18,7 +15,7 @@ import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect, useState } from 'react';
 import { FrameNode } from './flow/custom-nodes';
 import './flow/styles.css';
-import { createFrameFromNode, createInitialEdges, createInitialNodes } from './flow/utils';
+import { createFrameFromNode, createInitialNodes } from './flow/utils';
 import { HotkeysArea } from './hotkeys';
 
 const MIN_ZOOM = 0.1;
@@ -35,8 +32,6 @@ const FlowCanvas = observer(() => {
     const [nodes, setNodes] = useState<Node[]>(
         createInitialNodes(editorEngine.canvas.frames)
     );
-
-    const [edges, setEdges] = useState(createInitialEdges());
 
     useEffect(() => {
         setNodes(createInitialNodes(editorEngine.canvas.frames));
@@ -72,18 +67,9 @@ const FlowCanvas = observer(() => {
         editorEngine.clearUI();
     }, [editorEngine]);
 
-    useEffect(() => {
-        if (editorEngine.state.editorMode === EditorMode.PAN) {
-            setIsPanning(true);
-        } else {
-            setIsPanning(false);
-        }
-    }, [editorEngine.state.editorMode]);
-
     const middleMouseButtonDown = useCallback((e: MouseEvent) => {
         if (e.button === 1) {
             editorEngine.state.editorMode = EditorMode.PAN;
-            setIsPanning(true);
             e.preventDefault();
             e.stopPropagation();
         }
@@ -92,7 +78,6 @@ const FlowCanvas = observer(() => {
     const middleMouseButtonUp = useCallback((e: MouseEvent) => {
         if (e.button === 1) {
             editorEngine.state.editorMode = EditorMode.DESIGN;
-            setIsPanning(false);
             e.preventDefault();
             e.stopPropagation();
         }
@@ -115,7 +100,6 @@ const FlowCanvas = observer(() => {
             >
                 <ReactFlow
                     nodes={nodes}
-                    edges={edges}
                     onNodesChange={onNodesChange}
                     onMove={(e, viewport) => onViewportChange(viewport.x, viewport.y, viewport.zoom)}
                     onInit={(instance) => {
@@ -138,13 +122,6 @@ const FlowCanvas = observer(() => {
                     nodesDraggable={true}
                     className="react-flow-canvas"
                 >
-                    <Background
-                        color="#ccc"
-                        variant={BackgroundVariant.Dots}
-                        gap={24}
-                        size={1.5}
-                    />
-                    <Controls showInteractive={false} />
                 </ReactFlow>
                 {/* <Overlay>
                 </Overlay> */}
