@@ -18,8 +18,7 @@ export const FrameView = observer(
             <div
                 className="flex flex-col"
             >
-                <TopBar frame={frame}>
-                </TopBar>
+                <TopBar frame={frame} />
                 <div className="relative">
                     <ResizeHandles frame={frame} />
                     {frame.type === FrameType.WEB && <WebFrameComponent frame={frame as WebFrame} ref={webFrameRef} />}
