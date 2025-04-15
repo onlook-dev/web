@@ -24,35 +24,26 @@ export const BaseRect: React.FC<RectProps> = ({
         return null;
     }
 
+    console.log('BaseRect rendering with dimensions:', { width, height, top, left });
+
     return (
         <div
             style={{
                 position: 'absolute',
                 top: `${top}px`,
                 left: `${left}px`,
+                width: `${width}px`,
+                height: `${height}px`,
                 pointerEvents: 'none',
+                boxSizing: 'border-box',
+                border: `${strokeWidth}px solid ${isComponent ? colors.purple[500] : colors.red[500]}`,
+                zIndex: 1000,
             }}
             className={className}
             data-onlook-ignore="true"
             id={EditorAttributes.ONLOOK_RECT_ID}
         >
-            <svg
-                overflow="visible"
-                width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
-            >
-                <rect
-                    width={width}
-                    height={height}
-                    fill="none"
-                    stroke={isComponent ? colors.purple[500] : colors.red[500]}
-                    strokeWidth={strokeWidth}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-                {children}
-            </svg>
+            {children}
         </div>
     );
 };
