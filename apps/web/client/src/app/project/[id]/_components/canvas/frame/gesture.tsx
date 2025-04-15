@@ -20,10 +20,18 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
     const getRelativeMousePosition = (e: React.MouseEvent<HTMLDivElement>): ElementPosition => {
         const frameData = getFrameData();
         if (!frameData) {
+            console.error('No frame data found for frame:', frame.id);
             return { x: 0, y: 0 };
         }
         const { view } = frameData;
-        return getRelativeMousePositionToFrame(e, view);
+        console.log('Getting mouse position for frame:', frame.id, 'view:', view ? 'exists' : 'missing');
+        if (!view) {
+            console.error('No view found for frame:', frame.id);
+            return { x: 0, y: 0 };
+        }
+        const position = getRelativeMousePositionToFrame(e, view);
+        console.log('Mouse position relative to frame:', position);
+        return position;
     }
 
     const handleMouseEvent = useCallback(
