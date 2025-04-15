@@ -121,6 +121,8 @@ const FlowCanvas = observer(() => {
                     panOnDrag={isPanning}
                     selectionOnDrag={!isPanning}
                     nodesDraggable={true}
+                    noDragClassName="nodrag"
+                    dragHandleClassName="drag-handle"
                     className="react-flow-canvas"
                 >
                 </ReactFlow>

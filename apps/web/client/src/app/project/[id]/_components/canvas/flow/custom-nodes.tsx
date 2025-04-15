@@ -6,7 +6,7 @@ export function FrameNode({ data, selected }: NodeProps) {
     const { frame } = data as { frame: Frame };
 
     return (
-        <div className="relative">
+        <div className="relative nodrag">
             <FrameView frame={frame} />
         </div>
     );

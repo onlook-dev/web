@@ -46,7 +46,7 @@ export const TopBar = observer(
 
         return (
             <div
-                className='rounded bg-foreground-primary/10 hover:shadow h-6 m-auto flex flex-row items-center backdrop-blur-sm overflow-hidden relative shadow-sm border-input text-foreground'
+                className='rounded bg-foreground-primary/10 hover:shadow h-6 m-auto flex flex-row items-center backdrop-blur-sm overflow-hidden relative shadow-sm border-input text-foreground drag-handle'
                 style={{
                     transform: `scale(${1 / editorEngine.canvas.scale})`,
                     width: `${frame.dimension.width * editorEngine.canvas.scale}px`,
