@@ -14,7 +14,7 @@ import { createDomId, createOid } from '@onlook/utility';
 import type React from 'react';
 import type { EditorEngine } from '..';
 import type { FrameData } from '../frames';
-import { getRelativeMousePositionToWebview } from '../overlay/utils';
+import { getRelativeMousePositionToFrame } from '../overlay/utils';
 
 export class InsertManager {
     isDrawing = false;
@@ -84,7 +84,7 @@ export class InsertManager {
         const currentPos = { x: e.clientX, y: e.clientY };
         const newRect = this.getDrawRect(currentPos);
 
-        const origin = getRelativeMousePositionToWebview(e, webview);
+        const origin = getRelativeMousePositionToFrame(e, webview);
         this.insertElement(webview, newRect, origin);
         this.drawOrigin = undefined;
     }

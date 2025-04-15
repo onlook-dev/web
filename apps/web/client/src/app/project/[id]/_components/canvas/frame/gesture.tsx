@@ -1,6 +1,6 @@
 import { useEditorEngine } from '@/components/store';
 import type { FrameData } from '@/components/store/editor/engine/frames';
-import { getRelativeMousePositionToWebview } from '@/components/store/editor/engine/overlay/utils';
+import { getRelativeMousePositionToFrame } from '@/components/store/editor/engine/overlay/utils';
 import type { DomElement, ElementPosition, WebFrame } from '@onlook/models';
 import { EditorMode, MouseAction } from '@onlook/models';
 import { cn } from '@onlook/ui/utils';
@@ -23,7 +23,7 @@ export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
             return { x: 0, y: 0 };
         }
         const { view } = frameData;
-        return getRelativeMousePositionToWebview(e, view);
+        return getRelativeMousePositionToFrame(e, view);
     }
 
     const handleMouseEvent = useCallback(
