@@ -45,48 +45,49 @@ export function adaptRectToCanvas(
     frameView: WebFrameView,
     inverse = false,
 ): RectDimensions {
-    const canvasContainer = document.getElementById(EditorAttributes.CANVAS_CONTAINER_ID);
-    if (!canvasContainer) {
-        console.error('Canvas container not found');
+    const frameNode = frameView.closest('.react-flow__node');
+    if (!frameNode) {
+        console.error('React Flow node not found');
         return rect;
     }
 
-    // Get canvas transform matrix to handle React Flow scaling and translation
-    const canvasTransform = new DOMMatrix(getComputedStyle(canvasContainer).transform);
-
+    const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
+    
+    const reactFlowPane = document.querySelector('.react-flow__pane');
+    if (!reactFlowPane) {
+        console.error('React Flow pane not found');
+        return rect;
+    }
+    
+    const paneTransform = new DOMMatrix(getComputedStyle(reactFlowPane as HTMLElement).transform);
+    
     // Get scale from transform matrix
-    const scale = inverse ? 1 / canvasTransform.a : canvasTransform.a;
-
-    const frameRect = frameView.getBoundingClientRect();
-    const canvasRect = canvasContainer.getBoundingClientRect();
-
-    // Calculate the frame's position relative to the canvas
-    const frameOffsetX = frameRect.left - canvasRect.left;
-    const frameOffsetY = frameRect.top - canvasRect.top;
+    const scale = inverse ? 1 / paneTransform.a : paneTransform.a;
 
     // Transform coordinates to fixed overlay space
     return {
         width: rect.width * scale,
         height: rect.height * scale,
-        top: (rect.top + frameOffsetY) * scale,
-        left: (rect.left + frameOffsetX) * scale,
+        top: (rect.top + nodeTransform.m42) * scale,
+        left: (rect.left + nodeTransform.m41) * scale,
     };
 }
 
 export function adaptValueToCanvas(value: number, inverse = false): number {
-    const canvasContainer = document.getElementById(EditorAttributes.CANVAS_CONTAINER_ID);
-    if (!canvasContainer) {
-        console.error('Canvas container not found');
+    const reactFlowPane = document.querySelector('.react-flow__pane');
+    if (!reactFlowPane) {
+        console.error('React Flow pane not found');
         return value;
     }
-    const canvasTransform = new DOMMatrix(getComputedStyle(canvasContainer).transform);
-    const scale = inverse ? 1 / canvasTransform.a : canvasTransform.a; // Get scale from transform matrix
+    
+    const paneTransform = new DOMMatrix(getComputedStyle(reactFlowPane as HTMLElement).transform);
+    const scale = inverse ? 1 / paneTransform.a : paneTransform.a; // Get scale from transform matrix
     return value * scale;
 }
 
 /**
- * Get the relative mouse position a webview element inside the canvas container.
- * This accounts for React Flow node transforms and canvas scaling.
+ * Get the relative mouse position a webview element inside a React Flow node.
+ * This accounts for React Flow node transforms and pane scaling.
  */
 export function getRelativeMousePositionToFrame(
     e: React.MouseEvent<HTMLDivElement>,
@@ -94,17 +95,17 @@ export function getRelativeMousePositionToFrame(
     inverse: boolean = false,
 ): ElementPosition {
     const rect = frameView.getBoundingClientRect();
-    const canvasContainer = document.getElementById(EditorAttributes.CANVAS_CONTAINER_ID);
-    if (!canvasContainer) {
-        console.error('Canvas container not found');
-        return rect;
+    
+    const reactFlowPane = document.querySelector('.react-flow__pane');
+    if (!reactFlowPane) {
+        console.error('React Flow pane not found');
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
-
-    // Get canvas transform to account for React Flow scaling and translation
-    const canvasTransform = new DOMMatrix(getComputedStyle(canvasContainer).transform);
-    const scale = canvasTransform.a || 1; // Get scale from transform matrix
-
-    // Calculate position relative to the frame, accounting for canvas scale
+    
+    const paneTransform = new DOMMatrix(getComputedStyle(reactFlowPane as HTMLElement).transform);
+    const scale = paneTransform.a || 1; // Get scale from transform matrix
+    
+    // Calculate position relative to the frame, accounting for React Flow scale
     const x = (e.clientX - rect.left) / scale;
     const y = (e.clientY - rect.top) / scale;
     return { x, y };
