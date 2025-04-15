@@ -14,7 +14,7 @@ export const createNodeFromFrame = (frame: Frame): Node => {
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: 'frameNode',
-        dragHandle: '.drag-handle__custom',
+        dragHandle: '.dragHandle',
     };
 };
 
