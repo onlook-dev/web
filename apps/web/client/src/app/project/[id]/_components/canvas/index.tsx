@@ -1,7 +1,6 @@
 "use client"
 
 import { useEditorEngine } from '@/components/store';
-import { EditorAttributes } from '@onlook/constants';
 import { EditorMode } from '@onlook/models';
 import {
     type Node,
@@ -94,10 +93,7 @@ const FlowCanvas = observer(() => {
 
     return (
         <HotkeysArea>
-            <div
-                className="overflow-hidden bg-background-onlook flex flex-grow relative"
-                id={EditorAttributes.CANVAS_CONTAINER_ID}
-            >
+            <div className="overflow-hidden bg-background-onlook flex flex-grow relative">
                 <ReactFlow
                     nodes={nodes}
                     onNodesChange={onNodesChange}

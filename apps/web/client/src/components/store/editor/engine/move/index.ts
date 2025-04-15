@@ -1,4 +1,4 @@
-import type { DomElement, ElementPosition } from '@onlook/models';
+import type { DomElement, ElementPosition, Frame } from '@onlook/models';
 import type { MoveElementAction } from '@onlook/models/actions';
 import type React from 'react';
 import type { EditorEngine } from '..';
@@ -16,7 +16,7 @@ export class MoveManager {
         return !!this.dragOrigin;
     }
 
-    async start(el: DomElement, position: ElementPosition, webview: Electron.WebviewTag) {
+    async start(el: DomElement, position: ElementPosition, frame: Frame) {
         if (this.editorEngine.chat.isWaiting) {
             return;
         }
@@ -46,20 +46,20 @@ export class MoveManager {
 
     async drag(
         e: React.MouseEvent<HTMLDivElement>,
-        getRelativeMousePositionToWebview: (e: React.MouseEvent<HTMLDivElement>) => ElementPosition,
+        getRelativeMousePositionToFrame: (e: React.MouseEvent<HTMLDivElement>) => ElementPosition,
     ) {
         if (!this.dragOrigin || !this.dragTarget) {
             console.error('Cannot drag without drag origin or target');
             return;
         }
 
-        const webview = this.editorEngine.webviews.getWebview(this.dragTarget.frameId);
-        if (!webview) {
-            console.error('No webview found for drag');
+        const frame = this.editorEngine.frames.get(this.dragTarget.frameId);
+        if (!frame || !frame.view) {
+            console.error('No frame found for drag');
             return;
         }
 
-        const { x, y } = getRelativeMousePositionToWebview(e);
+        const { x, y } = getRelativeMousePositionToFrame(e);
         const dx = x - this.dragOrigin.x;
         const dy = y - this.dragOrigin.y;
 
@@ -70,7 +70,7 @@ export class MoveManager {
 
         if (Math.max(Math.abs(dx), Math.abs(dy)) > this.MIN_DRAG_DISTANCE) {
             this.editorEngine.overlay.clear();
-            webview.executeJavaScript(
+            frame.view.executeJavaScript(
                 `window.api?.drag('${this.dragTarget.domId}', ${dx}, ${dy}, ${x}, ${y})`,
             );
         }
