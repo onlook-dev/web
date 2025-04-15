@@ -13,12 +13,15 @@ export const TopBar = observer(
         const editorEngine = useEditorEngine();
         return (
             <div
-                className='absolute rounded bg-foreground-primary/10 hover:shadow h-6 m-auto flex flex-row items-center backdrop-blur-sm overflow-hidden relative shadow-sm border-input text-foreground drag-handle__custom'
+                className='absolute rounded bg-foreground-primary/10 hover:shadow h-6 m-auto flex flex-row items-center backdrop-blur-sm overflow-hidden relative shadow-sm border-input text-foreground'
                 style={{
                     transform: `scale(${1 / editorEngine.canvas.scale})`,
                     width: `${frame.dimension.width * editorEngine.canvas.scale}px`,
                     marginBottom: `${20 / editorEngine.canvas.scale}px`,
+                    cursor: 'grab',
                 }}
+                data-draghandle
+                onMouseEnter={() => console.log(`Mouse entered top bar for frame ${frame.id}`)}
             >
                 {children}
             </div>
