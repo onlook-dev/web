@@ -16,6 +16,8 @@ export class OverlayManager {
     }
 
     private startRefreshLoop = () => {
+        if (typeof window === 'undefined') return;
+        
         const loop = () => {
             if (this.needsRefresh) {
                 this.performRefresh();
