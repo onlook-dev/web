@@ -1,6 +1,6 @@
 import { FrameType, type Frame, type WebFrame } from "@onlook/models";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { GestureScreen } from './gesture';
 import { ResizeHandles } from './resize-handles';
 import { TopBar } from "./top-bar";
@@ -13,11 +13,6 @@ export const FrameView = observer(
         frame: Frame;
     }) => {
         const webFrameRef = useRef<WebFrameView>(null);
-        const [webFrame, setWebFrame] = useState<WebFrameView | null>(null);
-
-        useEffect(() => {
-            setWebFrame(webFrameRef.current);
-        }, [webFrameRef.current]);
 
         return (
             <div
@@ -28,7 +23,7 @@ export const FrameView = observer(
                 <div className="relative">
                     <ResizeHandles frame={frame} />
                     {frame.type === FrameType.WEB && <WebFrameComponent frame={frame as WebFrame} ref={webFrameRef} />}
-                    <GestureScreen frame={frame as WebFrame} />
+                    {frame.type === FrameType.WEB && <GestureScreen frame={frame as WebFrame} />}
                     {/* {domFailed && shouldShowDomFailed && renderNotRunning()} */}
                 </div>
             </div>
