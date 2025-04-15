@@ -38,7 +38,7 @@ export function getRelativeOffset(element: HTMLElement, ancestor: HTMLElement) {
 /**
  * Adapts a rectangle from a webview element to the overlay coordinate space.
  * This ensures that overlay rectangles perfectly match the source elements,
- * similar to design tools like Figma/Framer.
+ * accounting for React Flow node transforms.
  */
 export function adaptRectToCanvas(
     rect: RectDimensions,
@@ -51,21 +51,25 @@ export function adaptRectToCanvas(
         return rect;
     }
 
-    // Get canvas transform matrix to handle scaling and translation
+    // Get canvas transform matrix to handle React Flow scaling and translation
     const canvasTransform = new DOMMatrix(getComputedStyle(canvasContainer).transform);
 
     // Get scale from transform matrix
     const scale = inverse ? 1 / canvasTransform.a : canvasTransform.a;
 
-    // Calculate offsets relative to canvas container
-    const sourceOffset = getRelativeOffset(frameView, canvasContainer);
+    const frameRect = frameView.getBoundingClientRect();
+    const canvasRect = canvasContainer.getBoundingClientRect();
+
+    // Calculate the frame's position relative to the canvas
+    const frameOffsetX = frameRect.left - canvasRect.left;
+    const frameOffsetY = frameRect.top - canvasRect.top;
 
     // Transform coordinates to fixed overlay space
     return {
         width: rect.width * scale,
         height: rect.height * scale,
-        top: (rect.top + sourceOffset.top + canvasTransform.f / scale) * scale,
-        left: (rect.left + sourceOffset.left + canvasTransform.e / scale) * scale,
+        top: (rect.top + frameOffsetY) * scale,
+        left: (rect.left + frameOffsetX) * scale,
     };
 }
 
@@ -82,6 +86,7 @@ export function adaptValueToCanvas(value: number, inverse = false): number {
 
 /**
  * Get the relative mouse position a webview element inside the canvas container.
+ * This accounts for React Flow node transforms and canvas scaling.
  */
 export function getRelativeMousePositionToFrame(
     e: React.MouseEvent<HTMLDivElement>,
@@ -95,8 +100,11 @@ export function getRelativeMousePositionToFrame(
         return rect;
     }
 
-    const scale = 1;
+    // Get canvas transform to account for React Flow scaling and translation
+    const canvasTransform = new DOMMatrix(getComputedStyle(canvasContainer).transform);
+    const scale = canvasTransform.a || 1; // Get scale from transform matrix
 
+    // Calculate position relative to the frame, accounting for canvas scale
     const x = (e.clientX - rect.left) / scale;
     const y = (e.clientY - rect.top) / scale;
     return { x, y };
