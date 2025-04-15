@@ -83,7 +83,15 @@ export const Overlay = observer(() => {
                 }
             )}
         >
-            <div className="react-flow__viewport">
+            <div 
+                className="react-flow__viewport"
+                style={{
+                    transform: reactFlowInstance ? 
+                        `translate(${reactFlowInstance.getViewport().x}px, ${reactFlowInstance.getViewport().y}px) scale(${reactFlowInstance.getViewport().zoom})` : 
+                        undefined,
+                    transformOrigin: '0 0',
+                }}
+            >
                 {overlayState.hoverRect && (
                     <HoverRect
                         rect={overlayState.hoverRect.rect}
