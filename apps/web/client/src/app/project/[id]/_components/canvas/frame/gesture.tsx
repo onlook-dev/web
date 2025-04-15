@@ -36,46 +36,63 @@ export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, w
 
     const handleMouseEvent = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>, action: MouseAction) => {
+            console.log(`handleMouseEvent called with action: ${action}`);
             const frameData = getFrameData();
             if (!frameData) {
                 console.error('Frame data not found');
                 return;
             }
+            
+            console.log('Frame data found:', frameData.frame.id);
             const pos = getRelativeMousePosition(e);
             const shouldGetStyle = [MouseAction.MOUSE_DOWN, MouseAction.DOUBLE_CLICK].includes(action);
+            
+            console.log(`Calling getElementAtLoc with pos: ${pos.x}, ${pos.y}, shouldGetStyle: ${shouldGetStyle}`);
             
             if (action === MouseAction.MOVE) {
                 editorEngine.overlay.refreshOverlay();
             }
             
-            const el: DomElement = await frameData.view.getElementAtLoc(pos.x, pos.y, shouldGetStyle);
-            if (!el) {
-                console.log('No element found');
-                return;
-            }
+            try {
+                if (!frameData.view.getElementAtLoc) {
+                    console.error('getElementAtLoc function not available on frame view');
+                    return;
+                }
+                
+                const el: DomElement = await frameData.view.getElementAtLoc(pos.x, pos.y, shouldGetStyle);
+                console.log('getElementAtLoc result:', el ? `${el.tagName} with rect ${JSON.stringify(el.rect)}` : 'null');
+                
+                if (!el) {
+                    console.log('No element found');
+                    return;
+                }
 
-            switch (action) {
-                case MouseAction.MOVE:
-                    editorEngine.elements.mouseover(el, frameData);
-                    console.log('Mouse over element:', el.tagName, el.rect);
-                    break;
-                case MouseAction.MOUSE_DOWN:
-                    if (el.tagName.toLocaleLowerCase() === 'body') {
-                        editorEngine.frames.select(frame);
-                        return;
-                    }
-                    // Ignore right-clicks
-                    if (e.button == 2) {
+                switch (action) {
+                    case MouseAction.MOVE:
+                        console.log('Calling mouseover with element:', el.tagName);
+                        editorEngine.elements.mouseover(el, frameData);
+                        console.log('Mouse over element:', el.tagName, el.rect);
                         break;
-                    }
-                    if (e.shiftKey) {
-                        editorEngine.elements.shiftClick(el, frameData);
-                    } else {
-                        editorEngine.elements.click([el], frameData);
-                    }
-                    break;
-                case MouseAction.DOUBLE_CLICK:
-                    break;
+                    case MouseAction.MOUSE_DOWN:
+                        if (el.tagName.toLocaleLowerCase() === 'body') {
+                            editorEngine.frames.select(frame);
+                            return;
+                        }
+                        // Ignore right-clicks
+                        if (e.button == 2) {
+                            break;
+                        }
+                        if (e.shiftKey) {
+                            editorEngine.elements.shiftClick(el, frameData);
+                        } else {
+                            editorEngine.elements.click([el], frameData);
+                        }
+                        break;
+                    case MouseAction.DOUBLE_CLICK:
+                        break;
+                }
+            } catch (error) {
+                console.error('Error in handleMouseEvent:', error);
             }
         },
         [getRelativeMousePosition, editorEngine, frame],
