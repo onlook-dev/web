@@ -20,7 +20,7 @@ export const TopBar = observer(
                     marginBottom: `${20 / editorEngine.canvas.scale}px`,
                     cursor: 'grab',
                 }}
-                data-draghandle
+                data-drag-handle
                 onMouseEnter={() => console.log(`Mouse entered top bar for frame ${frame.id}`)}
             >
                 {children}

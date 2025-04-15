@@ -44,22 +44,6 @@ export function FrameNode({ data, selected, id, dragging }: NodeProps) {
     }, [id, frame, reactFlowInstance, isDragging, selected]);
 
     useEffect(() => {
-        logNodeInfo();
-        
-        const handleGlobalClick = (e: MouseEvent) => {
-            if (nodeRef.current && nodeRef.current.contains(e.target as Node)) {
-                console.log(`Global click detected in node ${id} with frame ${frame.id}`);
-                logNodeInfo();
-            }
-        };
-        
-        document.addEventListener('click', handleGlobalClick);
-        return () => {
-            document.removeEventListener('click', handleGlobalClick);
-        };
-    }, [id, frame.id, selected, logNodeInfo]);
-
-    useEffect(() => {
         if (isDragging) {
             const existingFrame = editorEngine.canvas.getFrame(frame.id);
             if (existingFrame) {
@@ -68,6 +52,18 @@ export function FrameNode({ data, selected, id, dragging }: NodeProps) {
             }
         }
     }, [isDragging, frame.position, frame.id, id, editorEngine.canvas]);
+
+    const handleNodeClick = useCallback((e: React.MouseEvent) => {
+        if (!(e.target as HTMLElement).closest('[data-drag-handle]')) {
+            console.log(`Click in node ${id} with frame ${frame.id} at ${e.clientX},${e.clientY}`);
+            e.stopPropagation();
+            
+            const existingFrame = editorEngine.canvas.getFrame(frame.id);
+            if (existingFrame) {
+                editorEngine.frames.select(existingFrame);
+            }
+        }
+    }, [id, frame.id, editorEngine.canvas, editorEngine.frames]);
 
     return (
         <div 
@@ -82,24 +78,7 @@ export function FrameNode({ data, selected, id, dragging }: NodeProps) {
                 width: frame.dimension.width,
                 height: frame.dimension.height
             }}
-            onMouseEnter={() => {
-                console.log(`Mouse entered node ${id} with frame ${frame.id}`);
-                logNodeInfo();
-            }}
-            onMouseMove={(e) => {
-                if (!isDragging) {
-                    console.log(`Mouse move in node ${id} at ${e.clientX},${e.clientY}`);
-                }
-            }}
-            onClick={(e) => {
-                console.log(`Click in node ${id} with frame ${frame.id} at ${e.clientX},${e.clientY}`);
-                e.stopPropagation();
-                
-                const existingFrame = editorEngine.canvas.getFrame(frame.id);
-                if (existingFrame) {
-                    editorEngine.frames.select(existingFrame);
-                }
-            }}
+            onClick={handleNodeClick}
         >
             <FrameView frame={frame} />
         </div>

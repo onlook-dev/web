@@ -55,17 +55,10 @@ export function adaptRectToCanvas(
         // Get the iframe's bounding rectangle
         const iframeRect = frameView.getBoundingClientRect();
         
-        // Get the React Flow viewport element
+        // Get the React Flow viewport element (contains transform information)
         const reactFlowViewport = document.querySelector('.react-flow__viewport');
         if (!reactFlowViewport) {
             console.error('React Flow viewport not found');
-            return rect;
-        }
-        
-        // Get the React Flow wrapper element (the container for the entire flow)
-        const reactFlowWrapper = document.querySelector('.react-flow');
-        if (!reactFlowWrapper) {
-            console.error('React Flow wrapper not found');
             return rect;
         }
         
@@ -76,12 +69,11 @@ export function adaptRectToCanvas(
             return rect;
         }
         
-        // Get the bounding rectangles for various elements
-        const wrapperRect = reactFlowWrapper.getBoundingClientRect();
+        // Get the bounding rectangles
         const nodeRect = frameNode.getBoundingClientRect();
         const overlayRect = overlayContainer.getBoundingClientRect();
         
-        // Get the viewport transform matrix (contains zoom and pan information)
+        // Get the viewport transform matrix to extract scale
         const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
         const scale = viewportTransform.a; // Extract scale from transform matrix
         
@@ -89,9 +81,10 @@ export function adaptRectToCanvas(
         const frameId = frameNode.getAttribute('data-frame-id');
         const nodeId = frameNode.getAttribute('data-node-id');
         
-        // and the element's position within the iframe
+        // Get the top bar height (if any)
+        const topBar = frameNode.querySelector('.frame-top-bar');
+        const topBarHeight = topBar ? (topBar as HTMLElement).offsetHeight : 0;
         
-        // 1. Get the position of the element within the iframe
         const elementInIframeX = rect.left;
         const elementInIframeY = rect.top;
         
@@ -100,11 +93,12 @@ export function adaptRectToCanvas(
         const iframeToOverlayY = iframeRect.top - overlayRect.top;
         
         // 3. Calculate the final position in the overlay space
+        // We need to account for the scale factor from React Flow
         const absoluteX = iframeToOverlayX + (elementInIframeX * scale);
         const absoluteY = iframeToOverlayY + (elementInIframeY * scale);
         
         // Log detailed information for debugging
-        console.log('Overlay calculation (direct):', {
+        console.log('Overlay calculation:', {
             frameId,
             nodeId,
             rect: {
@@ -114,6 +108,7 @@ export function adaptRectToCanvas(
                 height: rect.height
             },
             scale,
+            topBarHeight,
             iframeRect: {
                 left: iframeRect.left,
                 top: iframeRect.top,
