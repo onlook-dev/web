@@ -117,7 +117,7 @@ const FlowCanvas = observer(() => {
                     selectionOnDrag={editorEngine.state.editorMode !== EditorMode.PAN}
                     nodesDraggable={true}
                     noDragClassName="nodrag"
-                    dragHandleClassName="dragHandle"
+                    dragHandleSelector="[data-draghandle]"
                     className="react-flow-canvas"
                 >
                 </ReactFlow>
