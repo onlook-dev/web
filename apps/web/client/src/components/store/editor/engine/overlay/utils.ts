@@ -62,21 +62,12 @@ export function adaptRectToCanvas(
             return rect;
         }
         
-        // Get the React Flow wrapper element
+        // Get the React Flow wrapper element (the container for the entire flow)
         const reactFlowWrapper = document.querySelector('.react-flow');
         if (!reactFlowWrapper) {
             console.error('React Flow wrapper not found');
             return rect;
         }
-        
-        const wrapperRect = reactFlowWrapper.getBoundingClientRect();
-        const nodeRect = frameNode.getBoundingClientRect();
-        
-        // Get the viewport transform matrix (contains zoom and pan information)
-        const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
-        
-        // Get the node transform matrix (contains node position)
-        const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
         
         // Get the overlay container
         const overlayContainer = document.getElementById(EditorAttributes.OVERLAY_CONTAINER_ID);
@@ -85,33 +76,42 @@ export function adaptRectToCanvas(
             return rect;
         }
         
-        const scale = viewportTransform.a;
+        // Get the bounding rectangles for various elements
+        const wrapperRect = reactFlowWrapper.getBoundingClientRect();
+        const nodeRect = frameNode.getBoundingClientRect();
+        const overlayRect = overlayContainer.getBoundingClientRect();
         
-        // Get the node's data-frame-id attribute to help with debugging
+        // Get the viewport transform matrix (contains zoom and pan information)
+        const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
+        const scale = viewportTransform.a; // Extract scale from transform matrix
+        
+        // Get the node's data attributes for debugging
         const frameId = frameNode.getAttribute('data-frame-id');
         const nodeId = frameNode.getAttribute('data-node-id');
         
-        // Calculate the position of the element within the iframe
-        const iframeOffsetTop = iframeRect.top - nodeRect.top;
-        const iframeOffsetLeft = iframeRect.left - nodeRect.left;
+        // and the element's position within the iframe
         
-        // Calculate the position of the element relative to the iframe
+        // 1. Get the position of the element within the iframe
         const elementInIframeX = rect.left;
         const elementInIframeY = rect.top;
         
-        // Calculate the absolute position in the overlay space
-        // 1. The position of the element within the iframe
+        const iframeToWrapperX = iframeRect.left - wrapperRect.left;
+        const iframeToWrapperY = iframeRect.top - wrapperRect.top;
         
-        const elementToWrapperX = iframeRect.left - wrapperRect.left + (elementInIframeX * scale);
-        const elementToWrapperY = iframeRect.top - wrapperRect.top + (elementInIframeY * scale);
+        // 3. Calculate the final position in the overlay space
+        const absoluteX = iframeToWrapperX + (elementInIframeX * scale);
+        const absoluteY = iframeToWrapperY + (elementInIframeY * scale);
         
-        const absoluteX = elementToWrapperX + viewportTransform.m41;
-        const absoluteY = elementToWrapperY + viewportTransform.m42;
-        
-        console.log('Overlay calculation (improved):', {
+        // Log detailed information for debugging
+        console.log('Overlay calculation (simplified):', {
             frameId,
             nodeId,
-            rect,
+            rect: {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height
+            },
             scale,
             iframeRect: {
                 left: iframeRect.left,
@@ -129,17 +129,17 @@ export function adaptRectToCanvas(
                 left: wrapperRect.left,
                 top: wrapperRect.top
             },
-            iframeOffset: {
-                left: iframeOffsetLeft,
-                top: iframeOffsetTop,
+            overlayRect: {
+                left: overlayRect.left,
+                top: overlayRect.top
+            },
+            iframeToWrapper: {
+                x: iframeToWrapperX,
+                y: iframeToWrapperY
             },
             elementInIframe: {
                 x: elementInIframeX,
                 y: elementInIframeY
-            },
-            elementToWrapper: {
-                x: elementToWrapperX,
-                y: elementToWrapperY
             },
             viewportTransform: {
                 x: viewportTransform.m41,
