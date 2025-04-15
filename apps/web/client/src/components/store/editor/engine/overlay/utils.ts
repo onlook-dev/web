@@ -53,29 +53,50 @@ export function adaptRectToCanvas(
 
     const iframeRect = frameView.getBoundingClientRect();
     
-    const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
-    
     const reactFlowViewport = document.querySelector('.react-flow__viewport');
     if (!reactFlowViewport) {
         console.error('React Flow viewport not found');
         return rect;
     }
     
+    // Get the viewport transform matrix
     const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
     
-    // Get scale from transform matrix
-    const scale = inverse ? 1 / viewportTransform.a : viewportTransform.a;
+    // Get the node transform matrix
+    const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
     
-    // Calculate the position relative to the iframe
-    const nodeRect = (frameNode as HTMLElement).getBoundingClientRect();
     const overlayContainer = document.getElementById(EditorAttributes.OVERLAY_CONTAINER_ID);
-    const overlayRect = overlayContainer?.getBoundingClientRect() || { top: 0, left: 0 };
+    if (!overlayContainer) {
+        console.error('Overlay container not found');
+        return rect;
+    }
+    
+    const overlayRect = overlayContainer.getBoundingClientRect();
+    
+    const reactFlowPane = document.querySelector('.react-flow__pane');
+    if (!reactFlowPane) {
+        console.error('React Flow pane not found');
+        return rect;
+    }
+    
+    const paneRect = reactFlowPane.getBoundingClientRect();
+    
+    // Calculate the scale
+    const scale = viewportTransform.a;
+    
+    // Calculate the position relative to the React Flow viewport
+    const x = rect.left * scale;
+    const y = rect.top * scale;
+    
+    // Calculate the position relative to the overlay container
+    const absoluteX = x + iframeRect.left - paneRect.left;
+    const absoluteY = y + iframeRect.top - paneRect.top;
     
     return {
         width: rect.width * scale,
         height: rect.height * scale,
-        top: (rect.top + iframeRect.top - overlayRect.top) * scale,
-        left: (rect.left + iframeRect.left - overlayRect.left) * scale,
+        top: absoluteY,
+        left: absoluteX,
     };
 }
 
