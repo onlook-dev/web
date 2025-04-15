@@ -26,7 +26,7 @@ export const FrameView = observer(
                 <div className="relative w-full h-full">
                     <ResizeHandles frame={frame} />
                     {frame.type === FrameType.WEB && <WebFrameComponent frame={frame as WebFrame} ref={webFrameRef} />}
-                    {frame.type === FrameType.WEB && <GestureScreen frame={frame as WebFrame} />}
+                    {frame.type === FrameType.WEB && <GestureScreen frame={frame as WebFrame} webFrame={webFrameRef.current} />}
                     {/* {domFailed && shouldShowDomFailed && renderNotRunning()} */}
                 </div>
             </div>

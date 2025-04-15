@@ -51,43 +51,49 @@ export function adaptRectToCanvas(
         return rect;
     }
 
+    const iframeRect = frameView.getBoundingClientRect();
+    
     const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
     
-    const reactFlowPane = document.querySelector('.react-flow__pane');
-    if (!reactFlowPane) {
-        console.error('React Flow pane not found');
+    const reactFlowViewport = document.querySelector('.react-flow__viewport');
+    if (!reactFlowViewport) {
+        console.error('React Flow viewport not found');
         return rect;
     }
     
-    const paneTransform = new DOMMatrix(getComputedStyle(reactFlowPane as HTMLElement).transform);
+    const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
     
     // Get scale from transform matrix
-    const scale = inverse ? 1 / paneTransform.a : paneTransform.a;
-
-    // Transform coordinates to fixed overlay space
+    const scale = inverse ? 1 / viewportTransform.a : viewportTransform.a;
+    
+    // Calculate the position relative to the iframe
+    const nodeRect = (frameNode as HTMLElement).getBoundingClientRect();
+    const overlayContainer = document.getElementById(EditorAttributes.OVERLAY_CONTAINER_ID);
+    const overlayRect = overlayContainer?.getBoundingClientRect() || { top: 0, left: 0 };
+    
     return {
         width: rect.width * scale,
         height: rect.height * scale,
-        top: (rect.top + nodeTransform.m42) * scale,
-        left: (rect.left + nodeTransform.m41) * scale,
+        top: (rect.top + iframeRect.top - overlayRect.top) * scale,
+        left: (rect.left + iframeRect.left - overlayRect.left) * scale,
     };
 }
 
 export function adaptValueToCanvas(value: number, inverse = false): number {
-    const reactFlowPane = document.querySelector('.react-flow__pane');
-    if (!reactFlowPane) {
-        console.error('React Flow pane not found');
+    const reactFlowViewport = document.querySelector('.react-flow__viewport');
+    if (!reactFlowViewport) {
+        console.error('React Flow viewport not found');
         return value;
     }
     
-    const paneTransform = new DOMMatrix(getComputedStyle(reactFlowPane as HTMLElement).transform);
-    const scale = inverse ? 1 / paneTransform.a : paneTransform.a; // Get scale from transform matrix
+    const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
+    const scale = inverse ? 1 / viewportTransform.a : viewportTransform.a; // Get scale from transform matrix
     return value * scale;
 }
 
 /**
  * Get the relative mouse position a webview element inside a React Flow node.
- * This accounts for React Flow node transforms and pane scaling.
+ * This accounts for React Flow node transforms and viewport scaling.
  */
 export function getRelativeMousePositionToFrame(
     e: React.MouseEvent<HTMLDivElement>,
@@ -96,16 +102,16 @@ export function getRelativeMousePositionToFrame(
 ): ElementPosition {
     const rect = frameView.getBoundingClientRect();
     
-    const reactFlowPane = document.querySelector('.react-flow__pane');
-    if (!reactFlowPane) {
-        console.error('React Flow pane not found');
+    const reactFlowViewport = document.querySelector('.react-flow__viewport');
+    if (!reactFlowViewport) {
+        console.error('React Flow viewport not found');
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
     
-    const paneTransform = new DOMMatrix(getComputedStyle(reactFlowPane as HTMLElement).transform);
-    const scale = paneTransform.a || 1; // Get scale from transform matrix
+    const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
+    const scale = viewportTransform.a || 1; // Get scale from transform matrix
     
-    // Calculate position relative to the frame, accounting for React Flow scale
+    // Calculate position relative to the iframe, accounting for React Flow scale
     const x = (e.clientX - rect.left) / scale;
     const y = (e.clientY - rect.top) / scale;
     return { x, y };

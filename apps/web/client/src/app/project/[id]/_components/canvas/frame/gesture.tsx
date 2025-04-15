@@ -9,7 +9,7 @@ import { observer } from 'mobx-react-lite';
 import { useCallback, useEffect, useMemo } from 'react';
 import { RightClickMenu } from './right-click';
 
-export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
+export const GestureScreen = observer(({ frame, webFrame }: { frame: WebFrame, webFrame?: any }) => {
     const editorEngine = useEditorEngine();
     const isResizing = false;
 

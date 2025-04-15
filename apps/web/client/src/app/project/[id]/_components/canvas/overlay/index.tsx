@@ -4,7 +4,8 @@ import { EditorAttributes } from '@onlook/constants';
 import { EditorMode } from '@onlook/models';
 import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
+import { useReactFlow } from '@xyflow/react';
 import { OverlayChat } from './elements/chat';
 import { MeasurementOverlay } from './elements/measurement';
 import { ClickRect } from './elements/rect/click';
@@ -21,31 +22,35 @@ const MemoizedMeasurementOverlay = memo(MeasurementOverlay);
 
 export const Overlay = observer(() => {
     const editorEngine = useEditorEngine();
+    const reactFlowInstance = useReactFlow();
+    const overlayRef = useRef<HTMLDivElement>(null);
 
     // Memoize overlay state values
     const overlayState = editorEngine.overlay.state;
     const isPreviewMode = editorEngine.state.editorMode === EditorMode.PREVIEW;
     const isSingleSelection = editorEngine.elements.selected.length === 1;
 
+    useEffect(() => {
+        if (reactFlowInstance) {
+            const { x, y, zoom } = reactFlowInstance.getViewport();
+            editorEngine.canvas.position = { x, y };
+            editorEngine.canvas.scale = zoom;
+        }
+    }, [reactFlowInstance, editorEngine.canvas]);
+
     // Memoize the container style object
     const containerStyle = useMemo(
         () => ({
             position: 'absolute',
-            height: 0,
-            width: 0,
+            height: '100%',
+            width: '100%',
             top: 0,
             left: 0,
             pointerEvents: 'none',
             visibility: isPreviewMode ? 'hidden' : 'visible',
+            zIndex: 10,
         }),
         [isPreviewMode],
-    );
-
-    const childrenStyle = useMemo(
-        () => ({
-            transform: `translate(${editorEngine.canvas.position.x}px, ${editorEngine.canvas.position.y}px) scale(${editorEngine.canvas.scale})`,
-        }),
-        [editorEngine.canvas.position.x, editorEngine.canvas.position.y, editorEngine.canvas.scale],
     );
 
     // Memoize the clickRects rendering
@@ -68,16 +73,17 @@ export const Overlay = observer(() => {
 
     return (
         <div
+            ref={overlayRef}
             style={containerStyle as React.CSSProperties}
             id={EditorAttributes.OVERLAY_CONTAINER_ID}
             className={cn(
-                'transition-opacity duration-150',
+                'transition-opacity duration-150 react-flow__overlay',
                 {
                     'opacity-0': editorEngine.state.shouldHideOverlay,
                 }
             )}
         >
-            <div style={childrenStyle as React.CSSProperties}>
+            <div className="react-flow__viewport">
                 {overlayState.hoverRect && (
                     <HoverRect
                         rect={overlayState.hoverRect.rect}
