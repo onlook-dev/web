@@ -84,13 +84,17 @@ export function adaptRectToCanvas(
     // Calculate the scale
     const scale = viewportTransform.a;
     
+    // Get the node position relative to the viewport
+    const nodeX = nodeTransform.m41;
+    const nodeY = nodeTransform.m42;
+    
     // Calculate the position relative to the React Flow viewport
     const x = rect.left * scale;
     const y = rect.top * scale;
     
     // Calculate the position relative to the overlay container
-    const absoluteX = x + iframeRect.left - paneRect.left;
-    const absoluteY = y + iframeRect.top - paneRect.top;
+    const absoluteX = x + iframeRect.left - paneRect.left + (nodeX * scale);
+    const absoluteY = y + iframeRect.top - paneRect.top + (nodeY * scale);
     
     return {
         width: rect.width * scale,
