@@ -41,38 +41,137 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         if (!iframe?.contentWindow) {
             throw new Error('No content window found');
         }
-        const messenger = new WindowMessenger({
-            remoteWindow: iframe.contentWindow,
-            // TODO: Use a proper origin
-            allowedOrigins: ['*'],
+        
+        // Create a promise that resolves when the iframe is fully loaded
+        const loadPromise = new Promise<void>((resolve) => {
+            const checkLoaded = () => {
+                if (iframe.contentDocument?.readyState === 'complete') {
+                    resolve();
+                } else {
+                    setTimeout(checkLoaded, 100);
+                }
+            };
+            checkLoaded();
         });
-        const connection = connect({
-            messenger,
-            // Methods we are exposing to the iframe window.
-            methods: {}
-        });
-        const remote = (await connection.promise) as unknown as PenpalRemote;
-        await remote.setFrameId(frame.id);
-        await remote.processDom();
-        setIframeRemote(remote);
-        console.log('Penpal connection initialized for frame', frame.id);
+        
+        // Wait for the iframe to be fully loaded
+        await loadPromise;
+        console.log('Iframe fully loaded for frame', frame.id);
+        
+        try {
+            const messenger = new WindowMessenger({
+                remoteWindow: iframe.contentWindow,
+                // TODO: Use a proper origin
+                allowedOrigins: ['*'],
+            });
+            
+            const connection = connect({
+                messenger,
+                // Methods we are exposing to the iframe window.
+                methods: {
+                    logMessage: (message: string) => {
+                        console.log(`Message from iframe ${frame.id}:`, message);
+                    }
+                }
+            });
+            
+            console.log('Waiting for penpal connection promise for frame', frame.id);
+            const remote = (await connection.promise) as unknown as PenpalRemote;
+            console.log('Penpal connection promise resolved for frame', frame.id);
+            
+            if (!remote) {
+                console.error('No remote connection established for frame', frame.id);
+                return null;
+            }
+            
+            console.log('Setting frame ID for frame', frame.id);
+            await remote.setFrameId(frame.id);
+            console.log('Processing DOM for frame', frame.id);
+            await remote.processDom();
+            
+            setIframeRemote(remote);
+            console.log('Penpal connection initialized for frame', frame.id, 'Remote methods:', Object.keys(remote));
+            
+            return remote;
+        } catch (error) {
+            console.error('Error establishing penpal connection for frame', frame.id, error);
+            return null;
+        }
     }, [frame.id, setIframeRemote]);
 
     const setupIframe = useCallback(async (iframe: HTMLIFrameElement) => {
         try {
-            await setupPenpalConnection(iframe);
+            const remote = await setupPenpalConnection(iframe);
             
+            if (!remote) {
+                console.error('Failed to establish remote connection for frame', frame.id);
+                return;
+            }
+            
+            console.log('Remote connection established for frame', frame.id, 'with methods:', Object.keys(remote));
+            
+            // Create an enhanced iframe with the remote methods
             const enhancedIframe = iframe as WebFrameView;
             
-            if (iframeRemote) {
-                enhancedIframe.getElementAtLoc = async (x, y, getStyle) => {
-                    return iframeRemote.getElementAtLoc(x, y, getStyle);
-                };
-                enhancedIframe.getDomElementByDomId = async (domId, getStyle) => {
-                    return iframeRemote.getDomElementByDomId(domId, getStyle);
-                };
-                enhancedIframe.setFrameId = iframeRemote.setFrameId;
-            }
+            enhancedIframe.getElementAtLoc = async (x, y, getStyle) => {
+                console.log('Enhanced iframe getElementAtLoc called with:', { x, y, getStyle });
+                try {
+                    if (!remote.getElementAtLoc) {
+                        console.error('Remote getElementAtLoc not available');
+                        return null;
+                    }
+                    const element = await remote.getElementAtLoc(x, y, getStyle);
+                    console.log('Enhanced iframe getElementAtLoc result:', element ? `${element.tagName}` : 'null');
+                    return element;
+                } catch (error) {
+                    console.error('Error in enhanced iframe getElementAtLoc:', error);
+                    return null;
+                }
+            };
+            
+            enhancedIframe.getDomElementByDomId = async (domId, getStyle) => {
+                console.log('Enhanced iframe getDomElementByDomId called with:', { domId, getStyle });
+                try {
+                    if (!remote.getDomElementByDomId) {
+                        console.error('Remote getDomElementByDomId not available');
+                        return null;
+                    }
+                    const element = await remote.getDomElementByDomId(domId, getStyle);
+                    console.log('Enhanced iframe getDomElementByDomId result:', element ? `${element.tagName}` : 'null');
+                    return element;
+                } catch (error) {
+                    console.error('Error in enhanced iframe getDomElementByDomId:', error);
+                    return null;
+                }
+            };
+            
+            enhancedIframe.setFrameId = async (frameId) => {
+                console.log('Enhanced iframe setFrameId called with:', frameId);
+                try {
+                    if (!remote.setFrameId) {
+                        console.error('Remote setFrameId not available');
+                        return null;
+                    }
+                    return await remote.setFrameId(frameId);
+                } catch (error) {
+                    console.error('Error in enhanced iframe setFrameId:', error);
+                    return null;
+                }
+            };
+            
+            enhancedIframe.processDom = async () => {
+                console.log('Enhanced iframe processDom called');
+                try {
+                    if (!remote.processDom) {
+                        console.error('Remote processDom not available');
+                        return null;
+                    }
+                    return await remote.processDom();
+                } catch (error) {
+                    console.error('Error in enhanced iframe processDom:', error);
+                    return null;
+                }
+            };
             
             // Register the frame with a delay to ensure it's fully loaded
             setTimeout(() => {
@@ -97,7 +196,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         } catch (error) {
             console.error('Initialize penpal connection failed:', error);
         }
-    }, [setupPenpalConnection, frame, editorEngine.frames, editorEngine.state, iframeRemote]);
+    }, [setupPenpalConnection, frame, editorEngine.frames, editorEngine.state]);
 
     const handleIframeLoad = useCallback(() => {
         const iframe = iframeRef.current;

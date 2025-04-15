@@ -51,7 +51,7 @@ export function adaptRectToCanvas(
             console.error('React Flow node not found');
             return rect;
         }
-
+        
         // Get the iframe's bounding rectangle
         const iframeRect = frameView.getBoundingClientRect();
         
@@ -69,36 +69,54 @@ export function adaptRectToCanvas(
             return rect;
         }
         
+        // Get the React Flow container
+        const reactFlowContainer = document.querySelector('.react-flow');
+        if (!reactFlowContainer) {
+            console.error('React Flow container not found');
+            return rect;
+        }
+        
         // Get the bounding rectangles
         const nodeRect = frameNode.getBoundingClientRect();
         const overlayRect = overlayContainer.getBoundingClientRect();
+        const reactFlowRect = reactFlowContainer.getBoundingClientRect();
         
-        // Get the viewport transform matrix to extract scale
+        // Get the viewport transform matrix to extract scale and translation
         const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
         const scale = viewportTransform.a; // Extract scale from transform matrix
+        const translateX = viewportTransform.m41; // Extract X translation
+        const translateY = viewportTransform.m42; // Extract Y translation
         
         // Get the node's data attributes for debugging
         const frameId = frameNode.getAttribute('data-frame-id');
         const nodeId = frameNode.getAttribute('data-node-id');
         
         // Get the top bar height (if any)
-        const topBar = frameNode.querySelector('.frame-top-bar');
+        const topBar = frameNode.querySelector('[data-drag-handle]');
         const topBarHeight = topBar ? (topBar as HTMLElement).offsetHeight : 0;
         
+        // Position of the element within the iframe
         const elementInIframeX = rect.left;
         const elementInIframeY = rect.top;
         
-        // 2. Calculate the position of the iframe relative to the overlay container
+        // Calculate the position of the iframe relative to the overlay container
         const iframeToOverlayX = iframeRect.left - overlayRect.left;
         const iframeToOverlayY = iframeRect.top - overlayRect.top;
         
-        // 3. Calculate the final position in the overlay space
-        // We need to account for the scale factor from React Flow
-        const absoluteX = iframeToOverlayX + (elementInIframeX * scale);
-        const absoluteY = iframeToOverlayY + (elementInIframeY * scale);
+        // Calculate the final position in the overlay space
+        // We need to account for:
+        // 1. The position of the element within the iframe
+        // 2. The position of the iframe within the overlay container
+        
+        const elementX = elementInIframeX;
+        const elementY = elementInIframeY;
+        
+        // Then, add the iframe's position relative to the overlay container
+        const absoluteX = iframeToOverlayX + elementX;
+        const absoluteY = iframeToOverlayY + elementY;
         
         // Log detailed information for debugging
-        console.log('Overlay calculation:', {
+        console.log('Overlay calculation (improved):', {
             frameId,
             nodeId,
             rect: {
@@ -121,6 +139,12 @@ export function adaptRectToCanvas(
                 width: nodeRect.width,
                 height: nodeRect.height
             },
+            reactFlowRect: {
+                left: reactFlowRect.left,
+                top: reactFlowRect.top,
+                width: reactFlowRect.width,
+                height: reactFlowRect.height
+            },
             overlayRect: {
                 left: overlayRect.left,
                 top: overlayRect.top,
@@ -136,22 +160,22 @@ export function adaptRectToCanvas(
                 y: elementInIframeY
             },
             viewportTransform: {
-                x: viewportTransform.m41,
-                y: viewportTransform.m42,
+                x: translateX,
+                y: translateY,
                 scale
             },
             result: {
                 left: absoluteX,
                 top: absoluteY,
-                width: rect.width * scale,
-                height: rect.height * scale,
+                width: rect.width,
+                height: rect.height,
             }
         });
         
         // Return the adjusted rectangle
         return {
-            width: rect.width * scale,
-            height: rect.height * scale,
+            width: rect.width,
+            height: rect.height,
             top: absoluteY,
             left: absoluteX,
         };
@@ -199,10 +223,10 @@ export function getRelativeMousePositionToFrame(
             return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
         
-        // Get the React Flow wrapper element
-        const reactFlowWrapper = document.querySelector('.react-flow');
-        if (!reactFlowWrapper) {
-            console.error('React Flow wrapper not found');
+        // Get the React Flow container
+        const reactFlowContainer = document.querySelector('.react-flow');
+        if (!reactFlowContainer) {
+            console.error('React Flow container not found');
             return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
         
@@ -213,27 +237,36 @@ export function getRelativeMousePositionToFrame(
             return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
         
-        // Get the viewport transform matrix to extract the scale
+        // Get the viewport transform matrix to extract scale and translation
         const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
         const scale = viewportTransform.a || 1; // Get scale from transform matrix
+        const translateX = viewportTransform.m41; // Extract X translation
+        const translateY = viewportTransform.m42; // Extract Y translation
         
         // Get the node's data attributes for debugging
         const frameId = frameNode.getAttribute('data-frame-id');
         const nodeId = frameNode.getAttribute('data-node-id');
         
-        // Get the node's bounding rectangle
+        // Get the bounding rectangles
         const nodeRect = frameNode.getBoundingClientRect();
         const overlayRect = overlayContainer.getBoundingClientRect();
+        const reactFlowRect = reactFlowContainer.getBoundingClientRect();
+        
+        // Get the top bar height (if any)
+        const topBar = frameNode.querySelector('[data-drag-handle]');
+        const topBarHeight = topBar ? (topBar as HTMLElement).offsetHeight : 0;
         
         // Calculate the position of the mouse relative to the iframe
         // We need to account for the scale factor to get accurate coordinates
+        
+        // Calculate raw offset from the mouse position to the iframe's top-left corner
         const rawOffsetX = e.clientX - rect.left;
         const rawOffsetY = e.clientY - rect.top;
         
         const adjustedX = rawOffsetX / scale;
         const adjustedY = rawOffsetY / scale;
         
-        console.log('Mouse position relative to frame (direct):', { 
+        console.log('Mouse position relative to frame (improved):', { 
             frameId,
             nodeId,
             original: { x: e.clientX, y: e.clientY },
@@ -249,18 +282,25 @@ export function getRelativeMousePositionToFrame(
                 width: nodeRect.width,
                 height: nodeRect.height
             },
+            reactFlowRect: {
+                left: reactFlowRect.left,
+                top: reactFlowRect.top,
+                width: reactFlowRect.width,
+                height: reactFlowRect.height
+            },
             overlayRect: {
                 left: overlayRect.left,
                 top: overlayRect.top,
                 width: overlayRect.width,
                 height: overlayRect.height
             },
+            topBarHeight,
             rawOffset: { x: rawOffsetX, y: rawOffsetY },
             adjusted: { x: adjustedX, y: adjustedY },
             scale,
             viewportTransform: {
-                x: viewportTransform.m41,
-                y: viewportTransform.m42,
+                x: translateX,
+                y: translateY,
                 scale
             }
         });

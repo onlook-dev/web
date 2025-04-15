@@ -108,10 +108,16 @@ export const Overlay = observer(() => {
             onMouseMove={() => console.log('Mouse move on overlay container')}
         >
             <div 
-                className="react-flow__viewport"
+                className="react-flow__overlay-viewport"
                 style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
                     transform: viewportTransform,
                     transformOrigin: '0 0',
+                    pointerEvents: 'none',
                 }}
                 onMouseMove={(e) => console.log('Mouse move on viewport container', e.clientX, e.clientY)}
             >
