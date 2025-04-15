@@ -1,4 +1,5 @@
-import type { ActionLocation, DomElement } from '@onlook/models';
+import type { ActionLocation } from '@onlook/models/actions';
+import type { DomElement } from '@onlook/models/element';
 import { elementFromDomId } from '../../helpers';
 import { buildLayerTree } from '../dom';
 import { getDomElementByDomId } from '../elements';

@@ -1,4 +1,4 @@
-import type { DomElement } from '@onlook/models';
+import type { DomElement } from '@onlook/models/element';
 import { getDomElement } from '../helpers';
 import { elementFromDomId, isValidHtmlElement } from '/common/helpers';
 
