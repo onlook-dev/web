@@ -28,7 +28,6 @@ const nodeTypes = {
 
 const FlowCanvas = observer(() => {
     const editorEngine = useEditorEngine();
-    const [isPanning, setIsPanning] = useState(false);
 
     const [nodes, setNodes] = useState<Node[]>(
         createInitialNodes(editorEngine.canvas.frames)
@@ -117,9 +116,9 @@ const FlowCanvas = observer(() => {
                     snapToGrid={false}
                     onPaneClick={handleCanvasClick}
                     elevateNodesOnSelect={true}
-                    panOnScroll={!isPanning}
-                    panOnDrag={isPanning}
-                    selectionOnDrag={!isPanning}
+                    panOnScroll={editorEngine.state.editorMode !== EditorMode.PAN}
+                    panOnDrag={editorEngine.state.editorMode === EditorMode.PAN}
+                    selectionOnDrag={editorEngine.state.editorMode !== EditorMode.PAN}
                     nodesDraggable={true}
                     noDragClassName="nodrag"
                     dragHandleClassName="dragHandle"
