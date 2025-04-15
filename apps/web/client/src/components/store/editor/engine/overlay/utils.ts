@@ -89,29 +89,34 @@ export function adaptRectToCanvas(
         const nodeX = nodeTransform.m41;
         const nodeY = nodeTransform.m42;
         
-        // Get the viewport position
         const viewportX = viewportTransform.m41;
         const viewportY = viewportTransform.m42;
         
-        // Calculate the position of the element within the iframe, accounting for scale
-        const elementX = rect.left * scale;
-        const elementY = rect.top * scale;
+        // Get the node's data-frame-id attribute to help with debugging
+        const frameId = frameNode.getAttribute('data-frame-id');
+        const nodeId = frameNode.getAttribute('data-node-id');
         
-        // Calculate the absolute position by combining:
-        const absoluteX = elementX + (iframeRect.left - wrapperRect.left) + nodeX * scale + viewportX;
-        const absoluteY = elementY + (iframeRect.top - wrapperRect.top) + nodeY * scale + viewportY;
+        // Calculate the position of the element within the iframe
+        const iframeOffsetTop = iframeRect.top - frameNode.getBoundingClientRect().top;
+        const iframeOffsetLeft = iframeRect.left - frameNode.getBoundingClientRect().left;
+        
+        // Calculate the absolute position in the overlay space
+        const absoluteX = (rect.left * scale) + (iframeRect.left - wrapperRect.left);
+        const absoluteY = (rect.top * scale) + (iframeRect.top - wrapperRect.top);
         
         console.log('Overlay calculation:', {
+            frameId,
+            nodeId,
             rect,
-            elementX,
-            elementY,
+            scale,
             iframeRect: {
                 left: iframeRect.left,
                 top: iframeRect.top,
             },
-            wrapperRect: {
-                left: wrapperRect.left,
-                top: wrapperRect.top,
+            frameNodeRect: frameNode.getBoundingClientRect(),
+            iframeOffset: {
+                left: iframeOffsetLeft,
+                top: iframeOffsetTop,
             },
             nodeTransform: {
                 x: nodeX,
@@ -120,7 +125,6 @@ export function adaptRectToCanvas(
             viewportTransform: {
                 x: viewportX,
                 y: viewportY,
-                scale,
             },
             result: {
                 left: absoluteX,
