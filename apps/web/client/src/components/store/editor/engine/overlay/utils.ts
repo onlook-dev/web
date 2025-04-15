@@ -95,15 +95,16 @@ export function adaptRectToCanvas(
         const elementInIframeX = rect.left;
         const elementInIframeY = rect.top;
         
-        const iframeToWrapperX = iframeRect.left - wrapperRect.left;
-        const iframeToWrapperY = iframeRect.top - wrapperRect.top;
+        // 2. Calculate the position of the iframe relative to the overlay container
+        const iframeToOverlayX = iframeRect.left - overlayRect.left;
+        const iframeToOverlayY = iframeRect.top - overlayRect.top;
         
         // 3. Calculate the final position in the overlay space
-        const absoluteX = iframeToWrapperX + (elementInIframeX * scale);
-        const absoluteY = iframeToWrapperY + (elementInIframeY * scale);
+        const absoluteX = iframeToOverlayX + (elementInIframeX * scale);
+        const absoluteY = iframeToOverlayY + (elementInIframeY * scale);
         
         // Log detailed information for debugging
-        console.log('Overlay calculation (simplified):', {
+        console.log('Overlay calculation (direct):', {
             frameId,
             nodeId,
             rect: {
@@ -125,17 +126,15 @@ export function adaptRectToCanvas(
                 width: nodeRect.width,
                 height: nodeRect.height
             },
-            wrapperRect: {
-                left: wrapperRect.left,
-                top: wrapperRect.top
-            },
             overlayRect: {
                 left: overlayRect.left,
-                top: overlayRect.top
+                top: overlayRect.top,
+                width: overlayRect.width,
+                height: overlayRect.height
             },
-            iframeToWrapper: {
-                x: iframeToWrapperX,
-                y: iframeToWrapperY
+            iframeToOverlay: {
+                x: iframeToOverlayX,
+                y: iframeToOverlayY
             },
             elementInIframe: {
                 x: elementInIframeX,
