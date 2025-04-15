@@ -164,25 +164,61 @@ export function getRelativeMousePositionToFrame(
     frameView: WebFrameView,
     inverse: boolean = false,
 ): ElementPosition {
-    // Get the bounding rectangle of the iframe
-    const rect = frameView.getBoundingClientRect();
-    
-    // Get the React Flow viewport element
-    const reactFlowViewport = document.querySelector('.react-flow__viewport');
-    if (!reactFlowViewport) {
-        console.error('React Flow viewport not found');
-        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    try {
+        // Get the bounding rectangle of the iframe
+        const rect = frameView.getBoundingClientRect();
+        
+        const frameNode = frameView.closest('.react-flow__node');
+        if (!frameNode) {
+            console.error('React Flow node not found');
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+        
+        // Get the React Flow viewport element
+        const reactFlowViewport = document.querySelector('.react-flow__viewport');
+        if (!reactFlowViewport) {
+            console.error('React Flow viewport not found');
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+        
+        // Get the React Flow wrapper element
+        const reactFlowWrapper = document.querySelector('.react-flow');
+        if (!reactFlowWrapper) {
+            console.error('React Flow wrapper not found');
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+        
+        // Get the viewport transform matrix to extract the scale
+        const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
+        const scale = viewportTransform.a || 1; // Get scale from transform matrix
+        
+        // Get the node transform matrix
+        const nodeTransform = new DOMMatrix(getComputedStyle(frameNode as HTMLElement).transform);
+        
+        // Calculate position relative to the iframe, accounting for React Flow scale and transforms
+        const nodeX = nodeTransform.m41;
+        const nodeY = nodeTransform.m42;
+        
+        // Get the viewport position
+        const viewportX = viewportTransform.m41;
+        const viewportY = viewportTransform.m42;
+        
+        // Adjust mouse position based on all transforms
+        const adjustedX = (e.clientX - rect.left) / scale;
+        const adjustedY = (e.clientY - rect.top) / scale;
+        
+        console.log('Mouse position relative to frame:', { 
+            original: { x: e.clientX, y: e.clientY },
+            rect: { left: rect.left, top: rect.top },
+            adjusted: { x: adjustedX, y: adjustedY },
+            scale,
+            node: { x: nodeX, y: nodeY },
+            viewport: { x: viewportX, y: viewportY }
+        });
+        
+        return { x: adjustedX, y: adjustedY };
+    } catch (error) {
+        console.error('Error in getRelativeMousePositionToFrame:', error);
+        return { x: e.clientX - frameView.getBoundingClientRect().left, y: e.clientY - frameView.getBoundingClientRect().top };
     }
-    
-    // Get the viewport transform matrix to extract the scale
-    const viewportTransform = new DOMMatrix(getComputedStyle(reactFlowViewport as HTMLElement).transform);
-    const scale = viewportTransform.a || 1; // Get scale from transform matrix
-    
-    // Calculate position relative to the iframe, accounting for React Flow scale
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-    
-    console.log('Mouse position relative to frame:', { x, y, scale });
-    
-    return { x, y };
 }
