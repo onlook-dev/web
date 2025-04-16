@@ -1,16 +1,10 @@
 import { useEditorEngine } from "@/components/store";
-import type { DomElement, WebFrame } from "@onlook/models";
+import type { WebFrame } from "@onlook/models";
+import type { PreloadMethods } from '@onlook/penpal';
 import { cn } from "@onlook/ui/utils";
 import { observer } from "mobx-react-lite";
 import { WindowMessenger, connect } from 'penpal';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
-
-type PenpalRemote = {
-    setFrameId: (frameId: string) => void;
-    processDom: () => void;
-    getElementAtLoc: (x: number, y: number, getStyle: boolean) => Promise<DomElement>;
-    getDomElementByDomId: (domId: string, getStyle: boolean) => Promise<DomElement>;
-};
 
 export type WebFrameView = HTMLIFrameElement & {
     setZoomLevel: (level: number) => void;
@@ -23,7 +17,7 @@ export type WebFrameView = HTMLIFrameElement & {
     reload: () => void;
     isLoading: () => boolean;
     capturePageAsCanvas: () => Promise<HTMLCanvasElement>;
-} & PenpalRemote;
+} & PreloadMethods;
 
 interface WebFrameViewProps extends IframeHTMLAttributes<HTMLIFrameElement> {
     frame: WebFrame;
@@ -43,7 +37,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             allowedOrigins: ['*'],
         });
         const connection = connect({ messenger, methods: {} });
-        const remote = await connection.promise as unknown as PenpalRemote;
+        const remote = (await connection.promise) as unknown as PreloadMethods;
         await remote.setFrameId(frame.id);
         await remote.processDom();
         setIframeRemote(remote);
@@ -86,6 +80,10 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
 
     useImperativeHandle(ref, () => {
         const iframe = iframeRef.current!;
+
+        const remoteMethods = Object.keys(iframeRemote);
+        console.log("Remote methods:", remoteMethods);
+
         return Object.assign(iframe, {
             supportsOpenDevTools: () => !!iframe.contentWindow && 'openDevTools' in iframe.contentWindow,
             setZoomLevel: (level: number) => {
