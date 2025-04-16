@@ -98,7 +98,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             isLoading: () => iframe.contentDocument?.readyState !== 'complete',
             processDom: iframeRemote?.processDom,
             getElementAtLoc: iframeRemote?.getElementAtLoc,
-            getDomElementByDomId: iframeRemote?.getDomElementByDomId,
+            getElementByDomId: iframeRemote?.getElementByDomId,
             setFrameId: iframeRemote?.setFrameId,
         }) satisfies WebFrameView;
     }, [iframeRemote]);

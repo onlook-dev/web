@@ -52,7 +52,7 @@ export class OverlayManager {
                 continue;
             }
             const { view } = frameData;
-            const el: DomElement = await view.getDomElementByDomId(selectedElement.domId, true);
+            const el: DomElement = await view.getElementByDomId(selectedElement.domId, true);
             if (!el) {
                 console.error('Element not found');
                 continue;

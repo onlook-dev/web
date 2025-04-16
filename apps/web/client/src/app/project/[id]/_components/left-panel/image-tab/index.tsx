@@ -22,8 +22,7 @@ import { images } from './data.json';
 import DeleteImageModal from './delete-modal';
 import RenameImageModal from './rename-modal';
 
-
-const ImagesTab = observer(() => {
+export const ImagesTab = observer(() => {
     const editorEngine = useEditorEngine();
     const projectsManager = useProjectsManager();
 
@@ -364,8 +363,8 @@ const ImagesTab = observer(() => {
                                 </span>
                                 <div
                                     className={`absolute right-2 top-2 ${activeDropdown === image.fileName
-                                            ? 'opacity-100'
-                                            : 'opacity-0'
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
                                         } group-hover:opacity-100 transition-opacity duration-300`}
                                 >
                                     <DropdownMenu
@@ -455,5 +454,3 @@ const ImagesTab = observer(() => {
         </div>
     );
 });
-
-export default ImagesTab;
