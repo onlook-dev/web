@@ -16,7 +16,6 @@ export type WebFrameView = HTMLIFrameElement & {
     goBack: () => void;
     reload: () => void;
     isLoading: () => boolean;
-    capturePageAsCanvas: () => Promise<HTMLCanvasElement>;
 } & PreloadMethods;
 
 interface WebFrameViewProps extends IframeHTMLAttributes<HTMLIFrameElement> {
@@ -79,11 +78,10 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     }
 
     useImperativeHandle(ref, () => {
-        const iframe = iframeRef.current!;
-
-        const remoteMethods = Object.keys(iframeRemote);
-        console.log("Remote methods:", remoteMethods);
-
+        const iframe = iframeRef.current;
+        if (!iframe) {
+            throw new Error('Iframe not found');
+        }
         return Object.assign(iframe, {
             supportsOpenDevTools: () => !!iframe.contentWindow && 'openDevTools' in iframe.contentWindow,
             setZoomLevel: (level: number) => {
@@ -98,10 +96,11 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             goBack: () => iframe.contentWindow?.history.back(),
             reload: () => iframe.contentWindow?.location.reload(),
             isLoading: () => iframe.contentDocument?.readyState !== 'complete',
+            processDom: iframeRemote?.processDom,
             getElementAtLoc: iframeRemote?.getElementAtLoc,
             getDomElementByDomId: iframeRemote?.getDomElementByDomId,
             setFrameId: iframeRemote?.setFrameId,
-        }) as WebFrameView;
+        }) satisfies WebFrameView;
     }, [iframeRemote]);
 
     return (
