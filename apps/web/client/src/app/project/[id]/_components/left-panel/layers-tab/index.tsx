@@ -16,7 +16,7 @@ export const LayersTab = observer(() => {
 
     useEffect(handleSelectChange, [
         editorEngine.elements.selected,
-        // editorEngine.ast.mappings.filteredLayers,
+        editorEngine.ast.mappings.filteredLayers,
     ]);
 
     const handleMouseLeaveTree = useCallback(() => {
