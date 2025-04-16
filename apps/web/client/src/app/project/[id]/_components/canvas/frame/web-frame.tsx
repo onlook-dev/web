@@ -4,7 +4,7 @@ import type { PreloadMethods } from '@onlook/penpal';
 import { cn } from "@onlook/ui/utils";
 import { observer } from "mobx-react-lite";
 import { WindowMessenger, connect } from 'penpal';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
 
 export type WebFrameView = HTMLIFrameElement & {
     setZoomLevel: (level: number) => void;
@@ -43,37 +43,20 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         console.log("Penpal connection set for frame ID:", frame.id);
     }, [frame.id]);
 
-    const setupIframe = useCallback(async (iframe: HTMLIFrameElement) => {
+    const handleIframeLoad = async (e: React.SyntheticEvent<HTMLIFrameElement>) => {
         try {
+            const iframe = e.currentTarget;
             await setupPenpalConnection(iframe);
             editorEngine.frames.register(frame, iframe as WebFrameView);
         } catch (error) {
             console.error('Initialize penpal connection failed:', error);
         }
-    }, [setupPenpalConnection]);
+    }
 
-    const handleIframeLoad = useCallback(() => {
-        const iframe = iframeRef.current;
-        if (!iframe) {
-            console.error('Iframe not found');
-            return;
-        }
-
-        if (iframe.contentDocument?.readyState === 'complete') {
-            setupIframe(iframe);
-        } else {
-            console.log("Iframe not loaded for frame ID:", frame.id, iframe.contentDocument);
-            iframe.addEventListener('load', () => setupIframe(iframe), { once: true });
-            iframe.addEventListener('error', () => {
-                console.error('Iframe failed to load:', iframe.src);
-                setTimeout(() => reloadIframe(), 5000);
-            });
-        }
-    }, [setupIframe]);
-
-    useEffect(() => {
-        handleIframeLoad();
-    }, [handleIframeLoad]);
+    const handleIframeError = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
+        console.error('Iframe failed to load:', e);
+        setTimeout(() => reloadIframe(), 5000);
+    }
 
     const reloadIframe = () => {
         const iframe = iframeRef.current;
@@ -117,6 +100,8 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             sandbox="allow-modals allow-forms allow-same-origin allow-scripts allow-popups allow-downloads"
             allow="geolocation; microphone; camera; midi; encrypted-media"
             style={{ width: frame.dimension.width, height: frame.dimension.height }}
+            onLoad={handleIframeLoad}
+            onError={handleIframeError}
             {...props}
         />
     );
