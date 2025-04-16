@@ -1,15 +1,17 @@
 "use client";
 
+import { useEditorEngine } from "@/components/store";
+import { observer } from "mobx-react-lite";
 import { motion } from "motion/react";
-import type { ElementType } from "../main";
 import { DivSelected } from "./div-selected";
 import { ImgSelected } from "./img-selected";
 import { TextSelected } from "./text-selected";
 
+export const EditorBar = observer(() => {
+    const editorEngine = useEditorEngine();
+    const selectedTag = editorEngine.elements.selectedTag || "div";
+    console.log(selectedTag);
 
-export const EditorBar = ({ selectedElement }: {
-    selectedElement: ElementType;
-}) => {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -24,9 +26,9 @@ export const EditorBar = ({ selectedElement }: {
                 damping: 25,
             }}
         >
-            {selectedElement === "text" && <TextSelected />}
-            {selectedElement === "div" && <DivSelected />}
-            {selectedElement === "image" && <ImgSelected />}
+            {selectedTag === "text" && <TextSelected />}
+            {selectedTag === "div" && <DivSelected />}
+            {selectedTag === "image" && <ImgSelected />}
         </motion.div>
     );
-};
+});

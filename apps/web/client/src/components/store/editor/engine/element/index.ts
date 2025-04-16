@@ -5,6 +5,13 @@ import type { EditorEngine } from '..';
 import type { FrameData } from '../frames';
 import { adaptRectToCanvas } from '../overlay/utils';
 
+const TAG_TYPES: Record<string, string[]> = {
+    text: ['h1', 'h2'],
+    div: ['div'],
+    image: ['img'],
+    video: ['video']
+} as const;
+
 export class ElementsManager {
     private hoveredElement: DomElement | undefined;
     private selectedElements: DomElement[] = [];
@@ -23,6 +30,22 @@ export class ElementsManager {
 
     set selected(elements: DomElement[]) {
         this.selectedElements = elements;
+    }
+
+    get selectedTag(): "div" | "text" | "image" | "video" {
+        if (this.selected.length === 0) {
+            return "div";
+        }
+        const tag = this.selected[0]?.tagName;
+        if (!tag) {
+            return "div";
+        }
+        for (const [key, value] of Object.entries(TAG_TYPES)) {
+            if (value.includes(tag)) {
+                return key as "div" | "text" | "image" | "video";
+            }
+        }
+        return "div";
     }
 
     mouseover(domEl: DomElement, frameData: FrameData) {
