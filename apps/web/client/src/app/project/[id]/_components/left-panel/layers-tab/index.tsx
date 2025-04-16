@@ -21,13 +21,13 @@ const LayersTab = observer(() => {
 
     const handleMouseLeaveTree = useCallback(() => {
         setTreeHovered(false);
-        // editorEngine.overlay.state.updateHoverRect(null);
-    }, []);
+        editorEngine.overlay.state.updateHoverRect(null);
+    }, [editorEngine.overlay.state]);
 
     function handleSelectChange() {
-        // if (editorEngine.elements.selected.length > 0) {
-        //     treeRef.current?.scrollTo(editorEngine.elements.selected[0].domId);
-        // }
+            if (editorEngine.elements.selected.length > 0) {
+                treeRef.current?.scrollTo(editorEngine.elements.selected[0].domId);
+            }
     }
 
     const handleDragEnd = useCallback(
@@ -49,7 +49,7 @@ const LayersTab = observer(() => {
                 return;
             }
             const dragNode = dragNodes[0];
-            const webview = editorEngine.webviews.getWebview(dragNode.data.webviewId);
+            const webview = editorEngine.frames.get(dragNode.data.frameId)?.view;
 
             if (!webview) {
                 console.error('No webview found');

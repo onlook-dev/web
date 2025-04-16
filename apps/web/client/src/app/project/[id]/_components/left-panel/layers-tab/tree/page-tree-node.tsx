@@ -12,11 +12,15 @@ import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import type { NodeApi } from 'react-arborist';
 import { PageModal } from '../../page-tab/page-modal';
 
 interface PageTreeNodeProps {
-    node: NodeApi<PageNode>;
+    node: {
+        data: PageNode;
+        toggle: () => void;
+        select: () => void;
+        isOpen: boolean;
+    };
     style: React.CSSProperties;
 }
 
@@ -37,7 +41,7 @@ const PageTreeNode: React.FC<PageTreeNodeProps> = ({ node, style }) => {
             return;
         }
 
-        const webviewId = editorEngine.webviews.selected[0]?.id;
+        const webviewId = editorEngine.frames.selected[0]?.frame.id;
         if (webviewId) {
             editorEngine.pages.setActivePath(webviewId, node.data.path);
         }
@@ -101,9 +105,7 @@ const PageTreeNode: React.FC<PageTreeNodeProps> = ({ node, style }) => {
         },
         {
             label: 'Duplicate Page',
-            action: () => {
-                handleDuplicate();
-            },
+            action: handleDuplicate,
             icon: <Icons.Copy className="mr-2 h-4 w-4" />,
             disabled: node.data.isRoot,
         },

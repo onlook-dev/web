@@ -74,10 +74,10 @@ const TreeNode = observer(
         const isText = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(
             node.data.tagName.toLowerCase(),
         );
-        // const isWindowSelected =
-        //     isWindow &&
-        //     editorEngine.elements.selected.length === 0 &&
-        //     editorEngine.webviews.selected.some((el) => el.id === node.data.webviewId);
+        const isWindowSelected =
+            isWindow &&
+            editorEngine.elements.selected.length === 0 &&
+            editorEngine.frames.selected.some((el) => el.frame.id === node.data.webviewId);
 
         const { hovered, selected, isParentSelected } = useMemo(
             () => ({
@@ -88,26 +88,73 @@ const TreeNode = observer(
             [node.data.domId, editorEngine.elements.hovered?.domId, editorEngine.elements.selected],
         );
 
+
+
+
+        const sendMouseEvent = useCallback(
+            async (e: React.MouseEvent<HTMLDivElement>, node: LayerNode, action: MouseAction) => {
+                const webview = editorEngine.frames.get(node.frameId);
+                if (!webview) {
+                    console.error('Failed to get webview');
+                    return;
+                }
+                const el: DomElement = await webview.executeJavaScript(
+                    `window.api?.getDomElementByDomId('${node.domId}', ${action === MouseAction.MOUSE_DOWN})`,
+                );
+                if (!el) {
+                    console.error('Failed to get element');
+                    return;
+                }
+        
+                switch (action) {
+                    case MouseAction.MOVE:
+                        editorEngine.elements.mouseover(el, webview);
+                        break;
+                    case MouseAction.MOUSE_DOWN:
+                        if (isWindow) {
+                            editorEngine.clearUI();
+                            editorEngine.frames.select(webview.frame);
+                            return;
+                        }
+                    if (e.shiftKey) {
+                        editorEngine.elements.shiftClick(el, webview);
+                        break;
+                    }
+                    editorEngine.elements.click([el], webview);
+                    break;
+                }
+            }, [editorEngine, isWindow]);
+
         const handleHoverNode = useCallback(
-            (e: React.MouseEvent<HTMLDivElement>) => {
+            async (e: React.MouseEvent<HTMLDivElement>) => {
                 if (hovered) {
                     return;
                 }
-                sendMouseEvent(e, node.data, MouseAction.MOVE);
+                await sendMouseEvent(e, node.data, MouseAction.MOVE);
             },
-            [hovered, node.data],
+            [hovered, node.data, sendMouseEvent],
         );
 
         const handleSelectNode = useCallback(
-            (e: React.MouseEvent<HTMLDivElement>) => {
+            async (e: React.MouseEvent<HTMLDivElement>) => {
                 if (selected) {
                     return;
                 }
                 node.select();
-                sendMouseEvent(e, node.data, MouseAction.MOUSE_DOWN);
+                await sendMouseEvent(e, node.data, MouseAction.MOUSE_DOWN);
             },
-            [selected, node],
+            [selected, node, sendMouseEvent],
         );
+
+        const parentGroupEnd = useCallback((node: NodeApi<LayerNode>) => {
+            if (node.nextSibling || node.isOpen) {
+                return false;
+            }
+            const selectedParent = parentSelected(node, editorEngine.elements.selected);
+            if (selectedParent && allAncestorsLastAndOpen(node, selectedParent)) {
+                return true;
+            }
+        }, [editorEngine.elements.selected]);
 
         const nodeClassName = useMemo(
             () =>
@@ -125,8 +172,8 @@ const TreeNode = observer(
                         rounded:
                             (hovered && !isParentSelected && !selected) ||
                             (selected && node.isLeaf) ||
-                            (selected && node.isClosed),
-                            // isWindowSelected,
+                            (selected && node.isClosed) ||
+                            isWindowSelected,
                         'rounded-t': selected && node.isInternal,
                         'rounded-b': isParentSelected && parentGroupEnd(node),
                         'rounded-none': isParentSelected && node.nextSibling,
@@ -144,19 +191,18 @@ const TreeNode = observer(
                         'bg-purple-300/30 dark:bg-purple-900/30': isParentSelected?.data.instanceId,
                         'bg-purple-300/50 dark:bg-purple-900/50':
                             hovered && isParentSelected?.data.instanceId,
-                        // 'text-white dark:text-primary':
-                        //     (!node.data.instanceId && selected) || isWindowSelected,
-                        // 'bg-teal-500': isWindowSelected,
+                        'text-white dark:text-primary':
+                            (!node.data.instanceId && selected) || isWindowSelected,
+                        'bg-teal-500': isWindowSelected,
                     }),
                 ),
             [
                 hovered,
                 selected,
                 isParentSelected,
-                node.isLeaf,
-                node.isClosed,
-                node.nextSibling,
-                // isWindowSelected,
+                isWindowSelected,
+                parentGroupEnd,
+                node
             ],
         );
 
@@ -173,53 +219,6 @@ const TreeNode = observer(
             return containerWidth - nodeRightEdge + 10;
         }
 
-        function parentGroupEnd(node: NodeApi<LayerNode>) {
-            if (node.nextSibling || node.isOpen) {
-                return false;
-            }
-            const selectedParent = parentSelected(node, editorEngine.elements.selected);
-            if (selectedParent && allAncestorsLastAndOpen(node, selectedParent)) {
-                return true;
-            }
-        }
-
-        async function sendMouseEvent(
-            e: React.MouseEvent<HTMLDivElement>,
-            node: LayerNode,
-            action: MouseAction,
-        ) {
-            const webview = editorEngine.webviews.getWebview(node.webviewId);
-            if (!webview) {
-                console.error('Failed to get webview');
-                return;
-            }
-
-            const el: DomElement = await webview.executeJavaScript(
-                `window.api?.getDomElementByDomId('${node.domId}', ${action === MouseAction.MOUSE_DOWN})`,
-            );
-            if (!el) {
-                console.error('Failed to get element');
-                return;
-            }
-
-            switch (action) {
-                case MouseAction.MOVE:
-                    editorEngine.elements.mouseover(el, webview);
-                    break;
-                case MouseAction.MOUSE_DOWN:
-                    if (isWindow) {
-                        editorEngine.clearUI();
-                        editorEngine.webviews.select(webview);
-                        return;
-                    }
-                    if (e.shiftKey) {
-                        editorEngine.elements.shiftClick(el, webview);
-                        break;
-                    }
-                    editorEngine.elements.click([el], webview);
-                    break;
-            }
-        }
 
         function toggleVisibility(): void {
             const visibility = node.data.isVisible ? 'hidden' : 'inherit';

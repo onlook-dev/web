@@ -5,7 +5,6 @@ import type { NodeApi } from 'react-arborist';
 interface TreeRowProps {
     node: NodeApi<LayerNode>;
     innerRef: RefObject<HTMLDivElement>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     attrs: Record<string, any>;
     children: React.ReactNode;
 }

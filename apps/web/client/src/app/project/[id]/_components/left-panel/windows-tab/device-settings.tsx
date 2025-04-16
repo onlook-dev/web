@@ -27,13 +27,13 @@ const DeviceSettings = ({ settings }: { settings: Frame }) => {
     // }, []);
 
     async function changeTheme(theme: Theme) {
-        const webview = editorEngine.webviews.getWebview(settings.id);
+        const webview = editorEngine.frames.get(settings.id)?.view;
         if (!webview) {
             return;
         }
 
         const themeValue =
-            theme === Theme.System ? 'device' : theme === Theme.Dark ? 'dark' : 'light';
+            theme === Theme.SYSTEM ? 'device' : theme === Theme.DARK ? 'dark' : 'light';
 
         webview.executeJavaScript(`window.api?.setTheme("${themeValue}")`).then((res) => {
             setDeviceTheme(theme);
