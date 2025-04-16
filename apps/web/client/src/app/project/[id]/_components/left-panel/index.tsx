@@ -13,7 +13,6 @@ import { OpenCodeMini } from './open-code-mini';
 import { PagesTab } from './page-tab';
 import { WindowsTab } from './windows-tab';
 import { ZoomControls } from './zoom-controls';
-// import ZoomControls from './ZoomControls';
 
 const tabs: { value: LeftPanelTabValue; icon: React.ReactNode; label: string; hidden: boolean }[] = [
     {

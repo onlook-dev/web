@@ -24,9 +24,9 @@ interface WebFrameViewProps extends IframeHTMLAttributes<HTMLIFrameElement> {
 
 export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewProps>(({ frame, ...props }, ref) => {
     const editorEngine = useEditorEngine();
-    const [iframeRemote, setIframeRemote] = useState<any>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const zoomLevel = useRef(1);
+    const [iframeRemote, setIframeRemote] = useState<any>(null);
 
     const setupPenpalConnection = useCallback(async (iframe: HTMLIFrameElement) => {
         console.log("iFrame creating penpal connection frame ID:", frame.id);
@@ -54,11 +54,15 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
 
     const handleIframeLoad = useCallback(() => {
         const iframe = iframeRef.current;
-        if (!iframe) return;
+        if (!iframe) {
+            console.error('Iframe not found');
+            return;
+        }
 
         if (iframe.contentDocument?.readyState === 'complete') {
             setupIframe(iframe);
         } else {
+            console.log("Iframe not loaded for frame ID:", frame.id, iframe.contentDocument);
             iframe.addEventListener('load', () => setupIframe(iframe), { once: true });
             iframe.addEventListener('error', () => {
                 console.error('Iframe failed to load:', iframe.src);
@@ -100,6 +104,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             getElementAtLoc: iframeRemote?.getElementAtLoc,
             getElementByDomId: iframeRemote?.getElementByDomId,
             setFrameId: iframeRemote?.setFrameId,
+            getElementIndex: iframeRemote?.getElementIndex,
         }) satisfies WebFrameView;
     }, [iframeRemote]);
 

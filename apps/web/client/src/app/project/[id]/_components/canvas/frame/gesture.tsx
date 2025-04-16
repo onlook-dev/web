@@ -35,6 +35,7 @@ export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
             }
             const pos = getRelativeMousePosition(e);
             const shouldGetStyle = [MouseAction.MOUSE_DOWN, MouseAction.DOUBLE_CLICK].includes(action);
+            console.log('shouldGetStyle', shouldGetStyle);
             const el: DomElement = await frameData.view.getElementAtLoc(pos.x, pos.y, shouldGetStyle);
             if (!el) {
                 console.log('No element found');
