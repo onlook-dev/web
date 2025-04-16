@@ -5,51 +5,29 @@ import type { EditorEngine } from '..';
 import type { FrameData } from '../frames';
 import { adaptRectToCanvas } from '../overlay/utils';
 
-const TAG_TYPES: Record<string, string[]> = {
-    text: ['h1', 'h2'],
-    div: ['div'],
-    image: ['img'],
-    video: ['video']
-} as const;
 
 export class ElementsManager {
-    private hoveredElement: DomElement | undefined;
-    private selectedElements: DomElement[] = [];
+    private _hovered: DomElement | undefined;
+    private _selected: DomElement[] = [];
 
     constructor(private editorEngine: EditorEngine) {
         makeAutoObservable(this, {});
     }
 
     get hovered() {
-        return this.hoveredElement;
+        return this._hovered;
     }
 
     get selected() {
-        return this.selectedElements;
+        return this._selected;
     }
 
     set selected(elements: DomElement[]) {
-        this.selectedElements = elements;
-    }
-
-    get selectedTag(): "div" | "text" | "image" | "video" {
-        if (this.selected.length === 0) {
-            return "div";
-        }
-        const tag = this.selected[0]?.tagName;
-        if (!tag) {
-            return "div";
-        }
-        for (const [key, value] of Object.entries(TAG_TYPES)) {
-            if (value.includes(tag)) {
-                return key as "div" | "text" | "image" | "video";
-            }
-        }
-        return "div";
+        this._selected = elements;
     }
 
     mouseover(domEl: DomElement, frameData: FrameData) {
-        if (this.hoveredElement?.domId && this.hoveredElement.domId === domEl.domId) {
+        if (this._hovered?.domId && this._hovered.domId === domEl.domId) {
             return;
         }
 
@@ -89,7 +67,7 @@ export class ElementsManager {
                 { ...domEl.styles?.computed, ...domEl.styles?.defined },
                 isComponent,
             );
-            this.addSelectedElement(domEl);
+            this._selected.push(domEl);
         }
     }
 
@@ -109,15 +87,11 @@ export class ElementsManager {
     }
 
     setHoveredElement(element: DomElement) {
-        this.hoveredElement = element;
+        this._hovered = element;
     }
 
     clearHoveredElement() {
-        this.hoveredElement = undefined;
-    }
-
-    addSelectedElement(element: DomElement) {
-        this.selectedElements.push(element);
+        this._hovered = undefined;
     }
 
     async delete() {
@@ -231,7 +205,7 @@ export class ElementsManager {
     }
 
     private clearSelectedElements() {
-        this.selectedElements = [];
+        this.selected = [];
     }
 
 }

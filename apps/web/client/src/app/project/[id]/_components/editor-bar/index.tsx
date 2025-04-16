@@ -1,16 +1,41 @@
 "use client";
 
 import { useEditorEngine } from "@/components/store";
+import type { DomElement } from "@onlook/models";
 import { observer } from "mobx-react-lite";
 import { motion } from "motion/react";
 import { DivSelected } from "./div-selected";
 import { ImgSelected } from "./img-selected";
 import { TextSelected } from "./text-selected";
 
+const TAG_TYPES: Record<string, string[]> = {
+    text: ['h1', 'h2'],
+    div: ['div'],
+    image: ['img'],
+    video: ['video']
+} as const;
+
+
+const getSelectedTag = (selected: DomElement[]): "div" | "text" | "image" | "video" => {
+    if (selected.length === 0) {
+        return "div";
+    }
+    const tag = selected[0]?.tagName;
+    if (!tag) {
+        return "div";
+    }
+    for (const [key, value] of Object.entries(TAG_TYPES)) {
+        if (value.includes(tag.toLowerCase())) {
+            return key as "div" | "text" | "image" | "video";
+        }
+    }
+    return "div";
+}
+
 export const EditorBar = observer(() => {
     const editorEngine = useEditorEngine();
-    const selectedTag = editorEngine.elements.selectedTag || "div";
-    console.log(selectedTag);
+    const selectedTag = getSelectedTag(editorEngine.elements.selected);
+    console.log('selectedTag', selectedTag);
 
     return (
         <motion.div

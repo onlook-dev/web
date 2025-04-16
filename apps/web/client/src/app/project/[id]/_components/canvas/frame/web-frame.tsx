@@ -34,7 +34,6 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     const [iframeRemote, setIframeRemote] = useState<any>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const zoomLevel = useRef(1);
-    const hasReloaded = useRef(false);
 
     const setupPenpalConnection = useCallback(async (iframe: HTMLIFrameElement) => {
         console.log("iFrame creating penpal connection frame ID:", frame.id);
