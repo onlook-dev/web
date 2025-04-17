@@ -2,6 +2,8 @@
 // import { WebviewChannels } from '@onlook/constants';
 
 import { sendAnalytics } from '@/utils/analytics';
+import type { DomElement, LayerNode } from '@onlook/models';
+import { EditorMode } from '@onlook/models';
 import {
     type Action,
     type EditTextAction,
@@ -17,6 +19,7 @@ import {
 import { StyleChangeType } from '@onlook/models/style';
 import { assertNever } from '@onlook/utility';
 import type { EditorEngine } from '..';
+import type { FrameData } from '../frames';
 
 export class ActionManager {
     constructor(private editorEngine: EditorEngine) { }
@@ -83,9 +86,9 @@ export class ActionManager {
     }
 
     updateStyle({ targets }: UpdateStyleAction) {
-        targets.forEach((target) => {
-            const frameView = this.editorEngine.frames.get(target.frameId);
-            if (!frameView) {
+        targets.forEach(async (target) => {
+            const frameData = this.editorEngine.frames.get(target.frameId);
+            if (!frameData) {
                 console.error('Failed to get frameView');
                 return;
             }
@@ -102,13 +105,16 @@ export class ActionManager {
                 }),
             );
 
-            // sendToWebview(frameView, WebviewChannels.UPDATE_STYLE, {
-            //     domId: target.domId,
-            //     change: {
-            //         ...target.change,
-            //         updated: convertedChange,
-            //     },
-            // });
+            const change = {
+                ...target.change,
+                updated: convertedChange,
+            };
+
+            const domEl = await frameData.view.updateStyle(target.domId, change);
+            if (domEl) {
+                this.editorEngine.elements.click([domEl], frameData);
+            }
+
         });
     }
 
@@ -212,6 +218,18 @@ export class ActionManager {
             // });
         });
     }
+
+    async refreshAndClickMutatedElement(
+        domEl: DomElement,
+        newMap: Map<string, LayerNode>,
+        frameData: FrameData,
+    ) {
+        this.editorEngine.state.editorMode = EditorMode.DESIGN;
+        await this.editorEngine.ast.refreshAstDoc(frameData.view);
+        this.editorEngine.elements.click([domEl], frameData.view);
+        this.editorEngine.ast.updateMap(frameData.view.id, newMap, domEl.domId);
+    }
+
 
     clear() { }
 }

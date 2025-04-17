@@ -6,6 +6,13 @@ import { observer } from "mobx-react-lite";
 import { WindowMessenger, connect } from 'penpal';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
 
+// Preload methods should be treated as promises
+type PromisifiedPreloadMethods = {
+    [K in keyof PreloadMethods]: (
+        ...args: Parameters<PreloadMethods[K]>
+    ) => Promise<ReturnType<PreloadMethods[K]>>;
+}
+
 export type WebFrameView = HTMLIFrameElement & {
     setZoomLevel: (level: number) => void;
     loadURL: (url: string) => void;
@@ -16,11 +23,20 @@ export type WebFrameView = HTMLIFrameElement & {
     goBack: () => void;
     reload: () => void;
     isLoading: () => boolean;
-} & PreloadMethods;
+} & PromisifiedPreloadMethods;
 
 interface WebFrameViewProps extends IframeHTMLAttributes<HTMLIFrameElement> {
     frame: WebFrame;
 }
+
+const promisifyRemoteMethod = <T extends (...args: any[]) => any>(
+    method: T | undefined
+): ((...args: Parameters<T>) => Promise<ReturnType<T>>) => {
+    return async (...args: Parameters<T>) => {
+        if (!method) throw new Error('Remote method not initialized');
+        return method(...args);
+    };
+};
 
 export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewProps>(({ frame, ...props }, ref) => {
     const editorEngine = useEditorEngine();
@@ -72,7 +88,8 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         if (!iframe) {
             throw new Error('Iframe not found');
         }
-        return Object.assign(iframe, {
+
+        const syncMethods = {
             supportsOpenDevTools: () => !!iframe.contentWindow && 'openDevTools' in iframe.contentWindow,
             setZoomLevel: (level: number) => {
                 zoomLevel.current = level;
@@ -86,33 +103,46 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             goBack: () => iframe.contentWindow?.history.back(),
             reload: () => iframe.contentWindow?.location.reload(),
             isLoading: () => iframe.contentDocument?.readyState !== 'complete',
-            processDom: iframeRemote?.processDom,
-            getElementAtLoc: iframeRemote?.getElementAtLoc,
-            getElementByDomId: iframeRemote?.getElementByDomId,
-            setFrameId: iframeRemote?.setFrameId,
-            getElementIndex: iframeRemote?.getElementIndex,
-            getComputedStyleByDomId: iframeRemote?.getComputedStyleByDomId,
-            updateElementInstance: iframeRemote?.updateElementInstance,
-            getFirstOnlookElement: iframeRemote?.getFirstOnlookElement,
-            setElementType: iframeRemote?.setElementType,
-            getElementType: iframeRemote?.getElementType,
-            getParentElement: iframeRemote?.getParentElement,
-            getChildrenCount: iframeRemote?.getChildrenCount,
-            getOffsetParent: iframeRemote?.getOffsetParent,
-            getActionLocation: iframeRemote?.getActionLocation,
-            getActionElement: iframeRemote?.getActionElement,
-            getInsertLocation: iframeRemote?.getInsertLocation,
-            getRemoveAction: iframeRemote?.getRemoveAction,
-            getTheme: iframeRemote?.getTheme,
-            setTheme: iframeRemote?.setTheme,
-            startDrag: iframeRemote?.startDrag,
-            drag: iframeRemote?.drag,
-            endDrag: iframeRemote?.endDrag,
-            endAllDrag: iframeRemote?.endAllDrag,
-            startEditingText: iframeRemote?.startEditingText,
-            editText: iframeRemote?.editText,
-            stopEditingText: iframeRemote?.stopEditingText,
-        }) satisfies WebFrameView;
+        };
+
+        const remoteMethods = {
+            processDom: promisifyRemoteMethod(iframeRemote?.processDom),
+            getElementAtLoc: promisifyRemoteMethod(iframeRemote?.getElementAtLoc),
+            getElementByDomId: promisifyRemoteMethod(iframeRemote?.getElementByDomId),
+            setFrameId: promisifyRemoteMethod(iframeRemote?.setFrameId),
+            getElementIndex: promisifyRemoteMethod(iframeRemote?.getElementIndex),
+            getComputedStyleByDomId: promisifyRemoteMethod(iframeRemote?.getComputedStyleByDomId),
+            updateElementInstance: promisifyRemoteMethod(iframeRemote?.updateElementInstance),
+            getFirstOnlookElement: promisifyRemoteMethod(iframeRemote?.getFirstOnlookElement),
+            setElementType: promisifyRemoteMethod(iframeRemote?.setElementType),
+            getElementType: promisifyRemoteMethod(iframeRemote?.getElementType),
+            getParentElement: promisifyRemoteMethod(iframeRemote?.getParentElement),
+            getChildrenCount: promisifyRemoteMethod(iframeRemote?.getChildrenCount),
+            getOffsetParent: promisifyRemoteMethod(iframeRemote?.getOffsetParent),
+            getActionLocation: promisifyRemoteMethod(iframeRemote?.getActionLocation),
+            getActionElement: promisifyRemoteMethod(iframeRemote?.getActionElement),
+            getInsertLocation: promisifyRemoteMethod(iframeRemote?.getInsertLocation),
+            getRemoveAction: promisifyRemoteMethod(iframeRemote?.getRemoveAction),
+            getTheme: promisifyRemoteMethod(iframeRemote?.getTheme),
+            setTheme: promisifyRemoteMethod(iframeRemote?.setTheme),
+            startDrag: promisifyRemoteMethod(iframeRemote?.startDrag),
+            drag: promisifyRemoteMethod(iframeRemote?.drag),
+            endDrag: promisifyRemoteMethod(iframeRemote?.endDrag),
+            endAllDrag: promisifyRemoteMethod(iframeRemote?.endAllDrag),
+            startEditingText: promisifyRemoteMethod(iframeRemote?.startEditingText),
+            editText: promisifyRemoteMethod(iframeRemote?.editText),
+            stopEditingText: promisifyRemoteMethod(iframeRemote?.stopEditingText),
+            updateStyle: promisifyRemoteMethod(iframeRemote?.updateStyle),
+            insertElement: promisifyRemoteMethod(iframeRemote?.insertElement),
+            removeElement: promisifyRemoteMethod(iframeRemote?.removeElement),
+            moveElement: promisifyRemoteMethod(iframeRemote?.moveElement),
+            groupElements: promisifyRemoteMethod(iframeRemote?.groupElements),
+            ungroupElements: promisifyRemoteMethod(iframeRemote?.ungroupElements),
+            insertImage: promisifyRemoteMethod(iframeRemote?.insertImage),
+            removeImage: promisifyRemoteMethod(iframeRemote?.removeImage),
+        };
+
+        return Object.assign(iframe, { ...syncMethods, ...remoteMethods }) satisfies WebFrameView;
     }, [iframeRemote]);
 
     useEffect(() => {
