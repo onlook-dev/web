@@ -52,43 +52,6 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         }
     }, [iframeRemote]);
 
-    // const setupPenpalConnection = useCallback(async (iframe: HTMLIFrameElement) => {
-    //     try {
-    //         console.log("iFrame - creating penpal connection frame ID:", frame.id);
-    //         if (!iframe?.contentWindow) throw new Error('No content window found');
-    //         const messenger = new WindowMessenger({
-    //             remoteWindow: iframe.contentWindow,
-    //             allowedOrigins: ['*'],
-    //         });
-    //         const connection = connect({ messenger, methods: {} });
-    //         const remote = (await connection.promise) as unknown as PreloadMethods;
-    //         await remote.setFrameId(frame.id);
-    //         await remote.processDom();
-    //         setIframeRemote(remote);
-    //         console.log("Iframe - Penpal connection set for frame ID:", frame.id);
-    //     } catch (error) {
-    //         console.error('Iframe - Failed to setup penpal connection:', error);
-    //     }
-    // }, [frame.id]);
-
-    // const handleIframeLoad = async (iframe: HTMLIFrameElement | null) => {
-    //     try {
-    //         if (!iframe) {
-    //             console.warn('No iframe found');
-    //             return;
-    //         }
-    //         await setupPenpalConnection(iframe);
-    //         editorEngine.frames.register(frame, iframe as WebFrameView);
-    //     } catch (error) {
-    //         console.error('Iframe - Initialize penpal connection failed:', error);
-    //     }
-    // }
-
-    // const handleIframeError = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
-    //     console.error('Iframe - Failed to load:', e);
-    //     setTimeout(() => reloadIframe(), 5000);
-    // }
-
     const reloadIframe = () => {
         const iframe = iframeRef.current;
         if (!iframe) return;
@@ -197,6 +160,9 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
 
         connection.promise.catch((error) => {
             console.error('Iframe - Failed to setup penpal connection:', error);
+            setTimeout(() => {
+                reloadIframe();
+            }, 1000);
         });
 
         return () => {
