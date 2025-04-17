@@ -102,13 +102,13 @@ export class ActionManager {
                 }),
             );
 
-            sendToWebview(frameView, WebviewChannels.UPDATE_STYLE, {
-                domId: target.domId,
-                change: {
-                    ...target.change,
-                    updated: convertedChange,
-                },
-            });
+            // sendToWebview(frameView, WebviewChannels.UPDATE_STYLE, {
+            //     domId: target.domId,
+            //     change: {
+            //         ...target.change,
+            //         updated: convertedChange,
+            //     },
+            // });
         });
     }
 
@@ -119,11 +119,11 @@ export class ActionManager {
                 console.error('Failed to get frameView');
                 return;
             }
-            sendToWebview(frameView, WebviewChannels.INSERT_ELEMENT, {
-                element,
-                location,
-                editText,
-            });
+            // sendToWebview(frameView, WebviewChannels.INSERT_ELEMENT, {
+            //     element,
+            //     location,
+            //     editText,
+            // });
         });
     }
 
@@ -134,9 +134,9 @@ export class ActionManager {
                 console.error('Failed to get frameView');
                 return;
             }
-            sendToWebview(frameView, WebviewChannels.REMOVE_ELEMENT, {
-                location,
-            });
+            // sendToWebview(frameView, WebviewChannels.REMOVE_ELEMENT, {
+            //     location,
+            // });
         });
     }
 
@@ -147,10 +147,10 @@ export class ActionManager {
                 console.error('Failed to get frameView');
                 return;
             }
-            sendToWebview(frameView, WebviewChannels.MOVE_ELEMENT, {
-                domId: target.domId,
-                newIndex: location.index,
-            });
+            // sendToWebview(frameView, WebviewChannels.MOVE_ELEMENT, {
+            //     domId: target.domId,
+            //     newIndex: location.index,
+            // });
         });
     }
 
@@ -161,10 +161,10 @@ export class ActionManager {
                 console.error('Failed to get frameView');
                 return;
             }
-            sendToWebview(frameView, WebviewChannels.EDIT_ELEMENT_TEXT, {
-                domId: target.domId,
-                content: newContent,
-            });
+            // sendToWebview(frameView, WebviewChannels.EDIT_ELEMENT_TEXT, {
+            //     domId: target.domId,
+            //     content: newContent,
+            // });
         });
     }
 
@@ -174,7 +174,7 @@ export class ActionManager {
             console.error('Failed to get frameView');
             return;
         }
-        sendToWebview(frameView, WebviewChannels.GROUP_ELEMENTS, { parent, container, children });
+        // sendToWebview(frameView, WebviewChannels.GROUP_ELEMENTS, { parent, container, children });
     }
 
     private ungroupElements({ parent, container, children }: UngroupElementsAction) {
@@ -183,7 +183,7 @@ export class ActionManager {
             console.error('Failed to get frameView');
             return;
         }
-        sendToWebview(frameView, WebviewChannels.UNGROUP_ELEMENTS, { parent, container, children });
+        // sendToWebview(frameView, WebviewChannels.UNGROUP_ELEMENTS, { parent, container, children });
     }
 
     private insertImage({ targets, image }: InsertImageAction) {
@@ -193,10 +193,10 @@ export class ActionManager {
                 console.error('Failed to get frameView');
                 return;
             }
-            sendToWebview(frameView, WebviewChannels.INSERT_IMAGE, {
-                domId: target.domId,
-                image,
-            });
+            // sendToWebview(frameView, WebviewChannels.INSERT_IMAGE, {
+            //     domId: target.domId,
+            //     image,
+            // });
         });
     }
 
@@ -207,9 +207,9 @@ export class ActionManager {
                 console.error('Failed to get frameView');
                 return;
             }
-            sendToWebview(frameView, WebviewChannels.REMOVE_IMAGE, {
-                domId: target.domId,
-            });
+            // sendToWebview(frameView, WebviewChannels.REMOVE_IMAGE, {
+            //     domId: target.domId,
+            // });
         });
     }
 

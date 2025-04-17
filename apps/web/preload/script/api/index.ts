@@ -1,4 +1,3 @@
-import type { PreloadMethods } from '@onlook/penpal';
 import { processDom } from './dom';
 import {
     getChildrenCount, getElementAtLoc, getElementByDomId, getOffsetParent,
@@ -21,7 +20,7 @@ import { editText, startEditingText, stopEditingText } from './elements/text';
 import { setFrameId } from './state';
 import { getTheme, setTheme } from './theme';
 
-export const preloadMethods: PreloadMethods = {
+export const preloadMethods = {
     // Misc
     processDom,
     setFrameId,
@@ -59,4 +58,6 @@ export const preloadMethods: PreloadMethods = {
     startEditingText,
     editText,
     stopEditingText,
-} satisfies PreloadMethods;
+}
+
+export type PreloadMethods = typeof preloadMethods;

@@ -26,12 +26,11 @@ import { ThemeManager } from './theme';
 // import type { UserManager } from '@/lib/user';
 
 export class EditorEngine {
-    readonly frames: FramesManager;
-
     readonly chat: ChatManager;
     readonly code: CodeManager;
     readonly error: ErrorManager;
     readonly image: ImageManager;
+    readonly frames: FramesManager;
     readonly theme: ThemeManager;
     readonly font: FontManager;
     readonly pages: PagesManager;

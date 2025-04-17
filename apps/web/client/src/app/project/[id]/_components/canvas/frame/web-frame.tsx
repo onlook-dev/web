@@ -1,7 +1,7 @@
 import { useEditorEngine } from "@/components/store";
 import type { WebFrame } from "@onlook/models";
-import type { PreloadMethods } from '@onlook/penpal';
 import { cn } from "@onlook/ui/utils";
+import type { PreloadMethods } from '@onlook/web-preload/script/api';
 import { observer } from "mobx-react-lite";
 import { WindowMessenger, connect } from 'penpal';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
@@ -27,8 +27,10 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const zoomLevel = useRef(1);
     const [iframeRemote, setIframeRemote] = useState<any>(null);
+    const connectionInitialized = useRef(false);
 
     const setupPenpalConnection = useCallback(async (iframe: HTMLIFrameElement) => {
+        if (connectionInitialized.current) return;
         console.log("iFrame creating penpal connection frame ID:", frame.id);
         if (!iframe?.contentWindow) throw new Error('No content window found');
         const messenger = new WindowMessenger({
@@ -40,6 +42,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         await remote.setFrameId(frame.id);
         await remote.processDom();
         setIframeRemote(remote);
+        connectionInitialized.current = true;
         console.log("Penpal connection set for frame ID:", frame.id);
     }, [frame.id]);
 
@@ -102,14 +105,27 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             getRemoveAction: iframeRemote?.getRemoveAction,
             getTheme: iframeRemote?.getTheme,
             setTheme: iframeRemote?.setTheme,
+            startDrag: iframeRemote?.startDrag,
+            drag: iframeRemote?.drag,
+            endDrag: iframeRemote?.endDrag,
+            endAllDrag: iframeRemote?.endAllDrag,
+            startEditingText: iframeRemote?.startEditingText,
+            editText: iframeRemote?.editText,
+            stopEditingText: iframeRemote?.stopEditingText,
         }) satisfies WebFrameView;
     }, [iframeRemote]);
 
     useEffect(() => {
         const iframe = iframeRef.current;
         if (!iframe) return;
+
+        // Reset the connection flag when frame changes
+        connectionInitialized.current = false;
         handleIframeLoad({ currentTarget: iframe } as any);
-    }, [frame, iframeRef.current]);
+        return () => {
+            connectionInitialized.current = false;
+        };
+    }, [frame]);
 
     return (
         <iframe
