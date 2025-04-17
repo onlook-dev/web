@@ -1,18 +1,17 @@
 
 
+import { useTheme } from '@/app/_components/theme';
+import { useEditorEngine, useUserManager } from '@/components/store';
+import { SystemTheme } from '@onlook/models';
 import { UsagePlanType } from '@onlook/models/usage';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
 import { toast } from '@onlook/ui/use-toast';
 import { AnimatePresence, motion, MotionConfig } from 'framer-motion';
 import { observer } from 'mobx-react-lite';
-import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 import { PricingCard } from './pricing-card';
-import { useUserManager } from '@/components/store';
-import { useEditorEngine } from '@/components/store';
-import { useTheme } from '@/app/_components/theme';
-import { SystemTheme } from '@onlook/models';
 
 export const SubscriptionModal = observer(() => {
     const userManager = useUserManager();
@@ -74,9 +73,9 @@ export const SubscriptionModal = observer(() => {
             setIsCheckingOut(UsagePlanType.PRO);
             const res:
                 | {
-                      success: boolean;
-                      error?: string;
-                  }
+                    success: boolean;
+                    error?: string;
+                }
                 | undefined = await invokeMainChannel(MainChannels.CREATE_STRIPE_CHECKOUT);
             if (res?.success) {
                 toast({
@@ -104,9 +103,9 @@ export const SubscriptionModal = observer(() => {
             setIsCheckingOut(UsagePlanType.BASIC);
             const res:
                 | {
-                      success: boolean;
-                      error?: string;
-                  }
+                    success: boolean;
+                    error?: string;
+                }
                 | undefined = await invokeMainChannel(MainChannels.MANAGE_SUBSCRIPTION);
             if (res?.success) {
                 toast({
@@ -129,9 +128,6 @@ export const SubscriptionModal = observer(() => {
             setIsCheckingOut(null);
         }
     };
-
-    console.log(editorEngine.state.plansOpen);
-    
 
     return (
         <AnimatePresence>
@@ -191,7 +187,7 @@ export const SubscriptionModal = observer(() => {
                                             }
                                             buttonText={
                                                 userManager.subscription.plan ===
-                                                UsagePlanType.BASIC
+                                                    UsagePlanType.BASIC
                                                     ? t('pricing.buttons.currentPlan')
                                                     : t('pricing.buttons.manageSubscription')
                                             }
@@ -201,7 +197,7 @@ export const SubscriptionModal = observer(() => {
                                                 },
                                                 disabled:
                                                     userManager.subscription.plan ===
-                                                        UsagePlanType.BASIC ||
+                                                    UsagePlanType.BASIC ||
                                                     isCheckingOut === UsagePlanType.BASIC,
                                             }}
                                             delay={0.1}
@@ -228,7 +224,7 @@ export const SubscriptionModal = observer(() => {
                                                 onClick: startProCheckout,
                                                 disabled:
                                                     userManager.subscription.plan ===
-                                                        UsagePlanType.PRO ||
+                                                    UsagePlanType.PRO ||
                                                     isCheckingOut === UsagePlanType.PRO,
                                             }}
                                             delay={0.2}
