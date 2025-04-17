@@ -357,7 +357,7 @@ export class CodeManager {
         });
     }
 
-    dispose() {
+    clear() {
         // Clear write queue
         this.writeQueue = [];
         this.isExecuting = false;

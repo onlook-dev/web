@@ -86,31 +86,28 @@ export class EditorEngine {
     //     return this.pagesManager;
     // }
 
-    dispose() {
+    clear() {
+        // TODO: Choose dispose or clear
         this.elements.clear();
-        this.frames.dispose();
-
+        this.frames.clear();
         this.history.clear();
-        this.action.dispose();
+        this.action.clear();
         this.overlay.clear();
         this.ast.clear();
         this.text.clean();
-        this.insert.dispose();
-        this.move.dispose();
-        this.style.dispose();
-        this.copy.dispose();
-        this.group.dispose();
-
+        this.insert.clear();
+        this.move.clear();
+        this.style.clear();
+        this.copy.clear();
+        this.group.clear();
         this.canvas.clear();
-        this.image.dispose();
-        this.theme.dispose();
-        this.font.dispose();
-        this.pages.dispose();
-        this.chat.dispose();
-        this.code.dispose();
-        // this.error.dispose();
-        // this.projectInfo.dispose();
-
+        this.image.clear();
+        this.theme.clear();
+        this.font.clear();
+        this.pages.clear();
+        this.chat.clear();
+        this.code.clear();
+        this.error.clear();
     }
 
     clearUI() {

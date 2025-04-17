@@ -213,5 +213,5 @@ export class ActionManager {
         });
     }
 
-    dispose() { }
+    clear() { }
 }
