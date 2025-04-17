@@ -12,7 +12,7 @@ import { FontManager } from './font';
 import { FramesManager } from './frames';
 import { GroupManager } from './group';
 import { HistoryManager } from './history';
-import { type ImageManager } from './image';
+import { ImageManager } from './image';
 import { InsertManager } from './insert';
 import { MoveManager } from './move';
 import { OverlayManager } from './overlay';
@@ -72,6 +72,10 @@ export class EditorEngine {
         );
         this.error = new ErrorManager(this, this.projectsManager);
         // this.image = new ImageManager(this,this.projectsManager);
+        // this.error = new ErrorManager(this, this.projectsManager);
+        this.image = new ImageManager(this
+            // ,this.projectsManager
+        );
         this.theme = new ThemeManager(this
             // , this.projectsManager
         );
