@@ -51,10 +51,6 @@ class CSSManager {
         return styleElement;
     }
 
-    clear() {
-        this.stylesheet = parse('');
-    }
-
     find(ast: CssNode, selectorToFind: string) {
         const matchingNodes: CssNode[] = [];
         walk(ast, {
@@ -211,6 +207,10 @@ class CSSManager {
         });
 
         this.stylesheet = ast;
+    }
+
+    clear() {
+        this.stylesheet = parse('');
     }
 }
 

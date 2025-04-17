@@ -1,6 +1,3 @@
-// import { sendToWebview } from '@/lib/utils';
-// import { WebviewChannels } from '@onlook/constants';
-
 import { sendAnalytics } from '@/utils/analytics';
 import type { DomElement, LayerNode } from '@onlook/models';
 import { EditorMode } from '@onlook/models';
@@ -35,7 +32,7 @@ export class ActionManager {
             return;
         }
         this.dispatch(action);
-        this.editorEngine.code.write(action);
+        // this.editorEngine.code.write(action);
         sendAnalytics('undo');
     }
 
@@ -45,7 +42,7 @@ export class ActionManager {
             return;
         }
         this.dispatch(action);
-        this.editorEngine.code.write(action);
+        // this.editorEngine.code.write(action);
         sendAnalytics('redo');
     }
 
@@ -85,8 +82,9 @@ export class ActionManager {
         }
     }
 
-    updateStyle({ targets }: UpdateStyleAction) {
-        targets.forEach(async (target) => {
+    async updateStyle({ targets }: UpdateStyleAction) {
+        let frameIdToDomEls: Record<string, DomElement[]> = {};
+        for (const target of targets) {
             const frameData = this.editorEngine.frames.get(target.frameId);
             if (!frameData) {
                 console.error('Failed to get frameView');
@@ -111,11 +109,27 @@ export class ActionManager {
             };
 
             const domEl = await frameData.view.updateStyle(target.domId, change);
-            if (domEl) {
-                this.editorEngine.elements.click([domEl], frameData);
+            if (!domEl) {
+                console.error('Failed to update style');
+                continue;
             }
+            frameIdToDomEls[target.frameId] = [domEl];
 
-        });
+        }
+
+        console.log('frameIdToDomEls', frameIdToDomEls);
+
+        // Refresh edited elements
+        // TODO: This is a hack. Consider updating the element style and layout without using click.
+        for (const [frameId, domEls] of Object.entries(frameIdToDomEls)) {
+            this.editorEngine.state.editorMode = EditorMode.DESIGN;
+            const frameData = this.editorEngine.frames.get(frameId);
+            if (!frameData) {
+                console.error('Failed to get frameData');
+                continue;
+            }
+            this.editorEngine.elements.click(domEls, frameData);
+        }
     }
 
     private insertElement({ targets, element, editText, location }: InsertElementAction) {
@@ -226,10 +240,9 @@ export class ActionManager {
     ) {
         this.editorEngine.state.editorMode = EditorMode.DESIGN;
         await this.editorEngine.ast.refreshAstDoc(frameData.view);
-        this.editorEngine.elements.click([domEl], frameData.view);
+        this.editorEngine.elements.click([domEl], frameData);
         this.editorEngine.ast.updateMap(frameData.view.id, newMap, domEl.domId);
     }
-
 
     clear() { }
 }
