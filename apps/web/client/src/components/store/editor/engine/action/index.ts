@@ -1,6 +1,7 @@
-import { sendToWebview } from '@/lib/utils';
+// import { sendToWebview } from '@/lib/utils';
+// import { WebviewChannels } from '@onlook/constants';
+
 import { sendAnalytics } from '@/utils/analytics';
-import { WebviewChannels } from '@onlook/constants';
 import {
     type Action,
     type EditTextAction,
