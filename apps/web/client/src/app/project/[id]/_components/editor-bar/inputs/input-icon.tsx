@@ -31,6 +31,7 @@ export const InputIcon = ({
     onUnitChange
 }: InputIconProps) => {
     const [inputValue, setInputValue] = useState(value.toString());
+    const [unitValue, setUnitValue] = useState(unit);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
@@ -67,13 +68,16 @@ export const InputIcon = ({
 
                 <DropdownMenu>
                     <DropdownMenuTrigger className="text-[12px] text-muted-foreground focus:outline-none cursor-pointer">
-                        {unit}
+                        {unitValue}
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="min-w-0 w-[64px]">
                         {UNITS.map((unitOption) => (
                             <DropdownMenuItem
                                 key={unitOption}
-                                onClick={() => onUnitChange?.(unitOption)}
+                                onClick={() => {
+                                    onUnitChange?.(unitOption);
+                                    setUnitValue(unitOption);
+                                }}
                                 className="text-[12px] text-center px-2"
                             >
                                 {unitOption}
