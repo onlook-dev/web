@@ -1,24 +1,33 @@
 import { useEditorEngine } from "@/components/store";
-import { useState } from "react";
+import { stringToParsedValue } from "@onlook/utility";
+import { useEffect, useState } from "react";
 import { InputIcon } from "../../inputs/input-icon";
 
 export const GapInput = () => {
     const editorEngine = useEditorEngine();
-    const [value, setValue] = useState(12);
-    const [unit, setUnit] = useState("px");
+    const { num, unit } = stringToParsedValue(editorEngine.style.getValue("gap") ?? "12px");
+    const [numValue, setNumValue] = useState(num);
+    const [unitValue, setUnitValue] = useState(unit);
+
+    useEffect(() => {
+        const { num, unit } = stringToParsedValue(editorEngine.style.getValue("gap") ?? "12px");
+        setNumValue(num);
+        setUnitValue(unit);
+    }, [editorEngine.style.selectedStyle]);
 
     return (
         <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground w-24">Gap</span>
             <InputIcon
-                value={value}
+                value={numValue}
+                unit={unitValue}
                 onChange={(newValue) => {
-                    setValue(newValue);
-                    editorEngine.style.update("gap", `${newValue}${unit}`);
+                    setNumValue(newValue);
+                    editorEngine.style.update("gap", `${newValue}${unitValue}`);
                 }}
                 onUnitChange={(newUnit) => {
-                    setUnit(newUnit);
-                    editorEngine.style.update("gap", `${value}${newUnit}`);
+                    setUnitValue(newUnit);
+                    editorEngine.style.update("gap", `${numValue}${newUnit}`);
                 }}
             />
         </div>

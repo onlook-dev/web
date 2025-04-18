@@ -2,7 +2,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Icons } from "@onlook/ui/icons";
 import { useState } from "react";
 
-const UNITS = ["PX", "%", "REM", "VW", "VH"] as const;
+const UNITS = ["px", "%", "rem", "vw", "vh"];
 type Unit = typeof UNITS[number];
 
 type IconType =
@@ -25,7 +25,7 @@ interface InputIconProps {
 
 export const InputIcon = ({
     value,
-    unit = "PX",
+    unit = "px",
     icon,
     onChange,
     onUnitChange
