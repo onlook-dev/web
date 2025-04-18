@@ -5,25 +5,25 @@ import type { CssValue } from ".";
 import { InputRadio } from "../../inputs/input-radio";
 
 const verticalAlignOptions: Record<string, CssValue> = {
-    top: { value: "top", label: "Top", icon: <Icons.AlignTop className="h-4 w-4" /> },
+    "flex-start": { value: "flex-start", label: "Top", icon: <Icons.AlignTop className="h-4 w-4" /> },
     center: { value: "center", label: "Center", icon: <Icons.AlignCenterVertically className="h-4 w-4" /> },
-    bottom: { value: "bottom", label: "Bottom", icon: <Icons.AlignBottom className="h-4 w-4" /> },
-    "space-between": { value: "space-between", label: "Space Between", icon: <Icons.SpaceBetweenVertically className="h-4 w-4" /> },
+    "flex-end": { value: "flex-end", label: "Bottom", icon: <Icons.AlignBottom className="h-4 w-4" /> },
+    stretch: { value: "stretch", label: "Stretch", icon: <Icons.SpaceBetweenVertically className="h-4 w-4" /> },
 };
 
 const horizontalAlignOptions: Record<string, CssValue> = {
-    left: { value: "left", label: "Left", icon: <Icons.AlignLeft className="h-4 w-4" /> },
+    "flex-start": { value: "flex-start", label: "Left", icon: <Icons.AlignLeft className="h-4 w-4" /> },
     center: { value: "center", label: "Center", icon: <Icons.AlignCenterHorizontally className="h-4 w-4" /> },
-    right: { value: "right", label: "Right", icon: <Icons.AlignRight className="h-4 w-4" /> },
+    "flex-end": { value: "flex-end", label: "Right", icon: <Icons.AlignRight className="h-4 w-4" /> },
     "space-between": { value: "space-between", label: "Space Between", icon: <Icons.SpaceBetweenHorizontally className="h-4 w-4" /> },
 };
 
 export const VerticalAlignInput = () => {
     const editorEngine = useEditorEngine();
-    const [value, setValue] = useState<string>(editorEngine.style.getValue("align-items") ?? "top");
+    const [value, setValue] = useState<string>(editorEngine.style.getValue("align-items") ?? "flex-start");
 
     useEffect(() => {
-        setValue(editorEngine.style.getValue("align-items") ?? "top");
+        setValue(editorEngine.style.getValue("align-items") ?? "flex-start");
     }, [editorEngine.style.selectedStyle]);
 
     return (
@@ -44,10 +44,10 @@ export const VerticalAlignInput = () => {
 
 export const HorizontalAlignInput = () => {
     const editorEngine = useEditorEngine();
-    const [value, setValue] = useState<string>(editorEngine.style.getValue("justify-content") ?? "left");
+    const [value, setValue] = useState<string>(editorEngine.style.getValue("justify-content") ?? "flex-start");
 
     useEffect(() => {
-        setValue(editorEngine.style.getValue("justify-content") ?? "left");
+        setValue(editorEngine.style.getValue("justify-content") ?? "flex-start");
     }, [editorEngine.style.selectedStyle]);
 
     return (
