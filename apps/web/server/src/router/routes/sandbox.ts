@@ -2,15 +2,7 @@ import { z } from 'zod';
 import { publicProcedure, router } from '../trpc';
 
 export const sandboxRouter = router({
-    start: publicProcedure
-        .input(z.object({
-            projectId: z.string(),
-        }))
-        .query(({ input }) => {
-            return `hi ${input.projectId}`;
-        }),
-
-    getStatus: publicProcedure
+    status: publicProcedure
         .input(z.object({
             sandboxId: z.string(),
             includeDetails: z.boolean().optional(),
@@ -22,6 +14,14 @@ export const sandboxRouter = router({
                 details: input.includeDetails ? { cpu: '5%', memory: '120MB' } : undefined,
                 uptime: 1200,
             };
+        }),
+
+    start: publicProcedure
+        .input(z.object({
+            projectId: z.string(),
+        }))
+        .mutation(({ input }) => {
+            return `hi ${input.projectId}`;
         }),
 
     stop: publicProcedure

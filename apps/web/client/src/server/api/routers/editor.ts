@@ -23,48 +23,18 @@ const editorClient = createTRPCClient<EditorRouter>({
     ],
 });
 
-/**
- * Helper functions to create forwarded procedures
- */
-const createForwardedQuery = (path: string) => {
-    const [namespace, procedure] = path.split('.');
-    if (!namespace || !procedure) {
-        throw new Error(`Invalid path: ${path}. Format should be 'namespace.procedure'`);
-    }
-
-    return publicProcedure
-        .input(z.any())
-        .query(({ input }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (editorClient as any)[namespace][procedure].query(input);
-        });
-};
-
-const createForwardedMutation = (path: string) => {
-    const [namespace, procedure] = path.split('.');
-    if (!namespace || !procedure) {
-        throw new Error(`Invalid path: ${path}. Format should be 'namespace.procedure'`);
-    }
-
-    return publicProcedure
-        .input(z.any())
-        .mutation(({ input }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (editorClient as any)[namespace][procedure].mutate(input);
-        });
-};
-
 // Export the router with all the forwarded procedures
 export const editorForwardRouter = createTRPCRouter({
     sandbox: createTRPCRouter({
-        // Query procedures
-        start: createForwardedQuery('sandbox.start'),
-        getStatus: createForwardedQuery('sandbox.getStatus'),
+        start: publicProcedure.input(z.object({ projectId: z.string() })).mutation(({ input }) => {
+            return editorClient.sandbox.start.mutate(input);
+        }),
+        status: publicProcedure.input(z.object({ sandboxId: z.string() })).query(({ input }) => {
+            return editorClient.sandbox.status.query(input);
+        }),
 
-        // Mutation procedures
-        stop: createForwardedMutation('sandbox.stop'),
-
-        // For subscriptions, you would need to implement a more complex solution
-        // The pattern would be similar but requires proper handling of the subscription lifecycle
+        stop: publicProcedure.input(z.object({ sandboxId: z.string() })).mutation(({ input }) => {
+            return editorClient.sandbox.stop.mutate(input);
+        }),
     }),
 });
