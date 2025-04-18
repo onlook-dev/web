@@ -1,6 +1,5 @@
 import { editorServerConfig, type EditorRouter } from '@onlook/rpc';
 import { createTRPCClient, createWSClient, httpBatchLink, splitLink, wsLink } from '@trpc/client';
-import { observable } from '@trpc/server/observable';
 import superJSON from 'superjson';
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc';
@@ -24,72 +23,46 @@ const editorClient = createTRPCClient<EditorRouter>({
     ],
 });
 
-// Helper functions to create procedures that forward to the client
-function createForwardQueryProcedure<TInput extends z.ZodTypeAny>(
-    clientQueryFn: (input: z.infer<TInput>) => Promise<any>,
-    inputSchema: TInput
-) {
+/**
+ * Helper functions to create forwarded procedures
+ */
+const createForwardedQuery = (path: string) => {
+    const [namespace, procedure] = path.split('.');
+    if (!namespace || !procedure) {
+        throw new Error(`Invalid path: ${path}. Format should be 'namespace.procedure'`);
+    }
+
     return publicProcedure
-        .input(inputSchema)
+        .input(z.any())
         .query(({ input }) => {
-            return clientQueryFn(input);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return (editorClient as any)[namespace][procedure].query(input);
         });
-}
+};
 
-function createForwardMutationProcedure<TInput extends z.ZodTypeAny>(
-    clientMutationFn: (input: z.infer<TInput>) => Promise<any>,
-    inputSchema: TInput
-) {
+const createForwardedMutation = (path: string) => {
+    const [namespace, procedure] = path.split('.');
+    if (!namespace || !procedure) {
+        throw new Error(`Invalid path: ${path}. Format should be 'namespace.procedure'`);
+    }
+
     return publicProcedure
-        .input(inputSchema)
+        .input(z.any())
         .mutation(({ input }) => {
-            return clientMutationFn(input);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return (editorClient as any)[namespace][procedure].mutate(input);
         });
-}
-
-function createForwardSubscriptionProcedure<TInput extends z.ZodTypeAny>(
-    clientSubscriptionFn: (input: z.infer<TInput>) => Promise<any>,
-    inputSchema: TInput
-) {
-    return publicProcedure
-        .input(inputSchema)
-        .subscription(({ input }) => {
-            // Create an observable that forwards to the client subscription
-            return observable((emit) => {
-                const subscription = clientSubscriptionFn(input);
-
-                // No need for explicit clean-up as the client library handles it
-                return () => {
-                    // Subscription cleanup if needed
-                };
-            });
-        });
-}
+};
 
 // Export the router with all the forwarded procedures
 export const editorForwardRouter = createTRPCRouter({
     sandbox: createTRPCRouter({
         // Query procedures
-        start: createForwardQueryProcedure(
-            editorClient.sandbox.start.query,
-            z.object({ projectId: z.string() })
-        ),
-        getStatus: createForwardQueryProcedure(
-            editorClient.sandbox.getStatus.query,
-            z.object({
-                sandboxId: z.string(),
-                includeDetails: z.boolean().optional()
-            })
-        ),
+        start: createForwardedQuery('sandbox.start'),
+        getStatus: createForwardedQuery('sandbox.getStatus'),
 
         // Mutation procedures
-        stop: createForwardMutationProcedure(
-            editorClient.sandbox.stop.mutate,
-            z.object({
-                sandboxId: z.string(),
-                force: z.boolean().optional()
-            })
-        ),
+        stop: createForwardedMutation('sandbox.stop'),
 
         // For subscriptions, you would need to implement a more complex solution
         // The pattern would be similar but requires proper handling of the subscription lifecycle

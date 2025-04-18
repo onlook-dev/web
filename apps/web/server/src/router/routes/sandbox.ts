@@ -7,7 +7,7 @@ export const sandboxRouter = router({
             projectId: z.string(),
         }))
         .query(({ input }) => {
-            return `hello ${input.projectId}`;
+            return `hi ${input.projectId}`;
         }),
 
     getStatus: publicProcedure
