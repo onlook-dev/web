@@ -38,6 +38,13 @@ export const Border = () => {
         editorEngine.style.update('borderOpacity', `${opacity}%`);
     };    
 
+    const borderStyle = {
+        borderWidth: boxState.border.num ? `1px`: '0px',
+        borderStyle: 'solid',
+        borderColor: borderColor,
+        opacity: borderOpacity / 100
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -47,6 +54,11 @@ export const Border = () => {
                 >
                     <Icons.BorderEdit className="h-4 w-4 min-h-4 min-w-4" />
                     <span className="text-sm">{boxState.border.value}</span>
+
+                    <div 
+                            className="w-5 h-5 rounded-md"
+                            style={borderStyle}
+                        />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[280px] mt-1 p-3 rounded-lg">
