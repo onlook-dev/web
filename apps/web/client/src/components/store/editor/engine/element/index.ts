@@ -63,7 +63,7 @@ export class ElementsManager {
             const isComponent = !!domEl.instanceId;
             this.editorEngine.overlay.state.addClickRect(
                 adjustedRect,
-                { ...domEl.styles?.defined, ...domEl.styles?.computed },
+                domEl.styles,
                 isComponent,
                 domEl.domId,
             );

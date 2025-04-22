@@ -1,4 +1,4 @@
-import { STYLE, VARIANTS, WEIGHT } from '@onlook/fonts';
+import { DEFAULT, VARIANTS } from '@onlook/fonts';
 import { camelCase } from 'lodash';
 
 /**
@@ -141,11 +141,11 @@ function extractFontParts(fileName: string): FontParts {
     }
 
     if (!style) {
-        style = STYLE;
+        style = DEFAULT.STYLE;
     }
 
     if (!weight) {
-        weight = WEIGHT;
+        weight = DEFAULT.WEIGHT;
     }
 
     return { family, weight, style };
@@ -205,5 +205,5 @@ function convertFontString(fontString: string): string {
 function convertFontWeight(weight: string): string {
     return VARIANTS.find((variant) => variant.value === weight)?.name ?? weight;
 }
-export { convertFontString, extractFontParts, getFontFileName, convertFontWeight };
+export { convertFontString, convertFontWeight, extractFontParts, getFontFileName };
 

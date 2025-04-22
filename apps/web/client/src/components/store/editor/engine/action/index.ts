@@ -1,5 +1,5 @@
 import { sendAnalytics } from '@/utils/analytics';
-import type { DomElement, LayerNode } from '@onlook/models';
+import type { DomElement, LayerNode, StyleActionTarget } from '@onlook/models';
 import { EditorMode } from '@onlook/models';
 import {
     type Action,
@@ -84,7 +84,6 @@ export class ActionManager {
     }
 
     async updateStyle({ targets }: UpdateStyleAction) {
-        const frameIdToDomEls: Record<string, DomElement[]> = {};
         for (const target of targets) {
             const frameData = this.editorEngine.frames.get(target.frameId);
             if (!frameData) {
@@ -114,25 +113,34 @@ export class ActionManager {
                 console.error('Failed to update style');
                 continue;
             }
-            frameIdToDomEls[target.frameId] = [domEl];
 
-            // Update overlay state directly
-            const selectedElement = this.editorEngine.elements.selected.find(
-                (el) => el.domId === target.domId
+            this.refreshDomElement(domEl, target);
+        }
+    }
+
+    refreshDomElement(domEl: DomElement, target: StyleActionTarget) {
+        console.log('refreshDomElement', domEl, target);
+        const frameData = this.editorEngine.frames.get(domEl.frameId);
+        if (!frameData) {
+            console.error('Failed to get frameData');
+            return;
+        }
+        // Update overlay state directly
+        const selectedElement = this.editorEngine.elements.selected.find(
+            (el) => el.domId === target.domId
+        );
+
+        if (selectedElement) {
+            const clickRect = this.editorEngine.overlay.state.clickRects.find(
+                (rect) => rect.id === selectedElement.domId
             );
-            
-            if (selectedElement) {
-                const clickRect = this.editorEngine.overlay.state.clickRects.find(
-                    (rect) => rect.id === selectedElement.domId
+            if (clickRect) {
+                const adaptedRect = adaptRectToCanvas(domEl.rect, frameData.view);
+                this.editorEngine.overlay.state.updateClickRectStyles(
+                    clickRect.id,
+                    domEl.styles,
+                    adaptedRect
                 );
-                if (clickRect) {
-                    const adaptedRect = adaptRectToCanvas(domEl.rect, frameData.view);
-                    this.editorEngine.overlay.state.updateClickRectStyles(
-                        clickRect.id,
-                        { ...domEl.styles?.computed, ...domEl.styles?.defined },
-                        adaptedRect
-                    );
-                }
             }
         }
     }
