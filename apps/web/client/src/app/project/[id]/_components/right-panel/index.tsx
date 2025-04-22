@@ -4,7 +4,6 @@ import { useEditorEngine } from '@/components/store';
 import { EditorMode, EditorTabValue } from "@onlook/models";
 import { Icons } from '@onlook/ui/icons';
 import { ResizablePanel } from '@onlook/ui/resizable';
-import { Separator } from '@onlook/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@onlook/ui/tabs';
 import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
@@ -45,7 +44,7 @@ export const RightPanel = observer(() => {
             >
                 <Tabs className='h-full' onValueChange={(value) => editorEngine.state.rightPanelTab = value as EditorTabValue} value={selectedTab} >
                     <TabsList
-                        className='h-12 bg-transparent w-full select-none justify-between items-center px-2'
+                        className='flex h-12 w-full border-b justify-between items-center bg-transparent select-none px-2'
                     >
                         <ChatPanelDropdown>
                             <TabsTrigger
@@ -59,7 +58,6 @@ export const RightPanel = observer(() => {
                         </ChatPanelDropdown>
                         <ChatControls />
                     </TabsList>
-                    < Separator className="mt-0" />
                     <ChatHistory isOpen={isChatHistoryOpen} onOpenChange={setIsChatHistoryOpen} />
                     <TabsContent className='h-full overflow-y-auto' value={EditorTabValue.CHAT}>
                         <ChatTab />
