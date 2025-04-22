@@ -17,7 +17,6 @@ import { StyleChangeType } from '@onlook/models/style';
 import { assertNever } from '@onlook/utility';
 import type { EditorEngine } from '..';
 import type { FrameData } from '../frames';
-import { adaptRectToCanvas } from '../overlay/utils';
 
 export class ActionManager {
     constructor(private editorEngine: EditorEngine) { }
@@ -124,24 +123,8 @@ export class ActionManager {
             console.error('Failed to get frameData');
             return;
         }
-        // Update overlay state directly
-        const selectedElement = this.editorEngine.elements.selected.find(
-            (el) => el.domId === target.domId
-        );
 
-        if (selectedElement) {
-            const clickRect = this.editorEngine.overlay.state.clickRects.find(
-                (rect) => rect.id === selectedElement.domId
-            );
-            if (clickRect) {
-                const adaptedRect = adaptRectToCanvas(domEl.rect, frameData.view);
-                this.editorEngine.overlay.state.updateClickRectStyles(
-                    clickRect.id,
-                    domEl.styles,
-                    adaptedRect
-                );
-            }
-        }
+        this.editorEngine.elements.click([domEl], frameData);
     }
 
     private insertElement({ targets, element, editText, location }: InsertElementAction) {
