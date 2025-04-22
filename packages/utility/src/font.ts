@@ -196,5 +196,14 @@ function convertFontString(fontString: string): string {
     return camelCase(withoutFallback);
 }
 
-export { convertFontString, extractFontParts, getFontFileName };
+/**
+ * Converts a font weight string to a human-readable name
+ * @param weight - The weight value to convert
+ * @returns The human-readable name of the weight, or the original weight if no match is found
+ */
+
+function convertFontWeight(weight: string): string {
+    return VARIANTS.find((variant) => variant.value === weight)?.name ?? weight;
+}
+export { convertFontString, extractFontParts, getFontFileName, convertFontWeight };
 

@@ -1,4 +1,6 @@
-export const VARIANTS = [
+export type FontWeight = "Thin" | "Extra Light" | "Light" | "Regular" | "Medium" | "Semi Bold" | "Bold" | "Extra Bold" | "Black";
+
+export const VARIANTS: { name: FontWeight; value: string }[] = [
     {
         name: 'Thin',
         value: '100',
