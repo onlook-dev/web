@@ -107,7 +107,7 @@ export const LeftPanel = observer(() => {
         <div
             className={cn(
                 'flex h-full',
-                editorEngine.state.editorMode === EditorMode.PREVIEW ? 'hidden' : 'visible',
+                editorEngine.state.editorMode === EditorMode.PREVIEW && 'hidden'
             )}
             onMouseLeave={handleMouseLeave}
         >

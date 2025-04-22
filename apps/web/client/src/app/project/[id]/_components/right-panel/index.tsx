@@ -31,7 +31,7 @@ export const RightPanel = observer(() => {
             className={
                 cn(
                     'flex h-full w-full transition-width duration-300 bg-background/95 group/panel border-[0.5px] backdrop-blur-xl shadow rounded-tl-xl',
-                    editorEngine.state.editorMode === EditorMode.PREVIEW ? 'hidden' : 'visible',
+                    editorEngine.state.editorMode === EditorMode.PREVIEW && 'hidden'
                 )
             }
         >
