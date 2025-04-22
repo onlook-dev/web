@@ -43,7 +43,7 @@ export const RightPanel = observer(() => {
                 minWidth={240}
                 maxWidth={700}
             >
-                <Tabs className='flex flex-col h-full' onValueChange={(value) => editorEngine.state.rightPanelTab = value as EditorTabValue} value={selectedTab} >
+                <Tabs className='h-full' onValueChange={(value) => editorEngine.state.rightPanelTab = value as EditorTabValue} value={selectedTab} >
                     <TabsList
                         className='h-12 bg-transparent w-full select-none justify-between items-center px-2'
                     >
@@ -61,7 +61,7 @@ export const RightPanel = observer(() => {
                     </TabsList>
                     < Separator className="mt-0" />
                     <ChatHistory isOpen={isChatHistoryOpen} onOpenChange={setIsChatHistoryOpen} />
-                    <TabsContent className='h-full' value={EditorTabValue.CHAT}>
+                    <TabsContent className='h-full overflow-y-auto' value={EditorTabValue.CHAT}>
                         <ChatTab />
                     </TabsContent>
                 </Tabs>
