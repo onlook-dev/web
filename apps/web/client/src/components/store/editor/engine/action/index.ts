@@ -125,7 +125,6 @@ export class ActionManager {
                 const clickRect = this.editorEngine.overlay.state.clickRects.find(
                     (rect) => rect.id === selectedElement.domId
                 );
-                console.log('clickRect', clickRect);
                 if (clickRect) {
                     const adaptedRect = adaptRectToCanvas(domEl.rect, frameData.view);
                     this.editorEngine.overlay.state.updateClickRectStyles(
