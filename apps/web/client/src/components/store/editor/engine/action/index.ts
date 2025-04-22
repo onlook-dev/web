@@ -119,7 +119,6 @@ export class ActionManager {
     }
 
     refreshDomElement(domEl: DomElement, target: StyleActionTarget) {
-        console.log('refreshDomElement', domEl, target);
         const frameData = this.editorEngine.frames.get(domEl.frameId);
         if (!frameData) {
             console.error('Failed to get frameData');

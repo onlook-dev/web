@@ -4,7 +4,6 @@ import { Icons } from '@onlook/ui/icons';
 import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
 import { useTranslations } from 'next-intl';
-// import { HelpDropdown } from './HelpDropdown';
 import { BrandTab } from './brand-tab';
 import { HelpDropdown } from './help-dropdown';
 import { ImagesTab } from './image-tab';
@@ -107,7 +106,7 @@ export const LeftPanel = observer(() => {
     return (
         <div
             className={cn(
-                'flex gap-0 h-full z-40',
+                'flex h-full',
                 editorEngine.state.editorMode === EditorMode.PREVIEW ? 'hidden' : 'visible',
             )}
             onMouseLeave={handleMouseLeave}
