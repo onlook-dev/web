@@ -12,16 +12,12 @@ import { Color } from "@onlook/utility";
 
 interface InputColorProps {
   color: string;
-  opacity: number;
   onColorChange?: (color: string) => void;
-  onOpacityChange?: (opacity: number) => void;
 }
 
 export const InputColor = ({
   color,
-  opacity,
   onColorChange,
-  onOpacityChange,
 }: InputColorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [tempColor, setTempColor] = useState(color);
@@ -46,16 +42,6 @@ export const InputColor = ({
       onColorChange?.(value);
     },
     [onColorChange],
-  );
-
-  const handleOpacityChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseInt(e.target.value);
-      if (!isNaN(value)) {
-        onOpacityChange?.(value);
-      }
-    },
-    [onOpacityChange],
   );
 
   return (
@@ -90,15 +76,6 @@ export const InputColor = ({
           onChange={handleInputChange}
           className="h-full w-full bg-transparent text-sm text-white focus:outline-none"
         />
-      </div>
-      <div className="bg-background-tertiary/50 flex h-full max-w-[60px] min-w-[60px] items-center justify-start rounded-md px-2.5 py-1.5">
-        <input
-          type="text"
-          value={opacity}
-          onChange={handleOpacityChange}
-          className="h-full w-full bg-transparent text-left text-sm text-white focus:outline-none"
-        />
-        <span className="text-muted-foreground ml-[2px] text-sm">%</span>
       </div>
     </div>
   );

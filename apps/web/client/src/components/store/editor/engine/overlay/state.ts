@@ -54,6 +54,7 @@ export class OverlayState {
         rect: RectDimensions,
         styles: Record<string, string>,
         isComponent?: boolean,
+        domId?: string,
     ) => {
         this.clickRects = [
             ...this.clickRects,
@@ -61,7 +62,7 @@ export class OverlayState {
                 ...rect,
                 styles,
                 isComponent,
-                id: nanoid(4),
+                id: domId ?? nanoid(4),
             },
         ];
     };
@@ -71,6 +72,22 @@ export class OverlayState {
             ...rect,
             ...newRect,
         }));
+    };
+
+    updateClickRectStyles = (id: string, styles: Record<string, string>, rect?: RectDimensions) => {
+        this.clickRects = this.clickRects.map((clickRect) => {
+            if (clickRect.id === id) {
+                return {
+                    ...clickRect,
+                    ...(rect ?? {}),
+                    styles: {
+                        ...clickRect.styles,
+                        ...styles,
+                    },
+                };
+            }
+            return clickRect;
+        });
     };
 
     removeClickRects = () => {

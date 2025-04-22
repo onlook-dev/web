@@ -65,6 +65,7 @@ export class ElementsManager {
                 adjustedRect,
                 { ...domEl.styles?.computed, ...domEl.styles?.defined },
                 isComponent,
+                domEl.domId,
             );
             this._selected.push(domEl);
         }
@@ -127,7 +128,7 @@ export class ElementsManager {
                 });
                 return;
             }
-            const oid = selectedEl.instanceId || selectedEl.oid;
+            const oid = selectedEl.instanceId ?? selectedEl.oid;
             const codeBlock = await this.editorEngine.code.getCodeBlock(oid);
             if (!codeBlock) {
                 toast({

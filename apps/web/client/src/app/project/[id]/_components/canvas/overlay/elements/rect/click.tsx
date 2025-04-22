@@ -301,8 +301,8 @@ export const ClickRect = ({
 
     const renderDimensionLabels = () => {
         const rectColor = isComponent ? colors.purple[500] : colors.red[500];
-        const displayWidth = parseFloat(styles?.width || '0').toFixed(0);
-        const displayHeight = parseFloat(styles?.height || '0').toFixed(0);
+        const displayWidth = parseFloat(styles?.width ?? '0').toFixed(0);
+        const displayHeight = parseFloat(styles?.height ?? '0').toFixed(0);
         const text = `${displayWidth} × ${displayHeight}`;
 
         // Constants from showDimensions
@@ -355,7 +355,7 @@ export const ClickRect = ({
                     height={height}
                     left={left}
                     top={top}
-                    borderRadius={parseInt(styles?.['borderRadius'] || '0')}
+                    borderRadius={parseInt(styles?.borderRadius ?? '0')}
                     isComponent={isComponent}
                     styles={styles}
                 />
