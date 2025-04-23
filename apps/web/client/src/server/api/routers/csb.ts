@@ -22,21 +22,4 @@ export const csbRouter = createTRPCRouter({
         .query(async () => {
             return await list();
         }),
-    readFile: publicProcedure
-        .input(z.object({
-            sandboxId: z.string(),
-            filePath: z.string(),
-        }))
-        .query(async ({ input }) => {
-            throw new Error("Not implemented: Use client-side SandboxManager for file operations");
-        }),
-    writeFile: publicProcedure
-        .input(z.object({
-            sandboxId: z.string(),
-            filePath: z.string(),
-            content: z.string(),
-        }))
-        .mutation(async ({ input }) => {
-            throw new Error("Not implemented: Use client-side SandboxManager for file operations");
-        }),
 });  
