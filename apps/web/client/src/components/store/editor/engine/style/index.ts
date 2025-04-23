@@ -9,7 +9,9 @@ import { makeAutoObservable, reaction } from 'mobx';
 import type { EditorEngine } from '..';
 
 export interface SelectedStyle {
-    styles: Record<string, string>;
+    styles: {
+        margin: string;
+    }
     parentRect: DOMRect;
     rect: DOMRect;
 }

@@ -10,9 +10,11 @@ interface InputRangeProps {
     unit?: string;
     onChange?: (value: number) => void;
     onUnitChange?: (unit: string) => void;
+    onUnitChangeStart?: () => void;
+    onUnitChangeEnd?: () => void;
 }
 
-export const InputRange = ({ value, icon, unit = "px", onChange, onUnitChange }: InputRangeProps) => {
+export const InputRange = ({ value, icon, unit = "px", onChange, onUnitChange, onUnitChangeStart, onUnitChangeEnd }: InputRangeProps) => {
     const Icon = icon ? Icons[icon] : Icons.Padding;
     const [inputValue, setInputValue] = useState(String(value));
     const rangeRef = useRef<HTMLInputElement>(null);
@@ -41,6 +43,7 @@ export const InputRange = ({ value, icon, unit = "px", onChange, onUnitChange }:
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (rangeRef.current) {
+            onUnitChangeStart?.();
             setIsDragging(true);
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
@@ -57,6 +60,7 @@ export const InputRange = ({ value, icon, unit = "px", onChange, onUnitChange }:
     };
 
     const handleMouseUp = () => {
+        onUnitChangeEnd?.();
         setIsDragging(false);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);

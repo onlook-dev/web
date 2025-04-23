@@ -20,7 +20,7 @@ export const Border = () => {
     const { boxState, handleBoxChange, handleUnitChange, handleIndividualChange } = useBoxControl('border');
     const editorEngine = useEditorEngine();
 
-    const [borderColor, setBorderColor] = useState(Color.from(editorEngine.style.getValue('borderColor') ?? '#080808').toHex());
+    const [borderColor, setBorderColor] = useState(Color.from(editorEngine.style.selectedStyle?.styles.borderColor ?? '#080808').toHex());
 
     useEffect(() => {
         setBorderColor(Color.from(editorEngine.style.getValue('borderColor') ?? '#080808').toHex());
@@ -32,7 +32,7 @@ export const Border = () => {
     };
 
     const borderStyle = {
-        borderWidth: boxState.border.num ? `1px`: '0px',
+        borderWidth: boxState.border.num ? `1px` : '0px',
         borderStyle: 'solid',
     };
 
@@ -46,10 +46,10 @@ export const Border = () => {
                     <Icons.BorderEdit className="h-4 w-4 min-h-4 min-w-4" />
                     <span className="text-sm">{boxState.border.value}</span>
 
-                    <div 
-                            className="w-5 h-5 rounded-md"
-                            style={borderStyle}
-                        />
+                    <div
+                        className="w-5 h-5 rounded-md"
+                        style={borderStyle}
+                    />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[280px] mt-1 p-3 rounded-lg">

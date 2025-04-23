@@ -51,6 +51,7 @@ const createDefaultState = (type: BoxType): BoxStateMap => {
 
 export const useBoxControl = (type: BoxType) => {
     const editorEngine = useEditorEngine();
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const getInitialState = (): BoxStateMap => {
         const defaultState = createDefaultState(type);
@@ -92,6 +93,8 @@ export const useBoxControl = (type: BoxType) => {
     const [boxState, setBoxState] = useState<BoxStateMap>(getInitialState());
 
     useEffect(() => {
+        console.log('isUpdating', isUpdating);
+        if (isUpdating) return;
         setBoxState(getInitialState());
     }, [editorEngine.style.selectedStyle]);
 
@@ -154,6 +157,8 @@ export const useBoxControl = (type: BoxType) => {
         boxState,
         handleBoxChange,
         handleUnitChange,
-        handleIndividualChange
+        handleIndividualChange,
+        isUpdating,
+        setIsUpdating
     };
 }; 
