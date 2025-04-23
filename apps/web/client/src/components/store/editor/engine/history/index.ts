@@ -51,7 +51,7 @@ export class HistoryManager {
         this.inTransaction = { type: TransactionType.IN_TRANSACTION, actions: [] };
     };
 
-    commitTransaction = () => {
+    commitTransaction = async () => {
         if (
             this.inTransaction.type === TransactionType.NOT_IN_TRANSACTION ||
             this.inTransaction.actions.length === 0
@@ -62,11 +62,11 @@ export class HistoryManager {
         const actionsToCommit = this.inTransaction.actions;
         this.inTransaction = { type: TransactionType.NOT_IN_TRANSACTION };
         for (const action of actionsToCommit) {
-            this.push(action);
+            await this.push(action);
         }
     };
 
-    push = (action: Action) => {
+    push = async (action: Action) => {
         if (this.inTransaction.type === TransactionType.IN_TRANSACTION) {
             this.inTransaction.actions = updateTransactionActions(
                 this.inTransaction.actions,
@@ -80,7 +80,7 @@ export class HistoryManager {
         }
 
         this.undoStack.push(action);
-        // this.editorEngine.code.write(action);
+        // await this.editorEngine.code.write(action);
 
         switch (action.type) {
             case 'update-style':
@@ -106,7 +106,7 @@ export class HistoryManager {
 
     undo = (): Action | null => {
         if (this.inTransaction.type === TransactionType.IN_TRANSACTION) {
-            this.commitTransaction();
+            void this.commitTransaction();
         }
 
         const top = this.undoStack.pop();
@@ -115,12 +115,15 @@ export class HistoryManager {
         }
 
         this.redoStack.push(top);
-        return undoAction(top);
+        const action = undoAction(top);
+
+        
+        return action;
     };
 
     redo = (): Action | null => {
         if (this.inTransaction.type === TransactionType.IN_TRANSACTION) {
-            this.commitTransaction();
+            void this.commitTransaction();
         }
 
         const top = this.redoStack.pop();

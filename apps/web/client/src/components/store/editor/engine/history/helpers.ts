@@ -1,11 +1,15 @@
+import { EditorAttributes } from '@onlook/constants';
 import type {
     Action,
+    ActionElement,
     Change,
     IndexActionLocation,
+    InsertElementAction,
+    RemoveElementAction,
     UpdateStyleAction,
     WriteCodeAction,
 } from '@onlook/models/actions';
-import { assertNever } from '@onlook/utility';
+import { assertNever, createOid, createDomId } from '@onlook/utility';
 
 export function reverse<T>(change: Change<T>): Change<T> {
     return { updated: change.original, original: change.updated };
@@ -45,16 +49,28 @@ export function undoAction(action: Action): Action {
         case 'update-style':
             return reverseStyleAction(action);
         case 'insert-element':
-            return {
+            const removeAction: RemoveElementAction = {
                 ...action,
                 type: 'remove-element',
-            };
-        case 'remove-element':
-            return {
-                ...action,
+                location: {
+                    ...action.location,
+                },
+                element: getCleanedCopyEl(action.element, action.element.domId, action.element.oid),
+            }
+            return removeAction;
+        case 'remove-element':            
+            const insertAction: InsertElementAction = {
                 type: 'insert-element',
+                targets:action.targets,
+                location: {
+                    ...action.location,
+                },
+                element: getCleanedCopyEl(action.element, action.element.domId, action.element.oid),
                 editText: null,
-            };
+                pasteParams: action.pasteParams,
+                codeBlock: action.codeBlock,
+            }
+            return insertAction;
         case 'move-element':
             return {
                 ...action,
@@ -129,9 +145,38 @@ export function updateTransactionActions(actions: Action[], newAction: Action): 
         return handleUpdateStyleAction(
             actions,
             existingActionIndex,
-            newAction as UpdateStyleAction,
+            newAction,
         );
     }
 
     return actions.map((a, i) => (i === existingActionIndex ? newAction : a));
+}
+
+
+export function getCleanedCopyEl(copiedEl: ActionElement, domId: string, oid: string): ActionElement {
+    const cleanedEl: ActionElement = {
+        tagName: copiedEl.tagName,
+        attributes: {
+            class: copiedEl.attributes.class ?? '',
+            [EditorAttributes.DATA_ONLOOK_DOM_ID]: domId,
+            [EditorAttributes.DATA_ONLOOK_ID]: oid,
+            [EditorAttributes.DATA_ONLOOK_INSERTED]: 'true',
+        },
+        styles: { ...copiedEl.styles },
+        textContent: copiedEl.textContent,
+        children: [],
+        domId,
+        oid
+    };
+
+    // Process children recursively
+    if (copiedEl.children?.length) {
+        cleanedEl.children = copiedEl.children.map((child: ActionElement): ActionElement => {
+            const newChildDomId = createDomId();
+            const newChildOid = createOid();
+            return getCleanedCopyEl(child, newChildDomId, newChildOid);
+        });
+    }
+
+    return cleanedEl;
 }

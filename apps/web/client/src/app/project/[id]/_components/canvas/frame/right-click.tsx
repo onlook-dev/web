@@ -21,7 +21,7 @@ interface RightClickMenuProps {
 
 interface MenuItem {
     label: string;
-    action: () => void;
+    action: () => Promise<void>;
     hotkey?: Hotkey;
     children?: MenuItem[];
     icon: React.ReactNode;
@@ -103,36 +103,31 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
         },
         {
             label: 'Copy',
-            // action: () => editorEngine.copy.copy(),
-            action: () => { },
+            action:  () => editorEngine.copy.copy(),
             icon: <Icons.Clipboard className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.COPY,
         },
         {
             label: 'Paste',
-            // action: () => editorEngine.copy.paste(),
-            action: () => { },
+            action: () => editorEngine.copy.paste(),
             icon: <Icons.ClipboardCopy className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.PASTE,
         },
         {
             label: 'Cut',
-            // action: () => editorEngine.copy.cut(),
-            action: () => { },
+            action: () => editorEngine.copy.cut(),
             icon: <Icons.Scissors className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.CUT,
         },
         {
             label: 'Duplicate',
-            // action: () => editorEngine.copy.duplicate(),
-            action: () => { },
+            action: () => editorEngine.copy.duplicate(),
             icon: <Icons.Copy className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.DUPLICATE,
         },
         {
             label: 'Delete',
-            // action: () => editorEngine.elements.delete(),
-            action: () => { },
+            action: () => editorEngine.elements.delete(),
             icon: <Icons.Trash className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.DELETE,
             destructive: true,
@@ -168,8 +163,8 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
             root = element.oid;
         }
         let menuItems: MenuItem[][] = [];
-
-        if (editorEngine.frames.selected.length > 0) {
+                
+        if (!editorEngine.elements.selected.length) {
             menuItems = [WINDOW_ITEMS, [OPEN_DEV_TOOL_ITEM]];
         } else {
             const updatedToolItems = [
