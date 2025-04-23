@@ -53,10 +53,13 @@ export class SandboxManager {
     }
 
     async listFiles(): Promise<string[]> {
+        console.log('listFiles', this.session);
         if (!this.session) {
             return [];
         }
-        return (await this.session.fs.readdir('./')).map(entry => entry.name);
+        const files = await this.session.fs.readdir('./');
+        console.log('files', files);
+        return files.map(entry => entry.name);
     }
 
     async watchFiles() {
