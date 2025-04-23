@@ -1,45 +1,49 @@
 'use client';
 
+import { useEditorEngine } from "@/components/store";
 import { api } from "@/trpc/react";
 import type { SandboxSession } from "@codesandbox/sdk";
 import { connectToSandbox } from '@codesandbox/sdk/browser';
 import { CSB_TEMPLATE_ID } from "@onlook/constants";
 import { Button } from "@onlook/ui/button";
-import { useEffect, useRef, useState } from "react";
-import { SandboxManager } from "@/components/store/editor/engine/sandbox";
-import type { EditorEngine } from "@/components/store/editor/engine";
+import { useEffect, useState } from "react";
+
 
 export function Csb() {
+    const editorEngine = useEditorEngine();
     const [session, setSession] = useState<SandboxSession | null>(null);
     const [fileContent, setFileContent] = useState<string | null>(null);
     const [filePath, setFilePath] = useState<string>("package.json");
+    const [files, setFiles] = useState<string[]>([]);
+
     const { mutateAsync: create, isPending: isCreating } = api.csb.create.useMutation();
     const { mutateAsync: start, isPending: isStarting } = api.csb.start.useMutation();
     const { mutateAsync: hibernate, isPending: isStopping } = api.csb.hibernate.useMutation();
     const { data: status, refetch: refetchStatus } = api.csb.list.useQuery();
-    
-    const sandboxManagerRef = useRef<SandboxManager | null>(null);
-    
+
     useEffect(() => {
-        if (session && !sandboxManagerRef.current) {
-            const manager = new SandboxManager({} as EditorEngine); // Simplified for demo
+        if (session) {
+            const manager = editorEngine.sandbox;
             manager.register(session);
-            manager.watchFiles();
-            sandboxManagerRef.current = manager;
         }
     }, [session]);
-    
+
     useEffect(() => {
         return () => {
-            sandboxManagerRef.current?.clear();
+            editorEngine.sandbox.clear();
         };
     }, []);
-    
+
     const handleReadFile = async () => {
-        if (!sandboxManagerRef.current || !filePath) return;
-        
-        const content = await sandboxManagerRef.current.readFile(filePath);
+        if (!filePath) return;
+
+        const content = await editorEngine.sandbox.readFile(filePath);
         setFileContent(content);
+    };
+
+    const listFiles = async () => {
+        const files = await editorEngine.sandbox.listFiles();
+        setFiles(files);
     };
 
     return (
@@ -91,14 +95,19 @@ export function Csb() {
             <Button
                 onClick={() => refetchStatus()}
             >
-                List
+                List sandboxes
+            </Button>
+            <Button
+                onClick={() => listFiles()}
+            >
+                List files
             </Button>
             <div>
-                <input 
-                    type="text" 
-                    value={filePath} 
-                    onChange={(e) => setFilePath(e.target.value)} 
-                    placeholder="File path" 
+                <input
+                    type="text"
+                    value={filePath}
+                    onChange={(e) => setFilePath(e.target.value)}
+                    placeholder="File path"
                 />
                 <Button onClick={handleReadFile}>Read File</Button>
             </div>

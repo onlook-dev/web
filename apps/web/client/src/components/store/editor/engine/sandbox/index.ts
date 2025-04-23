@@ -21,13 +21,13 @@ export class SandboxManager {
         if (!this.session) {
             return null;
         }
-        
+
         try {
             if (this.fileCache.has(path)) {
                 return this.fileCache.get(path) || null;
             }
-            
-            const content = await this.session.fs.readFile(path, "utf8");
+
+            const content = await this.session.fs.readTextFile(path);
             this.fileCache.set(path, content);
             return content;
         } catch (error) {
@@ -40,16 +40,23 @@ export class SandboxManager {
         if (!this.session) {
             return false;
         }
-        
+
         try {
             this.selfModified.add(path);
-            await this.session.fs.writeFile(path, content, "utf8");
+            await this.session.fs.writeTextFile(path, content);
             this.fileCache.set(path, content);
             return true;
         } catch (error) {
             console.error(`Error writing file ${path}:`, error);
             return false;
         }
+    }
+
+    async listFiles(): Promise<string[]> {
+        if (!this.session) {
+            return [];
+        }
+        return (await this.session.fs.readdir('./')).map(entry => entry.name);
     }
 
     async watchFiles() {
@@ -59,19 +66,18 @@ export class SandboxManager {
         const watcher = await this.session.fs.watch("./", { recursive: true, excludes: [".git"] });
 
         watcher.onEvent((event) => {
-            console.log(event);
-            
-            if (this.selfModified.has(event.path)) {
-                this.selfModified.delete(event.path);
-                return;
-            }
-            
-            if (event.type === "update" || event.type === "create") {
-                this.fileCache.delete(event.path);
-                
-                this.readFile(event.path).catch(error => {
-                    console.error(`Error reading updated file ${event.path}:`, error);
-                });
+            for (const path of event.paths) {
+                if (this.selfModified.has(path)) {
+                    this.selfModified.delete(path);
+                    return;
+                }
+                if (event.type === "change" || event.type === "add") {
+                    this.fileCache.delete(path);
+
+                    this.readFile(path).catch(error => {
+                        console.error(`Error reading updated file ${path}:`, error);
+                    });
+                }
             }
         });
 
