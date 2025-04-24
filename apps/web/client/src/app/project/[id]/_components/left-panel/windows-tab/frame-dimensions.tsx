@@ -1,6 +1,6 @@
 
 import { useEditorEngine } from '@/components/store';
-import { DefaultSettings } from '@onlook/constants';
+import { DefaultSettings, } from '@onlook/constants';
 import type { Frame } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
@@ -112,12 +112,12 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
         setWidth(settings.dimension.width || DefaultSettings.FRAME_DIMENSION.width);
         setHeight(settings.dimension.height || DefaultSettings.FRAME_DIMENSION.height);
         setAspectRatioLocked(settings.aspectRatioLocked || DefaultSettings.ASPECT_RATIO_LOCKED);
-    }, [settings.id]);
+    }, [frame.id]);
 
     useEffect(() => {
         const [deviceCategory, deviceName] = device.split(':');
         if (deviceName === 'Custom') {
-            editorEngine.canvas.saveFrame(settings.id, {
+            editorEngine.canvas.saveFrame(frame.id, {
                 device: device,
             });
             return;
@@ -191,13 +191,13 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
                 width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
             });
         }
-        editorEngine.canvas.saveFrame(settings.id, {
+        editorEngine.canvas.saveFrame(frame.id, {
             aspectRatioLocked: aspectRatioLocked,
         });
     }, [aspectRatioLocked]);
 
     useEffect(() => {
-        editorEngine.canvas.saveFrame(settings.id, {
+        editorEngine.canvas.saveFrame(frame.id, {
             orientation: orientation,
         });
     }, [orientation]);
