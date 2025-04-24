@@ -13,7 +13,7 @@ export class TextEditingManager {
     private originalContent: string | null = null;
     private shouldNotStartEditing = false;
 
-    constructor(private editorEngine: EditorEngine) {}
+    constructor(private editorEngine: EditorEngine) { }
 
     get isEditing(): boolean {
         return this.targetDomEl !== null;
@@ -32,7 +32,7 @@ export class TextEditingManager {
                 return;
             }
 
-            const res = await frameView.startEditingText(el.domId) as EditTextResult | null ;
+            const res = await frameView.startEditingText(el.domId) as EditTextResult | null;
             if (!res) {
                 console.error('Failed to start editing text, no result returned');
                 return;
@@ -116,7 +116,7 @@ export class TextEditingManager {
         }
     }
 
-    private async clean(): Promise<void> {
+    async clean(): Promise<void> {
         this.targetDomEl = null;
         this.editorEngine.overlay.state.removeTextEditor();
         await this.editorEngine.history.commitTransaction();

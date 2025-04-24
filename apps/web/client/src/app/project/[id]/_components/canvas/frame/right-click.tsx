@@ -21,7 +21,7 @@ interface RightClickMenuProps {
 
 interface MenuItem {
     label: string;
-    action: () => Promise<void>;
+    action: () => void;
     hotkey?: Hotkey;
     children?: MenuItem[];
     icon: React.ReactNode;
@@ -100,7 +100,7 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
         },
         {
             label: 'Copy',
-            action:  () => editorEngine.copy.copy(),
+            action: () => editorEngine.copy.copy(),
             icon: <Icons.Clipboard className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.COPY,
         },
@@ -134,8 +134,7 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
     const WINDOW_ITEMS: MenuItem[] = [
         {
             label: 'Duplicate',
-            // action: () => editorEngine.duplicateWindow(),
-            action: () => { },
+            action: () => editorEngine.window.duplicate(),
             icon: <Icons.Copy className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.DUPLICATE,
         },
@@ -160,7 +159,7 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
             root = element.oid;
         }
         let menuItems: MenuItem[][] = [];
-                
+
         if (!editorEngine.elements.selected.length) {
             menuItems = [WINDOW_ITEMS, [OPEN_DEV_TOOL_ITEM]];
         } else {

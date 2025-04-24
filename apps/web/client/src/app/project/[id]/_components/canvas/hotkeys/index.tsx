@@ -60,8 +60,8 @@ export const HotkeysArea = ({ children }: { children: ReactNode }) => {
     useHotkeys(Hotkey.PASTE.command, () => (void editorEngine.copy.paste()));
     useHotkeys(Hotkey.CUT.command, () => (void editorEngine.copy.cut()));
     useHotkeys(Hotkey.DUPLICATE.command, () => {
-        if (editorEngine.window.isWindowSelected) {
-            editorEngine.window.duplicateWindow();
+        if (editorEngine.window.areAnyWindowsSelected) {
+            editorEngine.window.duplicate();
         } else {
             editorEngine.copy.duplicate();
         }
