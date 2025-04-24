@@ -45,24 +45,20 @@ export const HotkeysArea = ({ children }: { children: ReactNode }) => {
     useHotkeys('alt', () => (editorEngine.overlay.removeMeasurement()), { keyup: true });
 
     // Actions
-    useHotkeys(Hotkey.UNDO.command, () => (editorEngine.action.undo()));
-    useHotkeys(Hotkey.REDO.command, () => (editorEngine.action.redo()));
-    useHotkeys(Hotkey.ENTER.command, () => (editorEngine.text.editSelectedElement()));
-    useHotkeys(Hotkey.REFRESH_LAYERS.command, () => (editorEngine.refreshLayers()));
+    useHotkeys(Hotkey.UNDO.command, () => (void editorEngine.action.undo()));
+    useHotkeys(Hotkey.REDO.command, () => (void editorEngine.action.redo()));
+    useHotkeys(Hotkey.ENTER.command, () => (void editorEngine.text.editSelectedElement()));
+    useHotkeys(Hotkey.REFRESH_LAYERS.command, () => (void editorEngine.refreshLayers()));
     useHotkeys(Hotkey.OPEN_DEV_TOOL.command, () => (editorEngine.inspect()));
 
     // Group
-    useHotkeys(Hotkey.GROUP.command, () => (
-        editorEngine.group.groupSelectedElements()
-    ));
-    useHotkeys(Hotkey.UNGROUP.command, () => (
-        editorEngine.group.ungroupSelectedElement()
-    ));
+    useHotkeys(Hotkey.GROUP.command, () => (void editorEngine.group.groupSelectedElements()));
+    useHotkeys(Hotkey.UNGROUP.command, () => (void editorEngine.group.ungroupSelectedElement()));
 
     // Copy
-    useHotkeys(Hotkey.COPY.command, () => (editorEngine.copy.copy()));
-    useHotkeys(Hotkey.PASTE.command, () => (editorEngine.copy.paste()));
-    useHotkeys(Hotkey.CUT.command, () => (editorEngine.copy.cut()));
+    useHotkeys(Hotkey.COPY.command, () => (void editorEngine.copy.copy()));
+    useHotkeys(Hotkey.PASTE.command, () => (void editorEngine.copy.paste()));
+    useHotkeys(Hotkey.CUT.command, () => (void editorEngine.copy.cut()));
     useHotkeys(Hotkey.DUPLICATE.command, () => {
         if (editorEngine.window.isWindowSelected) {
             editorEngine.window.duplicateWindow();

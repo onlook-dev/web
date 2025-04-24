@@ -9,7 +9,7 @@ import type {
 import { createDomId, createOid } from '@onlook/utility';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
-import { getCleanedCopyEl } from '../history/helpers';
+import { getCleanedElement } from '../history/helpers';
 
 export class CopyManager {
     copied: {
@@ -44,8 +44,8 @@ export class CopyManager {
             console.error('Failed to copy element');
             return;
         }
-        const codeBlock = await this.editorEngine.code.getCodeBlock(selectedEl.oid);
-        this.copied = { element: targetEl, codeBlock };
+        // const codeBlock = await this.editorEngine.code.getCodeBlock(selectedEl.oid);
+        this.copied = { element: targetEl, codeBlock: null };
         await this.clearClipboard();
     }
 
@@ -102,7 +102,7 @@ export class CopyManager {
         const action: InsertElementAction = {
             type: 'insert-element',
             targets: targets,
-            element: getCleanedCopyEl(this.copied.element, newDomId, newOid),
+            element: getCleanedElement(this.copied.element, newDomId, newOid),
             location,
             editText: null,
             pasteParams: {

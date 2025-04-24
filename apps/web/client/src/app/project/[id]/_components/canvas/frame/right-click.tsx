@@ -78,16 +78,14 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
         {
             label: 'Group',
             icon: <Icons.Box className="mr-2 h-4 w-4" />,
-            // action: () => editorEngine.group.groupSelectedElements(),
-            // disabled: !editorEngine.group.canGroupElements(),
-            action: () => { },
+            action: () => editorEngine.group.groupSelectedElements(),
+            disabled: !editorEngine.group.canGroupElements(),
             hotkey: Hotkey.GROUP,
         },
         {
             label: 'Ungroup',
-            // action: () => editorEngine.group.ungroupSelectedElement(),
-            // disabled: !editorEngine.group.canUngroupElement(),
-            action: () => { },
+            action: () => editorEngine.group.ungroupSelectedElement(),
+            disabled: !editorEngine.group.canUngroupElement(),
             icon: <Icons.Group className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.UNGROUP,
         },
@@ -96,8 +94,7 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
     const EDITING_ITEMS: MenuItem[] = [
         {
             label: 'Edit text',
-            // action: () => editorEngine.text.editSelectedElement(),
-            action: () => { },
+            action: () => editorEngine.text.editSelectedElement(),
             icon: <Icons.Pencil className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.ENTER,
         },

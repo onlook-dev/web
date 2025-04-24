@@ -22,7 +22,7 @@ export class ActionManager {
   constructor(private editorEngine: EditorEngine) {}
 
   async run(action: Action) {
-    this.editorEngine.history.push(action);
+    await this.editorEngine.history.push(action);
     await this.dispatch(action);
   }
 
@@ -59,16 +59,16 @@ export class ActionManager {
         await this.removeElement(action);
         break;
       case "move-element":
-        this.moveElement(action);
+        await this.moveElement(action);
         break;
       case "edit-text":
-        this.editText(action);
+        await this.editText(action);
         break;
       case "group-elements":
-        this.groupElements(action);
+        await this.groupElements(action);
         break;
       case "ungroup-elements":
-        this.ungroupElements(action);
+        await this.ungroupElements(action);
         break;
       case "write-code":
         break;
@@ -200,39 +200,64 @@ export class ActionManager {
     }
   }
 
-  private editText({ targets, newContent }: EditTextAction) {
-    targets.forEach((target) => {
+  private async editText({ targets, newContent }: EditTextAction) {
+    for (const target of targets) {
       const frameView = this.editorEngine.frames.get(target.frameId);
       if (!frameView) {
         console.error("Failed to get frameView");
+        return;
+      }
+      const domEl = await frameView.view.editText(target.domId, newContent);
+      if (!domEl) {
+        console.error("Failed to edit text");
         return;
       }
       // sendToWebview(frameView, WebviewChannels.EDIT_ELEMENT_TEXT, {
       //     domId: target.domId,
       //     content: newContent,
       // });
-    });
+    }
   }
 
-  private groupElements({ parent, container, children }: GroupElementsAction) {
+  private async groupElements({ parent, container, children }: GroupElementsAction) {
     const frameView = this.editorEngine.frames.get(parent.frameId);
     if (!frameView) {
       console.error("Failed to get frameView");
       return;
     }
+
+    const domEl = await frameView.view.groupElements(parent, container, children) as DomElement;
+
+    if (!domEl) {
+      console.error("Failed to group elements");
+      return;
+    }
+
+    const result = [domEl] as DomElement[];
+
+    this.editorEngine.elements.click(result, frameView);
+
     // sendToWebview(frameView, WebviewChannels.GROUP_ELEMENTS, { parent, container, children });
-  }
+  } 
 
-  private ungroupElements({
+  private async ungroupElements({
     parent,
-    container,
-    children,
+    container
   }: UngroupElementsAction) {
+
     const frameView = this.editorEngine.frames.get(parent.frameId);
     if (!frameView) {
       console.error("Failed to get frameView");
       return;
     }
+
+    const domEl = await frameView.view.ungroupElements(parent, container) as DomElement;
+
+    if (!domEl) {
+      console.error("Failed to ungroup elements");
+      return;
+    }
+
     // sendToWebview(frameView, WebviewChannels.UNGROUP_ELEMENTS, { parent, container, children });
   }
 
