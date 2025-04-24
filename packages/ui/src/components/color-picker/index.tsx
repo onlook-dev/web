@@ -1,4 +1,5 @@
-export * from './checkPattern';
-export * from './ColorPicker';
-export * from './ColorSlider';
-export * from './SVPicker';
+export * from './check-pattern';
+export * from './color-picker';
+export * from './color-slider';
+export * from './sv-picker';
+

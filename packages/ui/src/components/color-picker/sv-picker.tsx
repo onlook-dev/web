@@ -1,16 +1,16 @@
+import { Color } from '@onlook/utility';
 import { clamp } from 'lodash';
 import type React from 'react';
 import { usePointerStroke } from '../../hooks/use-pointer-stroke';
-import { ColorHandle } from './ColorSlider';
-import { Color } from '@onlook/utility';
+import { ColorHandle } from './color-slider';
 
-interface SVPickerGradientProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface SVPickerGradientProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 const SVPickerGradient: React.FC<SVPickerGradientProps> = ({ ...props }) => (
     <div className="absolute inset-0 z-[-1]" {...props}></div>
 );
 
-interface SVPickerWrapProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface SVPickerWrapProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 const SVPickerWrap: React.FC<SVPickerWrapProps> = ({ children, ...props }) => (
     <div className="relative z-0" {...props}>
@@ -18,11 +18,11 @@ const SVPickerWrap: React.FC<SVPickerWrapProps> = ({ children, ...props }) => (
     </div>
 );
 
-interface SVPickerBodyProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface SVPickerBodyProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 const SVPickerBody: React.FC<SVPickerBodyProps> = ({ children, ...props }) => (
     <div
-        className="relative shadow-inner border border-gray-300 rounded-sm overflow-hidden cursor-pointer"
+        className="relative shadow-inner border border-gray-300 rounded-xs overflow-hidden cursor-pointer"
         {...props}
     >
         {children}

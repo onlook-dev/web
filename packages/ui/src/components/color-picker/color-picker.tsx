@@ -1,15 +1,14 @@
-import type React from 'react';
-import { useState, useEffect, useCallback } from 'react';
-import { ColorSlider } from './ColorSlider';
-import { SVPicker } from './SVPicker';
-import tw from 'tailwind-styled-components';
-import { twMerge } from 'tailwind-merge';
-import { Color } from '@onlook/utility';
-import { mod } from '@onlook/utility';
-import { DraftableInput } from '../draftable-input';
 import styled from '@emotion/styled';
+import { Color, mod } from '@onlook/utility';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
+import tw from 'tailwind-styled-components';
+import { DraftableInput } from '../draftable-input';
 import { InputGroup } from '../input-group';
-import EyeDropperButton from './EyeDropperButton';
+import { ColorSlider } from './color-slider';
+import EyeDropperButton from './eye-dropper';
+import { SVPicker } from './sv-picker';
 
 const Input = tw(DraftableInput)`
   outline-0 w-full h-6 bg-background-onlook/70 rounded focus:ring-1 ring-inset ring-foreground-active text-foreground-primary placeholder:text-foreground-disabled text-center
@@ -35,15 +34,15 @@ const InputsRow = ({
         <div className="z-50 grid grid-cols-[48px_1fr_1fr_1fr_46px] gap-1 text-mini">
             <div className="flex items-center justify-center gap-1 min-w-0 ">
                 <label
-                    className="text-small text-foreground-primary cursor-pointer hover:text-foreground-hover bg-background-secondary border-[0.5px] border-foreground-tertiary/50 hover:bg-background-hover w-full flex rounded-sm justify-center py-[0.5px] select-none"
+                    className="text-small text-foreground-primary cursor-pointer hover:text-foreground-hover bg-background-secondary border-[0.5px] border-foreground-tertiary/50 hover:bg-background-hover w-full flex rounded-xs justify-center py-[0.5px] select-none"
                     onClick={() =>
                         mode === 'hsl'
                             ? setMode('hsv')
                             : mode === 'hsv'
-                              ? setMode('rgb')
-                              : mode === 'rgb'
-                                ? setMode('hex')
-                                : setMode('hsl')
+                                ? setMode('rgb')
+                                : mode === 'rgb'
+                                    ? setMode('hex')
+                                    : setMode('hsl')
                     }
                 >
                     {mode.toUpperCase()}
