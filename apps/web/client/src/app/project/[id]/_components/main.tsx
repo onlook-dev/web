@@ -12,7 +12,7 @@ import { LeftPanel } from './left-panel';
 import { RightPanel } from './right-panel';
 import { TopBar } from "./top-bar";
 
-export default function Main({ project }: { project: Project }) {
+export function Main({ project }: { project: Project }) {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectsManager();
     const sandbox = useSandbox();
