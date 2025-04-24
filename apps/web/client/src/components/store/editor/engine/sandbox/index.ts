@@ -1,7 +1,7 @@
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
+import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
-
 export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
@@ -26,9 +26,12 @@ export class SandboxManager {
             console.error('No session found');
             return;
         }
-
-        const files = await this.listFilesRecursively();
+        const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS);
         console.log('files', files);
+        for (const file of files) {
+            const content = await this.readFile(file);
+            console.log('content', content);
+        }
     }
 
     async readFile(path: string): Promise<string | null> {
@@ -74,11 +77,10 @@ export class SandboxManager {
             return [];
         }
         const files = await this.session.fs.readdir('./');
-        console.log('files', files);
         return files.map(entry => entry.name);
     }
 
-    async listFilesRecursively(dir: string = './'): Promise<string[]> {
+    async listFilesRecursively(dir: string, ignore: string[] = [], extensions: string[] = []): Promise<string[]> {
         if (!this.session) {
             console.error('No session found');
             return [];
@@ -90,9 +92,16 @@ export class SandboxManager {
         for (const entry of entries) {
             const fullPath = dir === './' ? entry.name : `${dir}/${entry.name}`;
             if (entry.type === 'directory') {
-                const subFiles = await this.listFilesRecursively(fullPath);
+                const dirName = entry.name;
+                if (ignore.includes(dirName)) {
+                    continue;
+                }
+                const subFiles = await this.listFilesRecursively(fullPath, ignore, extensions);
                 results.push(...subFiles);
             } else {
+                if (extensions.length > 0 && !extensions.includes(entry.name.split('.').pop() || '')) {
+                    continue;
+                }
                 results.push(fullPath);
             }
         }
