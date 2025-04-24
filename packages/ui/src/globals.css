@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:is([data-mode="dark"] *));
 
-@theme {
+@theme inline {
   --color-background: hsl(var(--background));
   --color-background-onlook: hsl(var(--background-onlook));
 
