@@ -1,10 +1,12 @@
-import generate from '@babel/generator';
-import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
-import * as t from '@babel/types';
+import { packages } from "@babel/standalone";
 import * as fs from 'fs';
 import * as path from 'path';
 import { builtWithScript } from './script';
+
+const { parse } = packages.parser;
+const { generate } = packages.generator;
+const traverse = packages.traverse.default;
+const t = packages.types;
 
 /**
  * Injects the Built with Onlook script into a Next.js layout file
