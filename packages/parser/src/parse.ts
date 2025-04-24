@@ -5,8 +5,6 @@ const { generate } = packages.generator;
 const traverse = packages.traverse.default;
 
 export const parse = (code: string) => {
-    console.log(code);
-
     const ast = parser.parse(code, {
         plugins: ['typescript', 'jsx'],
         sourceType: 'module',
@@ -18,4 +16,3 @@ export const parse = (code: string) => {
     const transformed = generate(ast, { retainLines: true, compact: false });
     return transformed.code;
 };
-
