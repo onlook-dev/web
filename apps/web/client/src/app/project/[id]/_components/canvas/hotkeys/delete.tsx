@@ -1,5 +1,4 @@
 // import { useEditorEngine, useUserManager } from '@/components/Context';
-import { Hotkey } from '@/components/hotkey';
 import { useEditorEngine, useUserManager } from '@/components/store';
 import {
     AlertDialog,
@@ -12,7 +11,6 @@ import {
 import { Button } from '@onlook/ui/button';
 import { Checkbox } from '@onlook/ui/checkbox';
 import { useState } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
 
 export const DeleteKey = () => {
     const editorEngine = useEditorEngine();
@@ -29,7 +27,7 @@ export const DeleteKey = () => {
     //         if (shouldWarnDelete) {
     //             setShowDeleteDialog(true);
     //         } else {
-    //             void editorEngine.elements.delete();
+    //             editorEngine.elements.delete();
     //         }
     //     }
     // });

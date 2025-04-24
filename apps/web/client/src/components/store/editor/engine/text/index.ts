@@ -52,8 +52,8 @@ export class TextEditingManager {
                 adjustedRect,
                 this.originalContent,
                 el.styles?.computed ?? {},
-                ((content: string) => { void this.edit(content); }) as TextEditCallback,
-                (() => { void this.end(); }) as TextEndCallback,
+                ((content: string) => { this.edit(content); }) as TextEditCallback,
+                (() => { this.end(); }) as TextEndCallback,
                 isComponent,
             );
         } catch (error) {

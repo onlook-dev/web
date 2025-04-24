@@ -3,7 +3,7 @@ import type { Action } from '@onlook/models/actions';
 import { jsonClone } from '@onlook/utility';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
-import { getCleanedElement, undoAction, updateTransactionActions, transformRedoAction } from './helpers';
+import { transformRedoAction, undoAction, updateTransactionActions } from './helpers';
 
 enum TransactionType {
     IN_TRANSACTION = 'in-transaction',
@@ -106,7 +106,7 @@ export class HistoryManager {
 
     undo = (): Action | null => {
         if (this.inTransaction.type === TransactionType.IN_TRANSACTION) {
-            void this.commitTransaction();
+            this.commitTransaction();
         }
 
         const top = this.undoStack.pop();
@@ -122,7 +122,7 @@ export class HistoryManager {
 
     redo = (): Action | null => {
         if (this.inTransaction.type === TransactionType.IN_TRANSACTION) {
-            void this.commitTransaction();
+            this.commitTransaction();
         }
 
         const top = this.redoStack.pop();

@@ -188,7 +188,7 @@ export class ActionManager {
                 console.error("Failed to get frameView");
                 return;
             }
-            const domEl = await frameView.view.moveElement(target.domId, location);
+            const domEl = await frameView.view.moveElement(target.domId, location.index);
             if (!domEl) {
                 console.error("Failed to move element");
                 return;
