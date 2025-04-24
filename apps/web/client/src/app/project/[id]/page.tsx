@@ -1,14 +1,14 @@
 
+import { getProject } from '@onlook/db';
 import { createClient } from "@/utils/supabase/server";
 import { FrameType, type Project, type WebFrame } from "@onlook/models";
 import Main from "./_components/main";
 
 export default async function Page({ params }: { params: { id: string } }) {
     const supabase = await createClient()
-    const projectId = (await params).id;
-
-    // TODO: Get project from supabase
-    // const { data, error } = await supabase.from('your_table').select('*')
+    const projectId = parseInt((await params).id, 10);
+    
+    const project = await getProject(projectId);
 
     const newFrame: WebFrame = {
         id: '1',

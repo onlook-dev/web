@@ -39,8 +39,14 @@
         "url": "https://github.com/onlook-dev/onlook/issues"
     },
     "devDependencies": {
+        "dotenv": "^16.5.0",
+        "drizzle-kit": "^0.31.0",
         "extract-zip": "^2.0.1",
         "husky": "^9.1.6"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@neondatabase/serverless": "^1.0.0",
+        "drizzle-orm": "^0.43.0",
+        "pg": "^8.15.5"
+    }
 }
