@@ -1,4 +1,3 @@
-// import { invokeMainChannel } from '@/lib/utils';
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
@@ -15,10 +14,26 @@ export class SandboxManager {
 
     register(session: SandboxSession) {
         this.session = session;
+        this.index();
+    }
+
+    /**
+     * Needs initial setup to read and index all jsx|tsx files
+     * Also needs watch to continue indexing as files change
+     */
+    async index() {
+        if (!this.session) {
+            console.error('No session found');
+            return;
+        }
+
+        const files = await this.listFilesRecursively();
+        console.log('files', files);
     }
 
     async readFile(path: string): Promise<string | null> {
         if (!this.session) {
+            console.error('No session found');
             return null;
         }
 
@@ -38,6 +53,7 @@ export class SandboxManager {
 
     async writeFile(path: string, content: string): Promise<boolean> {
         if (!this.session) {
+            console.error('No session found');
             return false;
         }
 
@@ -53,8 +69,8 @@ export class SandboxManager {
     }
 
     async listFiles(): Promise<string[]> {
-        console.log('listFiles', this.session);
         if (!this.session) {
+            console.error('No session found');
             return [];
         }
         const files = await this.session.fs.readdir('./');
@@ -62,8 +78,31 @@ export class SandboxManager {
         return files.map(entry => entry.name);
     }
 
+    async listFilesRecursively(dir: string = './'): Promise<string[]> {
+        if (!this.session) {
+            console.error('No session found');
+            return [];
+        }
+
+        const results: string[] = [];
+        const entries = await this.session.fs.readdir(dir);
+
+        for (const entry of entries) {
+            const fullPath = dir === './' ? entry.name : `${dir}/${entry.name}`;
+            if (entry.type === 'directory') {
+                const subFiles = await this.listFilesRecursively(fullPath);
+                results.push(...subFiles);
+            } else {
+                results.push(fullPath);
+            }
+        }
+
+        return results;
+    }
+
     async watchFiles() {
         if (!this.session) {
+            console.error('No session found');
             return;
         }
         const watcher = await this.session.fs.watch("./", { recursive: true, excludes: [".git"] });
