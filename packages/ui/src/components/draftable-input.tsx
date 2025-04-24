@@ -25,39 +25,47 @@ export type DraftableInputProps = Omit<JSX.IntrinsicElements['input'], 'ref' | '
     onChangeValue?: (value: string) => void;
 };
 
-const DraftableInput = React.forwardRef<HTMLInputElement, DraftableInputProps>(
-    ({ value, placeholder, onChangeValue, ...props }, ref) => {
-        const inputRef = React.createRef<HTMLInputElement>();
+const DraftableInput = (
+    {
+        ref,
+        value,
+        placeholder,
+        onChangeValue,
+        ...props
+    }: DraftableInputProps & {
+        ref: React.RefObject<HTMLInputElement>;
+    }
+) => {
+    const inputRef = React.createRef<HTMLInputElement>();
 
-        const [draft, onDraftChange, onDraftChangeDone] = useDraftValue<string>(
-            value ?? '',
-            onChangeValue ?? (() => {}),
-        );
+    const [draft, onDraftChange, onDraftChangeDone] = useDraftValue<string>(
+        value ?? '',
+        onChangeValue ?? (() => {}),
+    );
 
-        React.useEffect(() => {
-            const input = inputRef.current;
-            if (input) {
-                const onChangeNative = () => {
-                    onDraftChangeDone();
-                };
-                input.addEventListener('change', onChangeNative);
-                return () => {
-                    input.removeEventListener('change', onChangeNative);
-                };
-            }
-        }, [inputRef, onDraftChangeDone]);
+    React.useEffect(() => {
+        const input = inputRef.current;
+        if (input) {
+            const onChangeNative = () => {
+                onDraftChangeDone();
+            };
+            input.addEventListener('change', onChangeNative);
+            return () => {
+                input.removeEventListener('change', onChangeNative);
+            };
+        }
+    }, [inputRef, onDraftChangeDone]);
 
-        return (
-            <input
-                {...props}
-                value={draft}
-                placeholder={placeholder}
-                onChange={(e) => onDraftChange(e.currentTarget.value)}
-                ref={mergeRefs([inputRef, ref])}
-            />
-        );
-    },
-);
+    return (
+        <input
+            {...props}
+            value={draft}
+            placeholder={placeholder}
+            onChange={(e) => onDraftChange(e.currentTarget.value)}
+            ref={mergeRefs([inputRef, ref])}
+        />
+    );
+};
 
 DraftableInput.displayName = 'DraftableInput';
 

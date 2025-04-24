@@ -31,22 +31,28 @@ export interface PopoverProps
     extends React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Root>,
         VariantProps<typeof popoverVariants> {}
 
-const PopoverContent = React.forwardRef<
-    React.ElementRef<typeof PopoverPrimitive.Content>,
-    React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = 'center', sideOffset = 4, children, ...props }, ref) => (
-    <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-            ref={ref}
-            align={align}
-            sideOffset={sideOffset}
-            className={cn(popoverVariants(), className)}
-            {...props}
-        >
-            {children}
-        </PopoverPrimitive.Content>
-    </PopoverPrimitive.Portal>
-));
+const PopoverContent = (
+    {
+        ref,
+        className,
+        align = 'center',
+        sideOffset = 4,
+        children,
+        ...props
+    }: React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
+        ref: React.RefObject<React.ElementRef<typeof PopoverPrimitive.Content>>;
+    }
+) => (<PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+        ref={ref}
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(popoverVariants(), className)}
+        {...props}
+    >
+        {children}
+    </PopoverPrimitive.Content>
+</PopoverPrimitive.Portal>);
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 type PopoverScrollAreaProps = React.PropsWithChildren<{
@@ -69,25 +75,30 @@ interface PopoverSeparatorProps
     fullLength?: boolean;
 }
 
-const PopoverSeparator = React.forwardRef<
-    React.ElementRef<typeof SeparatorPrimitive.Root>,
-    PopoverSeparatorProps
->(({ className, orientation = 'horizontal', fullLength = false, ...props }, ref) => (
-    <div className="w-full">
-        <SeparatorPrimitive.Root
-            ref={ref}
-            decorative
-            orientation={orientation}
-            className={cn(
-                'shrink-0 bg-border',
-                orientation === 'horizontal' ? 'h-[1px] w-fill' : 'h-fill w-[1px]',
-                fullLength && orientation === 'horizontal' ? '-ml-2 -mr-[20px]' : '',
-                className,
-            )}
-            {...props}
-        />
-    </div>
-));
+const PopoverSeparator = (
+    {
+        ref,
+        className,
+        orientation = 'horizontal',
+        fullLength = false,
+        ...props
+    }: PopoverSeparatorProps & {
+        ref: React.RefObject<React.ElementRef<typeof SeparatorPrimitive.Root>>;
+    }
+) => (<div className="w-full">
+    <SeparatorPrimitive.Root
+        ref={ref}
+        decorative
+        orientation={orientation}
+        className={cn(
+            'shrink-0 bg-border',
+            orientation === 'horizontal' ? 'h-[1px] w-fill' : 'h-fill w-[1px]',
+            fullLength && orientation === 'horizontal' ? '-ml-2 -mr-[20px]' : '',
+            className,
+        )}
+        {...props}
+    />
+</div>);
 PopoverSeparator.displayName = SeparatorPrimitive.Root.displayName;
 
 type PopoverHeaderProps = React.PropsWithChildren<{
