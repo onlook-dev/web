@@ -31,6 +31,7 @@
         "@onlook/typescript": "*"
     },
     "dependencies": {
-        "@babel/standalone": "^7.27.0"
+        "@babel/standalone": "^7.27.0",
+        "@babel/types": "^7.27.0"
     }
 }
