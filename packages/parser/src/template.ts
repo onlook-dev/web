@@ -1,6 +1,5 @@
 import type { NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import { EditorAttributes } from '@onlook/constants';
 import {
     CoreElementType,
     DynamicType,
@@ -8,16 +7,20 @@ import {
     type TemplateTag
 } from '@onlook/models';
 import { isReactFragment } from './helpers';
+import { getExistingOid } from './ids';
 import { traverse } from './packages';
 
-export function createTemplateNodeMap(ast: t.File, filename: string): Record<string, TemplateNode> | null {
-    const mapping: Record<string, TemplateNode> = {};
+export function createTemplateNodeMap(ast: t.File, filename: string): Map<string, TemplateNode> | null {
+    const mapping: Map<string, TemplateNode> = new Map();
     const componentStack: string[] = [];
     const dynamicTypeStack: DynamicType[] = [];
 
     traverse(ast, {
         FunctionDeclaration: {
-            enter(path: any) {
+            enter(path) {
+                if (!path.node.id) {
+                    return;
+                }
                 componentStack.push(path.node.id.name);
             },
             exit() {
@@ -25,7 +28,10 @@ export function createTemplateNodeMap(ast: t.File, filename: string): Record<str
             },
         },
         ClassDeclaration: {
-            enter(path: any) {
+            enter(path) {
+                if (!path.node.id) {
+                    return;
+                }
                 componentStack.push(path.node.id.name);
             },
             exit() {
@@ -33,7 +39,10 @@ export function createTemplateNodeMap(ast: t.File, filename: string): Record<str
             },
         },
         VariableDeclaration: {
-            enter(path: any) {
+            enter(path) {
+                if (!path.node.declarations[0].id || !t.isIdentifier(path.node.declarations[0].id)) {
+                    return;
+                }
                 componentStack.push(path.node.declarations[0].id.name);
             },
             exit() {
@@ -77,31 +86,22 @@ export function createTemplateNodeMap(ast: t.File, filename: string): Record<str
                 return;
             }
 
-            const attributes = path.node.openingElement.attributes;
-            const idAttr = attributes.find(
-                (attr: any) => attr.name?.name === EditorAttributes.DATA_ONLOOK_ID,
-            );
-
-            if (!idAttr || !t.isJSXAttribute(idAttr)) {
+            const existingOid = getExistingOid(path.node.openingElement.attributes);
+            if (!existingOid) {
                 return;
             }
 
-            const idAttrValue = idAttr.value
-            if (!idAttrValue || !t.isStringLiteral(idAttrValue)) {
-                return;
-            }
-
-            const elementId = idAttrValue.value;
+            const oid = existingOid.value;
             const dynamicType = getDynamicTypeInfo(path);
             const coreElementType = getCoreElementInfo(path);
 
-            mapping[elementId] = getTemplateNode(
+            mapping.set(oid, getTemplateNode(
                 path,
                 filename,
                 componentStack,
                 dynamicType,
                 coreElementType,
-            );
+            ));
 
         },
     });
@@ -116,7 +116,7 @@ export function isNodeElementArray(node: t.CallExpression): boolean {
     );
 }
 
-export function getDynamicTypeInfo(path: NodePath): DynamicType | null {
+export function getDynamicTypeInfo(path: NodePath<t.JSXElement>): DynamicType | null {
     const parent = path.parent;
     const grandParent = path.parentPath?.parent;
 
@@ -152,7 +152,7 @@ export function getCoreElementInfo(path: NodePath<t.JSXElement>): CoreElementTyp
 
 
 export function getTemplateNode(
-    path: any,
+    path: NodePath<t.JSXElement>,
     filename: string,
     componentStack: string[],
     dynamicType: DynamicType | null,
@@ -174,15 +174,15 @@ export function getTemplateNode(
     return domNode;
 }
 
-function getTemplateTag(element: any): TemplateTag {
+function getTemplateTag(element: t.JSXOpeningElement | t.JSXClosingElement): TemplateTag {
     return {
         start: {
-            line: element.loc.start.line,
-            column: element.loc.start.column + 1,
+            line: element.loc?.start?.line ?? 0,
+            column: element.loc?.start?.column ?? 0 + 1,
         },
         end: {
-            line: element.loc.end.line,
-            column: element.loc.end.column,
+            line: element.loc?.end?.line ?? 0,
+            column: element.loc?.end?.column ?? 0,
         },
     };
 }

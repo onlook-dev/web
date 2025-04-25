@@ -42,9 +42,9 @@ export function addIdsToAst(ast: t.File) {
     });
 }
 
-function getExistingOid(attributes: (t.JSXAttribute | t.JSXSpreadAttribute)[]): { value: string, index: number } | null {
+export function getExistingOid(attributes: (t.JSXAttribute | t.JSXSpreadAttribute)[]): { value: string, index: number } | null {
     const existingAttrIndex = attributes.findIndex(
-        (attr: any) => attr.name?.name === EditorAttributes.DATA_ONLOOK_ID,
+        (attr) => t.isJSXAttribute(attr) && attr.name.name === EditorAttributes.DATA_ONLOOK_ID,
     );
 
     if (existingAttrIndex === -1) {
