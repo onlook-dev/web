@@ -1,5 +1,5 @@
 import { FrameType, type Project, type WebFrame } from "@onlook/models";
-import Main from "./_components/main";
+import { Main } from "./_components/main";
 
 async function getProject(id: string) {
     "use server";

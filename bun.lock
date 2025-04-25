@@ -41,6 +41,7 @@
         "@onlook/constants": "*",
         "@onlook/fonts": "*",
         "@onlook/models": "*",
+        "@onlook/parser": "*",
         "@onlook/penpal": "*",
         "@onlook/rpc": "*",
         "@onlook/ui": "*",
@@ -228,7 +229,7 @@
       },
     },
     "packages/parser": {
-      "name": "@onlook/parse",
+      "name": "@onlook/parser",
       "version": "0.0.0",
       "dependencies": {
         "@babel/standalone": "^7.27.0",
@@ -612,7 +613,7 @@
 
     "@onlook/models": ["@onlook/models@workspace:packages/models"],
 
-    "@onlook/parse": ["@onlook/parse@workspace:packages/parser"],
+    "@onlook/parser": ["@onlook/parser@workspace:packages/parser"],
 
     "@onlook/penpal": ["@onlook/penpal@workspace:packages/penpal"],
 

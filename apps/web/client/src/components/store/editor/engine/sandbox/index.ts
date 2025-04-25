@@ -1,5 +1,6 @@
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
+import { getContentWithIds } from '@onlook/parser';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
 
@@ -28,10 +29,24 @@ export class SandboxManager {
             return;
         }
         const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS);
-        console.log('files', files);
         for (const file of files) {
+            console.log(`Indexing file ${file}`);
             const content = await this.readFile(file);
-            console.log('content', content);
+            if (!content) {
+                console.error(`Failed to read file ${file}`);
+                continue;
+            }
+            const fileWithIds = await getContentWithIds(content);
+            if (!fileWithIds) {
+                console.error(`Failed to get content with ids for file ${file}`);
+                continue;
+            }
+            if (fileWithIds === content) {
+                console.log(`File already has ids`);
+                continue;
+            }
+            console.log(`Writing file ${file} with ids`);
+            await this.writeFile(file, fileWithIds);
         }
     }
 
@@ -115,7 +130,7 @@ export class SandboxManager {
             console.error('No session found');
             return;
         }
-        const watcher = await this.session.fs.watch("./", { recursive: true, excludes: [".git"] });
+        const watcher = await this.session.fs.watch("./", { recursive: true, excludes: IGNORED_DIRECTORIES });
 
         watcher.onEvent((event) => {
             for (const path of event.paths) {

@@ -1,5 +1,5 @@
 {
-    "name": "@onlook/parse",
+    "name": "@onlook/parser",
     "description": "A jsx/tsx parser library for Onlook",
     "main": "./src/index.ts",
     "type": "module",
@@ -19,7 +19,7 @@
     },
     "keywords": [
         "onlook",
-        "parse"
+        "parser"
     ],
     "author": {
         "name": "Onlook",
