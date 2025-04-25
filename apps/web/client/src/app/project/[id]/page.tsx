@@ -14,7 +14,7 @@ async function getProject(id: string) {
         url: 'https://3cczd6-8084.csb.app',
         // url: 'http://localhost:8084',
         position: { x: 200, y: 200 },
-        dimension: { width: 500, height: 500 },
+        dimension: { width: 1440, height: 900 },
         type: FrameType.WEB,
     };
 

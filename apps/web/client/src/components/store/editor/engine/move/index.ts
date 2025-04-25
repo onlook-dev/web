@@ -1,8 +1,9 @@
-import type { WebFrameView } from '@/app/project/[id]/_components/canvas/frame/web-frame';
-import type { DomElement, ElementPosition } from '@onlook/models';
+import type { DomElement, ElementPosition, RectDimensions } from '@onlook/models';
 import type { MoveElementAction } from '@onlook/models/actions';
 import type React from 'react';
 import type { EditorEngine } from '..';
+import type { FrameData } from '../frames';
+import { adaptRectToCanvas } from '../overlay/utils';
 
 export class MoveManager {
     dragOrigin: ElementPosition | undefined;
@@ -17,7 +18,7 @@ export class MoveManager {
         return !!this.dragOrigin;
     }
 
-    async start(el: DomElement, position: ElementPosition, frameView: WebFrameView) {
+    async start(el: DomElement, position: ElementPosition, frameView: FrameData) {
         if (this.editorEngine.chat.isWaiting) {
             return;
         }
@@ -33,20 +34,30 @@ export class MoveManager {
             this.editorEngine.history.startTransaction();
             return;
         } else {
-            this.originalIndex = await frameView.startDrag(el.domId);
+            const index = await frameView.view.startDrag(el.domId) as number; 
+            if (index === null || index === -1) {
+                this.clear();
+                console.warn('Start drag failed, original index is null or -1');
+                return;
+            }
+            this.originalIndex = index;
         }
 
-        if (this.originalIndex === null || this.originalIndex === -1) {
-            this.clear();
-            console.warn('Start drag failed, original index is null or -1');
-            return;
-        }
+        const adjustedRect = adaptRectToCanvas(el.rect, frameView.view);
+        const isComponent = !!el.instanceId;
+        this.editorEngine.overlay.state.addDragElement(
+            adjustedRect,
+            el.styles?.computed ?? {},
+            isComponent,
+            el.domId,
+        );
     }
 
     async drag(
         e: React.MouseEvent<HTMLDivElement>,
         getRelativeMousePositionToWebview: (e: React.MouseEvent<HTMLDivElement>) => ElementPosition,
     ) {
+        console.log('drag', this.dragOrigin, this.dragTarget);
         if (!this.dragOrigin || !this.dragTarget) {
             console.error('Cannot drag without drag origin or target');
             return;
@@ -65,11 +76,11 @@ export class MoveManager {
         if (this.isDraggingAbsolute) {
             await this.handleDragAbsolute(this.dragOrigin, this.dragTarget, x, y);
             return;
-        }
+        }        
 
         if (Math.max(Math.abs(dx), Math.abs(dy)) > this.MIN_DRAG_DISTANCE) {
             this.editorEngine.overlay.clear();
-            frameView.drag(this.dragTarget.domId, dx, dy, x, y)
+            frameView.view.drag(this.dragTarget.domId, dx, dy, x, y)
         }
     }
 
@@ -109,7 +120,7 @@ export class MoveManager {
 
     async end(e: React.MouseEvent<HTMLDivElement>) {
         if (this.isDraggingAbsolute) {
-            this.editorEngine.history.commitTransaction();
+            await this.editorEngine.history.commitTransaction();
             this.isDraggingAbsolute = false;
             this.clear();
         }
@@ -131,20 +142,23 @@ export class MoveManager {
             newIndex: number;
             child: DomElement;
             parent: DomElement;
-        } | null = await frameView.endDrag(this.dragTarget.domId);
+        } | null = await frameView.view.endDrag(this.dragTarget.domId);
+        console.log('endDrag', res);
+        
 
         if (res) {
             const { child, parent, newIndex } = res;
+            console.log('endDrag', newIndex, this.originalIndex, frameView.frame.id);
             if (newIndex !== this.originalIndex) {
                 const moveAction = this.createMoveAction(
-                    frameView.id,
+                    frameView.frame.id,
                     child,
                     parent,
                     newIndex,
                     this.originalIndex,
                 );
-                this.editorEngine.action.run(moveAction);
-            }
+                await this.editorEngine.action.run(moveAction);
+            } 
         }
         this.clear();
     }
@@ -223,7 +237,7 @@ export class MoveManager {
             location: {
                 type: 'index',
                 targetDomId: parent.domId,
-                targetOid: parent.instanceId || parent.oid,
+                targetOid: parent.instanceId ?? parent.oid,
                 index: newIndex,
                 originalIndex: originalIndex,
             },
@@ -231,7 +245,7 @@ export class MoveManager {
                 {
                     frameId: frameId,
                     domId: child.domId,
-                    oid: child.instanceId || child.oid,
+                    oid: child.instanceId ?? child.oid,
                 },
             ],
         };
@@ -241,13 +255,6 @@ export class MoveManager {
         this.originalIndex = undefined;
         this.dragOrigin = undefined;
         this.dragTarget = undefined;
-    }
-
-    clear() {
-        // Clear state
-        this.clear();
-
-        // Clear references
-        this.editorEngine = null as any;
+        this.isDraggingAbsolute = false;
     }
 }
