@@ -7,7 +7,7 @@ import { cn } from "@onlook/ui/utils";
 import { debounce } from 'lodash';
 import { observer } from "mobx-react-lite";
 import { WindowMessenger, connect } from 'penpal';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type IframeHTMLAttributes } from 'react';
 
 export type WebFrameView = HTMLIFrameElement & {
     setZoomLevel: (level: number) => void;
@@ -67,7 +67,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
 
         connection.promise.then((child) => {
             if (!child) {
-                console.error(`${PENPAL_PARENT_CHANNEL} - Failed to setup penpal connection: child is null`);
+                console.error(`${PENPAL_PARENT_CHANNEL} (${frame.id}) - Failed to setup penpal connection: child is null`);
                 debouncedReloadIframe();
                 return;
             }
@@ -75,11 +75,11 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             setPenpalChild(remote);
             remote.setFrameId(frame.id);
             remote.processDom();
-            console.log(`${PENPAL_PARENT_CHANNEL} - Penpal connection set for frame ID: ${frame.id}`);
+            console.log(`${PENPAL_PARENT_CHANNEL} (${frame.id}) - Penpal connection set `);
         });
 
         connection.promise.catch((error) => {
-            console.error(`${PENPAL_PARENT_CHANNEL} - Failed to setup penpal connection:`, error);
+            console.error(`${PENPAL_PARENT_CHANNEL} (${frame.id}) - Failed to setup penpal connection:`, error);
             debouncedReloadIframe();
         });
     };
@@ -87,7 +87,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
     useImperativeHandle(ref, () => {
         const iframe = iframeRef.current;
         if (!iframe) {
-            console.error(`${PENPAL_PARENT_CHANNEL} - Iframe - Not found`);
+            console.error(`${PENPAL_PARENT_CHANNEL} (${frame.id}) - Iframe - Not found`);
             return {} as WebFrameView;
         }
 
@@ -108,7 +108,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         };
 
         if (!penpalChild) {
-            console.warn(`${PENPAL_PARENT_CHANNEL} - Failed to setup penpal connection: iframeRemote is null`);
+            console.warn(`${PENPAL_PARENT_CHANNEL} (${frame.id}) - Failed to setup penpal connection: iframeRemote is null`);
             return Object.assign(iframe, syncMethods) as WebFrameView;
         }
 
@@ -168,11 +168,9 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
         };
     }, []);
 
-    const debouncedReloadIframe = useCallback(() => {
-        debounce(() => {
-            reloadIframe();
-        }, 1000);
-    }, []);
+    const debouncedReloadIframe = debounce(() => {
+        reloadIframe();
+    }, 1000);
 
     return (
         <iframe
