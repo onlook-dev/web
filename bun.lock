@@ -234,6 +234,7 @@
       "dependencies": {
         "@babel/standalone": "^7.27.0",
         "@babel/types": "^7.27.0",
+        "@onlook/models": "*",
       },
       "devDependencies": {
         "@onlook/typescript": "*",
