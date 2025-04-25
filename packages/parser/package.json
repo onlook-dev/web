@@ -29,7 +29,8 @@
     "homepage": "https://onlook.com",
     "devDependencies": {
         "@onlook/typescript": "*",
-        "@types/babel__standalone": "^7.1.9"
+        "@types/babel__standalone": "^7.1.9",
+        "@types/babel__traverse": "^7.0.14"
     },
     "dependencies": {
         "@babel/standalone": "^7.27.0",
