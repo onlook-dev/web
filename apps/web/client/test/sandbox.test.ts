@@ -79,7 +79,7 @@ describe('SandboxManager', () => {
         sandboxManager = new SandboxManager(mockEditorEngine);
 
         // Register mock session
-        sandboxManager.register(mockSession);
+        sandboxManager.init(mockSession);
 
         // Mock the parser result to avoid test failures due to our mock implementation
         mock.module('@onlook/parser', () => ({
@@ -120,7 +120,7 @@ describe('SandboxManager', () => {
 
         // Create a new SandboxManager instance with the test mock
         const testManager = new SandboxManager(mockEditorEngine);
-        testManager.register(testMockSession);
+        testManager.init(testMockSession);
 
         // Call the method we're testing
         const files = await testManager.listFilesRecursively('./', IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS);
