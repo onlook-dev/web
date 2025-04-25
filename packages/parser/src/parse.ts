@@ -1,3 +1,4 @@
+import * as t from '@babel/types';
 import { generate, parse } from './packages';
 
 export function getAstFromContent(content: string) {

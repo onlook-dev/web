@@ -1,6 +1,6 @@
 import * as t from '@babel/types';
 
-export function isReactFragment(openingElement: any): boolean {
+export function isReactFragment(openingElement: t.JSXOpeningElement): boolean {
     const name = openingElement.name;
 
     if (t.isJSXIdentifier(name)) {
