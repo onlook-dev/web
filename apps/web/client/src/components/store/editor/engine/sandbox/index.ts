@@ -1,6 +1,6 @@
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
-import { getContentWithIds } from '@onlook/parser';
+import { addOidsToAst, getAstFromContent, getContentFromAst } from '@onlook/parser';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
 
@@ -16,7 +16,6 @@ export class SandboxManager {
 
     register(session: SandboxSession) {
         this.session = session;
-        this.index();
     }
 
     /**
@@ -30,23 +29,19 @@ export class SandboxManager {
         }
         const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS);
         for (const file of files) {
-            console.log(`Indexing file ${file}`);
             const content = await this.readFile(file);
             if (!content) {
                 console.error(`Failed to read file ${file}`);
                 continue;
             }
-            const fileWithIds = await getContentWithIds(content);
-            if (!fileWithIds) {
-                console.error(`Failed to get content with ids for file ${file}`);
+            const ast = await getAstFromContent(content);
+            if (!ast) {
+                console.error(`Failed to get ast for file ${file}`);
                 continue;
             }
-            if (fileWithIds === content) {
-                console.log(`File already has ids`);
-                continue;
-            }
-            console.log(`Writing file ${file} with ids`);
-            await this.writeFile(file, fileWithIds);
+            const astWithIds = addOidsToAst(ast);
+            const contentWithIds = await getContentFromAst(astWithIds);
+            await this.writeFile(file, contentWithIds);
         }
     }
 
