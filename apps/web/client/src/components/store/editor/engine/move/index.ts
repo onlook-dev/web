@@ -108,13 +108,19 @@ export class MoveManager {
         }
         const parentRect = offsetParent.rect;
 
+
         const newX = Math.round(x - parentRect.x - initialOffset.x);
         const newY = Math.round(y - parentRect.y - initialOffset.y);
+        
+
+        const dx = Math.round(x - dragOrigin.x);
+        const dy = Math.round(y - dragOrigin.y);
 
         this.editorEngine.overlay.clear();
         this.editorEngine.style.updateMultiple({
             left: `${newX}px`,
             top: `${newY}px`,
+            transform: `translate(${dx}px, ${dy}px)`,
         });
     }
 
