@@ -4,7 +4,7 @@ import { createOid } from '@onlook/utility';
 import { isReactFragment } from './helpers';
 import { traverse } from './packages';
 
-export function addIdsToAst(ast: t.File) {
+export function addOidsToAst(ast: t.File) {
     const oids: Set<string> = new Set();
 
     traverse(ast, {
@@ -40,6 +40,7 @@ export function addIdsToAst(ast: t.File) {
             }
         },
     });
+    return ast;
 }
 
 export function getExistingOid(attributes: (t.JSXAttribute | t.JSXSpreadAttribute)[]): { value: string, index: number } | null {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { addIdsToAst, getAstFromContent, getContentFromAst } from 'src';
+import { getAstFromContent, getContentFromAst } from 'src';
 
 describe('Parse Tests', () => {
     test('should parse and serialize a simple component', async () => {
