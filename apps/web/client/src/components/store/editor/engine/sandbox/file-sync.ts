@@ -1,13 +1,9 @@
-import type { SandboxSession } from "@codesandbox/sdk";
-
 export class FileSyncManager {
-    private session: SandboxSession;
     private cache: Map<string, string>;
     private storageKey = 'file-sync-cache';
 
-    constructor(session: SandboxSession, private localforage: LocalForage) {
+    constructor(private localforage: LocalForage) {
         this.cache = new Map();
-        this.session = session;
         this.restoreFromLocalStorage();
     }
 
@@ -37,26 +33,36 @@ export class FileSyncManager {
         return this.cache.has(filePath);
     }
 
-    async readOrFetch(filePath: string): Promise<string | null> {
+    async readOrFetch(filePath: string, readFile: (path: string) => Promise<string | null>): Promise<string | null> {
         if (this.has(filePath)) {
             return this.cache.get(filePath) || null;
         }
 
-        const content = await this.session.fs.readTextFile(filePath);
-        this.cache.set(filePath, content);
-        await this.saveToLocalStorage();
-        return content;
+        try {
+            const content = await readFile(filePath);
+            if (content) {
+                this.cache.set(filePath, content);
+                await this.saveToLocalStorage();
+            }
+            return content;
+        } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error);
+            return null;
+        }
     }
 
-    async write(filePath: string, content: string): Promise<void> {
-        if (!this.session) {
-            console.error('No session found');
-            return;
+    async write(filePath: string, content: string, writeFile: (path: string, content: string) => Promise<boolean>): Promise<boolean> {
+        try {
+            const success = await writeFile(filePath, content);
+            if (success) {
+                this.cache.set(filePath, content);
+                await this.saveToLocalStorage();
+            }
+            return success;
+        } catch (error) {
+            console.error(`Error writing file ${filePath}:`, error);
+            return false;
         }
-
-        await this.session.fs.writeTextFile(filePath, content);
-        this.cache.set(filePath, content);
-        await this.saveToLocalStorage();
     }
 
     async updateCache(filePath: string, content: string): Promise<void> {

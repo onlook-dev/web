@@ -8,8 +8,6 @@ const mockGetItem = mock<(key: string) => Promise<any>>(async () => null);
 const mockSetItem = mock<(key: string, value: any) => Promise<any>>(async () => undefined);
 const mockRemoveItem = mock<(key: string) => Promise<any>>(async () => undefined);
 
-
-
 // Now import the SandboxManager which imports localforage
 
 describe('SandboxManager', () => {
@@ -146,6 +144,7 @@ describe('SandboxManager', () => {
     test('should read file content', async () => {
         const content = await sandboxManager.readFile('file1.tsx');
         expect(content).toBe('<div>Test Component</div>');
+        expect(mockSession.fs.readTextFile).toHaveBeenCalledWith('file1.tsx');
     });
 
     test('should write file content', async () => {
@@ -158,22 +157,50 @@ describe('SandboxManager', () => {
     });
 
     test('should read from localforage cache when reading files multiple times', async () => {
+        // First read gets from filesystem and caches
         await sandboxManager.readFile('file1.tsx');
 
-        const originalReadTextFile = mockSession.fs.readTextFile;
-        let called = false;
-        mockSession.fs.readTextFile = mock(async (path: string) => {
-            called = true;
-            return '<div>Changed Content</div>';
-        });
+        // Clear the mock to reset call count
+        mockSession.fs.readTextFile.mockClear();
 
+        // Second read should use cache
         const content2 = await sandboxManager.readFile('file1.tsx');
         expect(content2).toBe('<div>Test Component</div>');
 
-        expect(called).toBe(false);
+        // Filesystem should not be accessed for the second read
+        expect(mockSession.fs.readTextFile).not.toHaveBeenCalled();
     });
 
-    test('FileSyncManager should handle file operations', async () => {
+    test('readRemoteFile and writeRemoteFile should handle session errors', async () => {
+        // Create a SandboxManager with a broken session
+        const errorSession: any = {
+            fs: {
+                readTextFile: mock(async () => {
+                    throw new Error('Failed to read file');
+                }),
+                writeTextFile: mock(async () => {
+                    throw new Error('Failed to write file');
+                }),
+                readdir: mock(async () => []),
+                watch: mock(async () => mockWatcher)
+            }
+        };
+
+        const errorManager = new SandboxManager();
+        errorManager.init(errorSession);
+
+        // Test readFile with broken session
+        const readResult = await errorManager.readFile('error.tsx');
+        expect(readResult).toBe(null);
+        expect(errorSession.fs.readTextFile).toHaveBeenCalledWith('error.tsx');
+
+        // Test writeFile with broken session
+        const writeResult = await errorManager.writeFile('error.tsx', '<div>Content</div>');
+        expect(writeResult).toBe(false);
+        expect(errorSession.fs.writeTextFile).toHaveBeenCalledWith('error.tsx', '<div>Content</div>');
+    });
+
+    test('FileSyncManager should use remote file operations through callbacks', async () => {
         const { FileSyncManager } = require('../src/components/store/editor/engine/sandbox/file-sync');
 
         const testGetItem = mock<(key: string) => Promise<any>>(async () => null);
@@ -187,18 +214,15 @@ describe('SandboxManager', () => {
             return null;
         });
 
-        const testSession = {
-            fs: {
-                readTextFile: mock(async (path: string) => {
-                    return '<div>From Filesystem</div>';
-                }),
-                writeTextFile: mock(async (path: string, content: string) => {
-                    return true;
-                })
-            }
-        };
+        const mockReadFile = mock(async (path: string) => {
+            return '<div>From Filesystem</div>';
+        });
 
-        const fileSync = new FileSyncManager(testSession, {
+        const mockWriteFile = mock(async (path: string, content: string) => {
+            return true;
+        });
+
+        const fileSync = new FileSyncManager({
             getItem: testGetItem,
             setItem: testSetItem,
             removeItem: testRemoveItem
@@ -206,17 +230,18 @@ describe('SandboxManager', () => {
 
         await new Promise(resolve => setTimeout(resolve, 10));
 
-        const cachedContent = await fileSync.readOrFetch('cached.tsx');
+        const cachedContent = await fileSync.readOrFetch('cached.tsx', mockReadFile);
         expect(cachedContent).toBe('<div>Cached</div>');
-        expect(testSession.fs.readTextFile).not.toHaveBeenCalled();
+        expect(mockReadFile).not.toHaveBeenCalled();
 
-        const uncachedContent = await fileSync.readOrFetch('uncached.tsx');
+        const uncachedContent = await fileSync.readOrFetch('uncached.tsx', mockReadFile);
         expect(uncachedContent).toBe('<div>From Filesystem</div>');
-        expect(testSession.fs.readTextFile).toHaveBeenCalledWith('uncached.tsx');
+        expect(mockReadFile).toHaveBeenCalledWith('uncached.tsx');
 
         testSetItem.mockClear();
-        await fileSync.write('test.tsx', '<div>Test Content</div>');
+        await fileSync.write('test.tsx', '<div>Test Content</div>', mockWriteFile);
         expect(testSetItem).toHaveBeenCalled();
+        expect(mockWriteFile).toHaveBeenCalledWith('test.tsx', '<div>Test Content</div>');
 
         testRemoveItem.mockClear();
         await fileSync.clear();

@@ -3,28 +3,26 @@ import { FileSyncManager } from '../src/components/store/editor/engine/sandbox/f
 
 describe('FileSyncManager', () => {
     let fileSyncManager: FileSyncManager;
-    let mockSession: any;
-    let mockLocalforage: any
+    let mockReadFile: any;
+    let mockWriteFile: any;
+    let mockLocalforage: any;
 
     beforeEach(async () => {
-        // Create mock session
-        mockSession = {
-            fs: {
-                readTextFile: mock(async (path: string) => {
-                    // Return mock content based on file path
-                    if (path === 'file1.tsx') {
-                        return '<div>Test Component</div>';
-                    } else if (path === 'file2.tsx') {
-                        return '<div>Another Component</div>';
-                    }
-                    return '';
-                }),
-                writeTextFile: mock(async (path: string, content: string) => {
-                    // Mock file write operation
-                    return;
-                })
+        // Create mock file operations
+        mockReadFile = mock(async (path: string) => {
+            // Return mock content based on file path
+            if (path === 'file1.tsx') {
+                return '<div>Test Component</div>';
+            } else if (path === 'file2.tsx') {
+                return '<div>Another Component</div>';
             }
-        };
+            return '';
+        });
+
+        mockWriteFile = mock(async (path: string, content: string) => {
+            // Mock file write operation
+            return true;
+        });
 
         // Create mock localforage  
         mockLocalforage = {
@@ -34,7 +32,7 @@ describe('FileSyncManager', () => {
         };
 
         // Create FileSyncManager instance
-        fileSyncManager = new FileSyncManager(mockSession, mockLocalforage);
+        fileSyncManager = new FileSyncManager(mockLocalforage);
 
         // Wait for initialization to complete
         await new Promise(resolve => setTimeout(resolve, 10));
@@ -59,32 +57,32 @@ describe('FileSyncManager', () => {
         // Seed the cache
         await fileSyncManager.updateCache('file1.tsx', '<div>Cached Content</div>');
 
-        // Read should return cached content without calling fs.readTextFile
-        const content = await fileSyncManager.readOrFetch('file1.tsx');
+        // Read should return cached content without calling readFile
+        const content = await fileSyncManager.readOrFetch('file1.tsx', mockReadFile);
 
         expect(content).toBe('<div>Cached Content</div>');
-        expect(mockSession.fs.readTextFile).not.toHaveBeenCalled();
+        expect(mockReadFile).not.toHaveBeenCalled();
     });
 
     test('should fetch from filesystem if not in cache', async () => {
         // Read file that is not in cache
-        const content = await fileSyncManager.readOrFetch('file1.tsx');
+        const content = await fileSyncManager.readOrFetch('file1.tsx', mockReadFile);
 
         expect(content).toBe('<div>Test Component</div>');
-        expect(mockSession.fs.readTextFile).toHaveBeenCalledWith('file1.tsx');
+        expect(mockReadFile).toHaveBeenCalledWith('file1.tsx');
     });
 
     test('should write file to filesystem and update cache', async () => {
         const newContent = '<div>New Content</div>';
 
-        await fileSyncManager.write('file1.tsx', newContent);
+        await fileSyncManager.write('file1.tsx', newContent, mockWriteFile);
 
         // Verify file was written to filesystem
-        expect(mockSession.fs.writeTextFile).toHaveBeenCalledWith('file1.tsx', newContent);
+        expect(mockWriteFile).toHaveBeenCalledWith('file1.tsx', newContent);
 
         // Verify cache was updated
         expect(fileSyncManager.has('file1.tsx')).toBe(true);
-        expect(await fileSyncManager.readOrFetch('file1.tsx')).toBe(newContent);
+        expect(await fileSyncManager.readOrFetch('file1.tsx', mockReadFile)).toBe(newContent);
     });
 
     test('should update cache without writing to filesystem', async () => {
@@ -94,10 +92,10 @@ describe('FileSyncManager', () => {
 
         // Verify cache was updated
         expect(fileSyncManager.has('file1.tsx')).toBe(true);
-        expect(await fileSyncManager.readOrFetch('file1.tsx')).toBe(content);
+        expect(await fileSyncManager.readOrFetch('file1.tsx', mockReadFile)).toBe(content);
 
         // Verify filesystem was not written to
-        expect(mockSession.fs.writeTextFile).not.toHaveBeenCalled();
+        expect(mockWriteFile).not.toHaveBeenCalled();
     });
 
     test('should delete file from cache', async () => {
@@ -159,7 +157,7 @@ describe('FileSyncManager', () => {
 
     test('should save to localforage when writing a file', async () => {
         // Write a new file
-        await fileSyncManager.write('file2.tsx', '<div>New Content</div>');
+        await fileSyncManager.write('file2.tsx', '<div>New Content</div>', mockWriteFile);
 
         // Verify localforage.setItem was called
         expect(mockLocalforage.setItem).toHaveBeenCalledTimes(1);
@@ -170,7 +168,7 @@ describe('FileSyncManager', () => {
 
     test('should save to localforage when reading new file', async () => {
         // Read a file not in cache
-        await fileSyncManager.readOrFetch('file1.tsx');
+        await fileSyncManager.readOrFetch('file1.tsx', mockReadFile);
 
         // Verify localforage.setItem was called
         expect(mockLocalforage.setItem).toHaveBeenCalledTimes(1);
@@ -219,7 +217,7 @@ describe('FileSyncManager', () => {
                 removeItem: mock(async () => undefined)
             };
 
-            const errorManager = new FileSyncManager(mockSession, errorLocalforage as any);
+            const errorManager = new FileSyncManager(errorLocalforage as any);
             // Wait for initialization to complete
             await new Promise(resolve => setTimeout(resolve, 10));
 
@@ -251,7 +249,7 @@ describe('FileSyncManager', () => {
             };
 
             // Create new FileSyncManager with the error-throwing localforage
-            new FileSyncManager(mockSession, errorLocalforage as any);
+            new FileSyncManager(errorLocalforage as any);
 
             // Wait for the constructor's async operations to complete
             await new Promise(resolve => setTimeout(resolve, 10));
@@ -278,7 +276,7 @@ describe('FileSyncManager', () => {
         };
 
         // Create new FileSyncManager with the populated localforage
-        const newManager = new FileSyncManager(mockSession, localforageWithCache as any);
+        const newManager = new FileSyncManager(localforageWithCache as any);
 
         // Wait for the constructor's async operations to complete
         await new Promise(resolve => setTimeout(resolve, 10));
@@ -286,51 +284,36 @@ describe('FileSyncManager', () => {
         // Verify cache was populated from localforage
         expect(newManager.has('cached1.tsx')).toBe(true);
         expect(newManager.has('cached2.tsx')).toBe(true);
-        expect(await newManager.readOrFetch('cached1.tsx')).toBe('<div>Cached Content 1</div>');
+        expect(await newManager.readOrFetch('cached1.tsx', mockReadFile)).toBe('<div>Cached Content 1</div>');
     });
 
-    test('should handle error when session is broken', async () => {
-        // Create a session with broken file system methods
-        const brokenSession: any = {
-            fs: {
-                readTextFile: mock(async () => {
-                    throw new Error('Failed to read file');
-                }),
-                writeTextFile: mock(async () => {
-                    throw new Error('Failed to write file');
-                })
-            }
-        };
+    test('should handle error when read/write operations fail', async () => {
+        // Create failing read/write functions
+        const failingRead = mock(async () => {
+            throw new Error('Failed to read file');
+        });
 
-        // Create mock localforage
-        mockLocalforage = {
-            getItem: mock(async () => null),
-            setItem: mock(async () => undefined),
-            removeItem: mock(async () => undefined)
-        };
+        const failingWrite = mock(async () => {
+            throw new Error('Failed to write file');
+        });
 
-        const errorManager = new FileSyncManager(brokenSession, mockLocalforage);
-        // Wait for initialization to complete
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Mock console.error to capture error messages
+        const originalConsoleError = console.error;
+        let errorMessages: string[] = [];
+        console.error = mock((...args: any[]) => {
+            errorMessages.push(args.join(' '));
+        });
 
-        // Attempt to read a file that will cause an error
         try {
-            await errorManager.readOrFetch('errorFile.tsx');
-            // If we reach here, the test should fail
-            expect(true).toBe(false);
-        } catch (error) {
-            // Expect an error to be thrown
-            expect(error).toBeTruthy();
-        }
+            // The below should not throw exceptions but return null/false
+            const readResult = await fileSyncManager.readOrFetch('errorFile.tsx', failingRead);
+            expect(readResult).toBe(null);
 
-        // Attempt to write a file that will cause an error
-        try {
-            await errorManager.write('errorFile.tsx', '<div>Error Content</div>');
-            // If we reach here, the test should fail
-            expect(true).toBe(false);
-        } catch (error) {
-            // Expect an error to be thrown
-            expect(error).toBeTruthy();
+            const writeResult = await fileSyncManager.write('errorFile.tsx', '<div>Error Content</div>', failingWrite);
+            expect(writeResult).toBe(false);
+        } finally {
+            // Restore original console.error
+            console.error = originalConsoleError;
         }
     });
 }); 

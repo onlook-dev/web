@@ -9,7 +9,7 @@ import { TemplateNodeMapper } from './mapping';
 export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
-    private fileSync: FileSyncManager | null = null;
+    private fileSync: FileSyncManager = new FileSyncManager(localforage);
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
 
     constructor() {
@@ -18,7 +18,6 @@ export class SandboxManager {
 
     init(session: SandboxSession) {
         this.session = session;
-        this.fileSync = new FileSyncManager(session, localforage);
     }
 
     async index() {
@@ -41,23 +40,51 @@ export class SandboxManager {
         console.log(Array.from(this.templateNodeMap.getTemplateNodeMap().entries()));
     }
 
-    async readFile(path: string): Promise<string | null> {
-        if (!this.fileSync) {
-            console.error('No file cache found');
+    private async readRemoteFile(filePath: string): Promise<string | null> {
+        if (!this.session) {
+            console.error('No session found for remote read');
             return null;
         }
 
-        return this.fileSync.readOrFetch(path);
+        try {
+            return await this.session.fs.readTextFile(filePath);
+        } catch (error) {
+            console.error(`Error reading remote file ${filePath}:`, error);
+            return null;
+        }
     }
 
-    async writeFile(path: string, content: string): Promise<boolean> {
-        if (!this.fileSync) {
-            console.error('No file cache found');
+    private async writeRemoteFile(filePath: string, fileContent: string): Promise<boolean> {
+        if (!this.session) {
+            console.error('No session found for remote write');
             return false;
         }
 
-        await this.fileSync.write(path, content);
-        return true;
+        try {
+            await this.session.fs.writeTextFile(filePath, fileContent);
+            return true;
+        } catch (error) {
+            console.error(`Error writing remote file ${filePath}:`, error);
+            return false;
+        }
+    }
+
+    async readFile(path: string): Promise<string | null> {
+        if (!this.session) {
+            console.error('No session found');
+            return null;
+        }
+
+        return this.fileSync.readOrFetch(path, this.readRemoteFile.bind(this));
+    }
+
+    async writeFile(path: string, content: string): Promise<boolean> {
+        if (!this.session) {
+            console.error('No session found');
+            return false;
+        }
+
+        return this.fileSync.write(path, content, this.writeRemoteFile.bind(this));
     }
 
     async listFilesRecursively(dir: string, ignore: string[] = [], extensions: string[] = []): Promise<string[]> {
@@ -98,11 +125,6 @@ export class SandboxManager {
         const watcher = await this.session.fs.watch("./", { recursive: true, excludes: IGNORED_DIRECTORIES });
 
         watcher.onEvent((event) => {
-            if (!this.fileSync) {
-                console.error('No file cache found');
-                return;
-            }
-
             for (const path of event.paths) {
                 this.fileSync.updateCache(path, event.type);
                 this.processFileForMapping(path);
@@ -135,7 +157,7 @@ export class SandboxManager {
 
     clear() {
         this.watcher?.dispose();
-        this.fileSync?.clear();
+        this.fileSync.clear();
         this.templateNodeMap.clear();
         this.session = null;
     }
