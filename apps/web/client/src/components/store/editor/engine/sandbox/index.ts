@@ -1,16 +1,16 @@
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
-import { addOidsToAst, getAstFromContent, getContentFromAst } from '@onlook/parser';
+import type { TemplateNode } from '@onlook/models';
+import { addOidsToAst, createTemplateNodeMap, getAstFromContent, getContentFromAst } from '@onlook/parser';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
 import { FileSyncManager } from './file-sync';
-import type { TemplateNode } from '@onlook/models';
 
 export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
     private fileSync: FileSyncManager | null = null;
-    private templateMap: Map<string, TemplateNode> = new Map();
+    private oidToTemplateNodeMap: Map<string, TemplateNode> = new Map();
 
     constructor(private editorEngine: EditorEngine) {
         makeAutoObservable(this);
@@ -35,15 +35,7 @@ export class SandboxManager {
                 continue;
             }
 
-            const ast = await getAstFromContent(content);
-            if (!ast) {
-                console.error(`Failed to get ast for file ${file}`);
-                continue;
-            }
-
-            const astWithIds = addOidsToAst(ast);
-            const contentWithIds = await getContentFromAst(astWithIds);
-            await this.writeFile(file, contentWithIds);
+            await this.processFileForMapping(file);
         }
     }
 
@@ -111,10 +103,39 @@ export class SandboxManager {
 
             for (const path of event.paths) {
                 this.fileSync.updateCache(path, event.type);
+                this.processFileForMapping(path);
             }
         });
 
         this.watcher = watcher;
+    }
+
+    async processFileForMapping(file: string) {
+        const content = await this.readFile(file);
+        if (!content) {
+            console.error(`Failed to read file ${file}`);
+            return;
+        }
+
+        const ast = await getAstFromContent(content);
+        if (!ast) {
+            console.error(`Failed to get ast for file ${file}`);
+            return;
+        }
+
+        const { ast: astWithIds, modified } = addOidsToAst(ast);
+        const templateNodeMap = createTemplateNodeMap(astWithIds, file);
+        this.updateMapping(templateNodeMap);
+
+        // Write the file if it has changed
+        if (modified) {
+            const contentWithIds = await getContentFromAst(astWithIds);
+            await this.writeFile(file, contentWithIds);
+        }
+    }
+
+    updateMapping(newMap: Map<string, TemplateNode>) {
+        this.oidToTemplateNodeMap = new Map([...this.oidToTemplateNodeMap, ...newMap]);
     }
 
     async getCodeBlock(oid: string): Promise<string | null> {

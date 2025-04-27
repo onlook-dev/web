@@ -10,7 +10,7 @@ import { isReactFragment } from './helpers';
 import { getExistingOid } from './ids';
 import { traverse } from './packages';
 
-export function createTemplateNodeMap(ast: t.File, filename: string): Map<string, TemplateNode> | null {
+export function createTemplateNodeMap(ast: t.File, filename: string): Map<string, TemplateNode> {
     const mapping: Map<string, TemplateNode> = new Map();
     const componentStack: string[] = [];
     const dynamicTypeStack: DynamicType[] = [];
