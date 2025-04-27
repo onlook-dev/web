@@ -1,6 +1,7 @@
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
 import type { TemplateNode } from '@onlook/models';
+import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable } from 'mobx';
 import { FileSyncManager } from './file-sync';
@@ -139,8 +140,14 @@ export class SandboxManager {
             return null;
         }
 
-        // Get code block from template node
-        return 'test';
+        const content = await this.readFile(templateNode.path);
+        if (!content) {
+            console.error(`No file found for template node ${oid}`);
+            return null;
+        }
+
+        const codeBlock = await getContentFromTemplateNode(templateNode, content);
+        return codeBlock;
     }
 
     clear() {
