@@ -70,20 +70,10 @@ export class SandboxManager {
     }
 
     async readFile(path: string): Promise<string | null> {
-        if (!this.session) {
-            console.error('No session found');
-            return null;
-        }
-
         return this.fileSync.readOrFetch(path, this.readRemoteFile.bind(this));
     }
 
     async writeFile(path: string, content: string): Promise<boolean> {
-        if (!this.session) {
-            console.error('No session found');
-            return false;
-        }
-
         return this.fileSync.write(path, content, this.writeRemoteFile.bind(this));
     }
 
@@ -143,8 +133,6 @@ export class SandboxManager {
     }
 
     async getCodeBlock(oid: string): Promise<string | null> {
-        console.log(Array.from(this.templateNodeMap.getTemplateNodeMap().entries()));
-
         const templateNode = this.templateNodeMap.getTemplateNode(oid);
         if (!templateNode) {
             console.error(`No template node found for oid ${oid}`);
