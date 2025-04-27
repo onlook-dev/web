@@ -1,16 +1,16 @@
 import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
 import type { TemplateNode } from '@onlook/models';
-import { addOidsToAst, createTemplateNodeMap, getAstFromContent, getContentFromAst } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable } from 'mobx';
 import { FileSyncManager } from './file-sync';
+import { TemplateNodeMapper } from './mapping';
 
 export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
     private fileSync: FileSyncManager | null = null;
-    private oidToTemplateNodeMap: Map<string, TemplateNode> = new Map();
+    private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper();
 
     constructor() {
         makeAutoObservable(this);
@@ -39,7 +39,7 @@ export class SandboxManager {
             await this.processFileForMapping(file);
         }
 
-        console.log(Array.from(this.oidToTemplateNodeMap.entries()));
+        console.log(Array.from(this.templateNodeMap.getTemplateNodeMap().entries()));
     }
 
     async readFile(path: string): Promise<string | null> {
@@ -114,50 +114,17 @@ export class SandboxManager {
     }
 
     async processFileForMapping(file: string) {
-        const content = await this.readFile(file);
-        if (!content) {
-            console.error(`Failed to read file ${file}`);
-            return;
-        }
-
-        const ast = await getAstFromContent(content);
-        if (!ast) {
-            console.error(`Failed to get ast for file ${file}`);
-            return;
-        }
-
-        const { ast: astWithIds, modified } = addOidsToAst(ast);
-        const templateNodeMap = createTemplateNodeMap(astWithIds, file);
-        this.updateMapping(templateNodeMap);
-
-        // Write the file if it has changed
-        if (modified) {
-            const contentWithIds = await getContentFromAst(astWithIds);
-            await this.writeFile(file, contentWithIds);
-        }
-    }
-
-    updateMapping(newMap: Map<string, TemplateNode>) {
-        this.oidToTemplateNodeMap = new Map([...this.oidToTemplateNodeMap, ...newMap]);
+        await this.templateNodeMap.processFileForMapping(file, this.readFile.bind(this), this.writeFile.bind(this));
     }
 
     async getTemplateNode(oid: string): Promise<TemplateNode | null> {
-        if (!this.oidToTemplateNodeMap) {
-            console.error('No file cache found');
-            return null;
-        }
-        return this.oidToTemplateNodeMap.get(oid) || null;
+        return this.templateNodeMap.getTemplateNode(oid);
     }
 
     async getCodeBlock(oid: string): Promise<string | null> {
-        if (!this.oidToTemplateNodeMap) {
-            console.error('No file cache found');
-            return null;
-        }
+        console.log(Array.from(this.templateNodeMap.getTemplateNodeMap().entries()));
 
-        console.log(Array.from(this.oidToTemplateNodeMap.entries()));
-
-        const templateNode = this.oidToTemplateNodeMap.get(oid);
+        const templateNode = this.templateNodeMap.getTemplateNode(oid);
         if (!templateNode) {
             console.error(`No template node found for oid ${oid}`);
             return null;
@@ -170,6 +137,7 @@ export class SandboxManager {
     clear() {
         this.watcher?.dispose();
         this.fileSync?.clear();
+        this.templateNodeMap.clear();
         this.session = null;
     }
 }

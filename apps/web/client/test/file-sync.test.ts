@@ -6,7 +6,7 @@ describe('FileSyncManager', () => {
     let mockSession: any;
     let mockLocalforage: any
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Create mock session
         mockSession = {
             fs: {
@@ -35,18 +35,21 @@ describe('FileSyncManager', () => {
 
         // Create FileSyncManager instance
         fileSyncManager = new FileSyncManager(mockSession, mockLocalforage);
+
+        // Wait for initialization to complete
+        await new Promise(resolve => setTimeout(resolve, 10));
     });
 
-    afterEach(() => {
-        fileSyncManager.clear();
+    afterEach(async () => {
+        await fileSyncManager.clear();
     });
 
-    test('should check if file exists in cache', () => {
+    test('should check if file exists in cache', async () => {
         // Initially cache is empty
         expect(fileSyncManager.has('file1.tsx')).toBe(false);
 
         // Add a file to cache
-        fileSyncManager.updateCache('file1.tsx', '<div>Test Component</div>');
+        await fileSyncManager.updateCache('file1.tsx', '<div>Test Component</div>');
 
         // Now it should exist
         expect(fileSyncManager.has('file1.tsx')).toBe(true);
@@ -54,7 +57,7 @@ describe('FileSyncManager', () => {
 
     test('should read from cache if available', async () => {
         // Seed the cache
-        fileSyncManager.updateCache('file1.tsx', '<div>Cached Content</div>');
+        await fileSyncManager.updateCache('file1.tsx', '<div>Cached Content</div>');
 
         // Read should return cached content without calling fs.readTextFile
         const content = await fileSyncManager.readOrFetch('file1.tsx');
@@ -99,13 +102,13 @@ describe('FileSyncManager', () => {
 
     test('should delete file from cache', async () => {
         // Seed the cache
-        fileSyncManager.updateCache('file1.tsx', '<div>Test Content</div>');
+        await fileSyncManager.updateCache('file1.tsx', '<div>Test Content</div>');
 
         // Verify file is in cache
         expect(fileSyncManager.has('file1.tsx')).toBe(true);
 
         // Delete file from cache
-        fileSyncManager.delete('file1.tsx');
+        await fileSyncManager.delete('file1.tsx');
 
         // Verify file is no longer in cache
         expect(fileSyncManager.has('file1.tsx')).toBe(false);
@@ -113,9 +116,9 @@ describe('FileSyncManager', () => {
 
     test('should list all files in cache', async () => {
         // Seed the cache with multiple files
-        fileSyncManager.updateCache('file1.tsx', '<div>Content 1</div>');
-        fileSyncManager.updateCache('file2.tsx', '<div>Content 2</div>');
-        fileSyncManager.updateCache('file3.tsx', '<div>Content 3</div>');
+        await fileSyncManager.updateCache('file1.tsx', '<div>Content 1</div>');
+        await fileSyncManager.updateCache('file2.tsx', '<div>Content 2</div>');
+        await fileSyncManager.updateCache('file3.tsx', '<div>Content 3</div>');
 
         // Get list of files
         const files = fileSyncManager.listFiles();
@@ -129,17 +132,18 @@ describe('FileSyncManager', () => {
 
     test('should clear all files from cache', async () => {
         // Seed the cache with multiple files
-        fileSyncManager.updateCache('file1.tsx', '<div>Content 1</div>');
-        fileSyncManager.updateCache('file2.tsx', '<div>Content 2</div>');
+        await fileSyncManager.updateCache('file1.tsx', '<div>Content 1</div>');
+        await fileSyncManager.updateCache('file2.tsx', '<div>Content 2</div>');
 
         // Verify files are in cache
         expect(fileSyncManager.listFiles().length).toBe(2);
 
         // Clear cache
-        fileSyncManager.clear();
+        await fileSyncManager.clear();
 
         // Verify cache is empty
         expect(fileSyncManager.listFiles().length).toBe(0);
+        expect(mockLocalforage.removeItem).toHaveBeenCalledWith('file-sync-cache');
     });
 
     test('should save to localforage when cache is updated', async () => {
@@ -175,7 +179,7 @@ describe('FileSyncManager', () => {
         expect(callArgs[1]).toEqual({ 'file1.tsx': '<div>Test Component</div>' });
     });
 
-    test('should remove from localforage when deleting a file', async () => {
+    test('should update localforage when deleting a file', async () => {
         // Add file to cache first
         await fileSyncManager.updateCache('file1.tsx', '<div>Test Content</div>');
 
@@ -216,6 +220,8 @@ describe('FileSyncManager', () => {
             };
 
             const errorManager = new FileSyncManager(mockSession, errorLocalforage as any);
+            // Wait for initialization to complete
+            await new Promise(resolve => setTimeout(resolve, 10));
 
             // Attempt operations that would use localforage
             await errorManager.updateCache('file1.tsx', '<div>Test</div>');
@@ -304,6 +310,8 @@ describe('FileSyncManager', () => {
         };
 
         const errorManager = new FileSyncManager(brokenSession, mockLocalforage);
+        // Wait for initialization to complete
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         // Attempt to read a file that will cause an error
         try {
