@@ -23,7 +23,7 @@ export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
             return { x: 0, y: 0 };
         }
         return getRelativeMousePositionToWebview(e, frameData.view);
-    }
+    }, [getFrameData]);
 
     const handleMouseEvent = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>, action: MouseAction) => {
@@ -64,7 +64,7 @@ export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
                     if (e.shiftKey) {
                         editorEngine.elements.shiftClick(el);
                     } else {
-                        editorEngine.elements.click([el], frameData);
+                        editorEngine.elements.click([el]);
                         await editorEngine.move.start(el, pos, frameData);
                     }
                     break;

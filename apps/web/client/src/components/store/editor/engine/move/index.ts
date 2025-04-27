@@ -42,15 +42,6 @@ export class MoveManager {
             }
             this.originalIndex = index;
         }
-
-        const adjustedRect = adaptRectToCanvas(el.rect, frameView.view);
-        const isComponent = !!el.instanceId;
-        this.editorEngine.overlay.state.addDragElement(
-            adjustedRect,
-            el.styles?.computed ?? {},
-            isComponent,
-            el.domId,
-        );
     }
 
     async drag(

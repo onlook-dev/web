@@ -38,6 +38,12 @@ export class TextEditingManager {
                 return;
             }
 
+            const computedStyles = await frameView.getComputedStyleByDomId(el.domId) as Record<string, string> | null;
+            if (!computedStyles) {
+                console.error('Failed to get computed styles for text editing');
+                return;
+            }
+
             const { originalContent } = res;
             this.targetDomEl = el;
             this.originalContent = originalContent;
@@ -51,9 +57,9 @@ export class TextEditingManager {
             this.editorEngine.overlay.state.addTextEditor(
                 adjustedRect,
                 this.originalContent,
-                el.styles?.computed ?? {},
-                ((content: string) => { this.edit(content); }) as TextEditCallback,
-                (() => { this.end(); }) as TextEndCallback,
+                computedStyles,
+                ((content: string) => { this.edit(content); }),
+                (() => { this.end(); }),
                 isComponent,
             );
         } catch (error) {
@@ -107,7 +113,7 @@ export class TextEditingManager {
                 return;
             }
 
-            const { newContent, domEl } = res;
+            const { newContent, domEl } = res as { newContent: string; domEl: DomElement };
             await this.handleEditedText(domEl, newContent, frameData.view);
             await this.clean();
         } catch (error) {

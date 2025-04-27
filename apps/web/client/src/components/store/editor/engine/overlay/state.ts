@@ -39,7 +39,6 @@ export class OverlayState {
     textEditor: TextEditorState | null = null;
     hoverRect: HoverRectState | null = null;
     measurement: MeasurementState | null = null;
-    dragElement: DragElementState | null = null;
 
     constructor() {
         makeAutoObservable(this);
@@ -126,14 +125,6 @@ export class OverlayState {
         this.textEditor = null;
     };
 
-    addDragElement = (rect: RectDimensions, styles: Record<string, string>, isComponent?: boolean, domId?: string) => {
-        this.dragElement = { rect, styles, isComponent, id: domId ?? nanoid(4) };
-    };
-
-    removeDragElement = () => {
-        this.dragElement = null;
-    };
-
     updateMeasurement = (fromRect: RectDimensions, toRect: RectDimensions) => {
         this.measurement = { fromRect, toRect };
     };
@@ -148,6 +139,5 @@ export class OverlayState {
         this.clickRects = [];
         this.textEditor = null;
         this.measurement = null;
-        this.dragElement = null;
     };
 }
