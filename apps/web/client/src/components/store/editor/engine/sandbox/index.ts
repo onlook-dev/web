@@ -10,7 +10,7 @@ export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
     private fileSync: FileSyncManager | null = null;
-    private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper();
+    private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
 
     constructor() {
         makeAutoObservable(this);
@@ -19,7 +19,6 @@ export class SandboxManager {
     init(session: SandboxSession) {
         this.session = session;
         this.fileSync = new FileSyncManager(session, localforage);
-        this.index();
     }
 
     async index() {

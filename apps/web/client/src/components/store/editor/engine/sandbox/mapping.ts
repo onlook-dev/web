@@ -3,11 +3,37 @@ import { addOidsToAst, createTemplateNodeMap, getAstFromContent, getContentFromA
 
 export class TemplateNodeMapper {
     private oidToTemplateNodeMap: Map<string, TemplateNode> = new Map();
+    private storageKey = 'template-node-map';
 
-    constructor() { }
+    constructor(private localforage: LocalForage) {
+        this.restoreFromLocalStorage();
+    }
+
+    private async restoreFromLocalStorage() {
+        try {
+            const storedCache = await this.localforage.getItem<Record<string, TemplateNode>>(this.storageKey);
+            if (storedCache) {
+                Object.entries(storedCache).forEach(([key, value]) => {
+                    this.oidToTemplateNodeMap.set(key, value);
+                });
+            }
+        } catch (error) {
+            console.error('Error restoring from localForage:', error);
+        }
+    }
+
+    private async saveToLocalStorage() {
+        try {
+            const cacheObject = Object.fromEntries(this.oidToTemplateNodeMap.entries());
+            await this.localforage.setItem(this.storageKey, cacheObject);
+        } catch (error) {
+            console.error('Error saving to localForage:', error);
+        }
+    }
 
     updateMapping(newMap: Map<string, TemplateNode>) {
         this.oidToTemplateNodeMap = new Map([...this.oidToTemplateNodeMap, ...newMap]);
+        this.saveToLocalStorage();
     }
 
     async processFileForMapping(file: string, readFile: (path: string) => Promise<string | null>, writeFile: (path: string, content: string) => Promise<boolean>) {
