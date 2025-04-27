@@ -2,8 +2,8 @@ import type { SandboxSession, Watcher } from '@codesandbox/sdk';
 import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
 import type { TemplateNode } from '@onlook/models';
 import { addOidsToAst, createTemplateNodeMap, getAstFromContent, getContentFromAst } from '@onlook/parser';
+import localforage from 'localforage';
 import { makeAutoObservable } from 'mobx';
-import type { EditorEngine } from '..';
 import { FileSyncManager } from './file-sync';
 
 export class SandboxManager {
@@ -12,13 +12,14 @@ export class SandboxManager {
     private fileSync: FileSyncManager | null = null;
     private oidToTemplateNodeMap: Map<string, TemplateNode> = new Map();
 
-    constructor(private editorEngine: EditorEngine) {
+    constructor() {
         makeAutoObservable(this);
     }
 
     init(session: SandboxSession) {
         this.session = session;
-        this.fileSync = new FileSyncManager(session);
+        this.fileSync = new FileSyncManager(session, localforage);
+        this.index();
     }
 
     async index() {
@@ -37,6 +38,8 @@ export class SandboxManager {
 
             await this.processFileForMapping(file);
         }
+
+        console.log(Array.from(this.oidToTemplateNodeMap.entries()));
     }
 
     async readFile(path: string): Promise<string | null> {
@@ -138,13 +141,30 @@ export class SandboxManager {
         this.oidToTemplateNodeMap = new Map([...this.oidToTemplateNodeMap, ...newMap]);
     }
 
+    async getTemplateNode(oid: string): Promise<TemplateNode | null> {
+        if (!this.oidToTemplateNodeMap) {
+            console.error('No file cache found');
+            return null;
+        }
+        return this.oidToTemplateNodeMap.get(oid) || null;
+    }
+
     async getCodeBlock(oid: string): Promise<string | null> {
-        if (!this.fileSync) {
+        if (!this.oidToTemplateNodeMap) {
             console.error('No file cache found');
             return null;
         }
 
-        return this.fileSync.readOrFetch(oid);
+        console.log(Array.from(this.oidToTemplateNodeMap.entries()));
+
+        const templateNode = this.oidToTemplateNodeMap.get(oid);
+        if (!templateNode) {
+            console.error(`No template node found for oid ${oid}`);
+            return null;
+        }
+
+        // Get code block from template node
+        return 'test';
     }
 
     clear() {

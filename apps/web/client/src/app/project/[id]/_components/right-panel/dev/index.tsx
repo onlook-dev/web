@@ -172,7 +172,7 @@ export const DevTab = observer(() => {
         }
 
         try {
-            const templateNode = await editorEngine.ast.getTemplateNodeById(element.oid);
+            const templateNode = await editorEngine.sandbox.getTemplateNode(element.oid);
             if (templateNode?.startTag) {
                 return {
                     startLineNumber: templateNode.startTag.start.line,
@@ -307,7 +307,7 @@ export const DevTab = observer(() => {
     async function getFilePathFromOid(oid: string): Promise<string | null> {
         // Try to get the actual file path from the object ID
         try {
-            const templateNode = await editorEngine.ast.getTemplateNodeById(oid);
+            const templateNode = await editorEngine.sandbox.getTemplateNode(oid);
             if (templateNode?.path) {
                 return templateNode.path;
             }
