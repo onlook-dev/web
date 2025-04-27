@@ -34,6 +34,7 @@ export function Main({ project }: { project: Project }) {
 
         const session = await sandbox.startSandbox(project.sandbox.id);
         editorEngine.sandbox.init(session);
+        await editorEngine.sandbox.index();
     }
 
     return (
