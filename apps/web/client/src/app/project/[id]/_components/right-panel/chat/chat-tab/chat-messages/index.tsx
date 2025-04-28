@@ -1,17 +1,18 @@
 import { useEditorEngine } from '@/components/store';
+import type { AssistantChatMessageImpl } from '@/components/store/editor/engine/chat/message/assistant';
+import type { ToolChatMessageImpl } from '@/components/store/editor/engine/chat/message/tool';
+import type { UserChatMessageImpl } from '@/components/store/editor/engine/chat/message/user';
 import { ChatMessageRole } from '@onlook/models/chat';
 import { Icons } from '@onlook/ui/icons';
 import { observer } from 'mobx-react-lite';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import type { AssistantChatMessageImpl } from '@/components/store/editor/engine/chat/message/assistant';
+import { useCallback, useEffect, useRef } from 'react';
 import { AssistantMessage } from './assistant-message';
-import type { UserChatMessageImpl } from '@/components/store/editor/engine/chat/message/user';
-import type { ToolChatMessageImpl } from '@/components/store/editor/engine/chat/message/tool';
-import { UserMessage } from './user-message';
 import { ErrorMessage } from './error-message';
 import { StreamMessage } from './stream-message';
+import { UserMessage } from './user-message';
+
 export const ChatMessages = observer(() => {
     const editorEngine = useEditorEngine();
     const t = useTranslations();
@@ -42,13 +43,11 @@ export const ChatMessages = observer(() => {
         [],
     );
 
-    
-
     // Render in reverse order to make the latest message appear at the bottom
     return (
         <AnimatePresence mode="wait">
             {editorEngine.chat.conversation.current &&
-            editorEngine.chat.conversation.current?.messages.length !== 0 ? (
+                editorEngine.chat.conversation.current?.messages.length !== 0 ? (
                 <motion.div
                     className="flex flex-col-reverse gap-2 select-text overflow-auto"
                     ref={chatMessagesRef}
