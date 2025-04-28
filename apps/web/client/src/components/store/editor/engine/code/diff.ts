@@ -1,5 +1,5 @@
 import type { CodeDiff, FileToRequests } from '@onlook/models';
-import { getAstFromContent, getContentFromAst, transformAst } from "@onlook/parse";
+import { getAstFromContent, getContentFromAst, transformAst } from "@onlook/parser";
 
 export async function processGroupedRequests(groupedRequests: FileToRequests): Promise<CodeDiff[]> {
     const diffs: CodeDiff[] = [];

@@ -54,7 +54,10 @@ export function drag(domId: string, dx: number, dy: number, x: number, y: number
     
     el.style.transform = `translate(${dx}px, ${dy}px)`;
 
-    moveStub(el, x, y);
+    const parent = el.parentElement;
+    if (parent) {
+        moveStub(el, x, y);
+    }
 }
 
 export function endDrag(domId: string): {
@@ -63,6 +66,7 @@ export function endDrag(domId: string): {
     parent: DomElement;
 } | null {
     const el = getHtmlElement(domId);
+    console.log('endDrag', el);
     if (!el) {
         console.warn('End drag element not found');
         endAllDrag();
@@ -79,6 +83,8 @@ export function endDrag(domId: string): {
     const stubIndex = getCurrentStubIndex(parent, el);
     cleanUpElementAfterDragging(el);
     removeStub();
+
+    console.log('endDrag cleaned', el, stubIndex);
 
     if (stubIndex === -1) {
         return null;

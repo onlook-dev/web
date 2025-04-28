@@ -1,9 +1,9 @@
-import type { DomElement, ElementPosition, RectDimensions } from '@onlook/models';
+import type { DomElement, ElementPosition } from '@onlook/models';
 import type { MoveElementAction } from '@onlook/models/actions';
 import type React from 'react';
 import type { EditorEngine } from '..';
 import type { FrameData } from '../frames';
-import { adaptRectToCanvas } from '../overlay/utils';
+
 
 export class MoveManager {
     dragOrigin: ElementPosition | undefined;
@@ -11,6 +11,7 @@ export class MoveManager {
     originalIndex: number | undefined;
     MIN_DRAG_DISTANCE = 5;
     isDraggingAbsolute = false;
+    isDragInProgress = false;
 
     constructor(private editorEngine: EditorEngine) { }
 
@@ -29,18 +30,27 @@ export class MoveManager {
 
         this.dragOrigin = position;
         this.dragTarget = el;
+        this.isDragInProgress = true;
+        
         if (el.styles?.computed?.position === 'absolute') {
             this.isDraggingAbsolute = true;
             this.editorEngine.history.startTransaction();
             return;
         } else {
-            const index = await frameView.view.startDrag(el.domId) as number; 
-            if (index === null || index === -1) {
+            try {
+                const index = await frameView.view.startDrag(el.domId) as number; 
+                if (index === null || index === -1) {
+                    this.clear();
+                    this.isDragInProgress = false;
+                    console.warn('Start drag failed, original index is null or -1');
+                    return;
+                }
+                this.originalIndex = index;
+            } catch (error) {
+                console.error('Error starting drag:', error);
                 this.clear();
-                console.warn('Start drag failed, original index is null or -1');
-                return;
+                this.isDragInProgress = false;
             }
-            this.originalIndex = index;
         }
     }
 
@@ -48,8 +58,7 @@ export class MoveManager {
         e: React.MouseEvent<HTMLDivElement>,
         getRelativeMousePositionToWebview: (e: React.MouseEvent<HTMLDivElement>) => ElementPosition,
     ) {
-        console.log('drag', this.dragOrigin, this.dragTarget);
-        if (!this.dragOrigin || !this.dragTarget) {
+        if (!this.dragOrigin || !this.dragTarget || !this.isDragInProgress) {
             console.error('Cannot drag without drag origin or target');
             return;
         }
@@ -71,8 +80,12 @@ export class MoveManager {
 
         if (Math.max(Math.abs(dx), Math.abs(dy)) > this.MIN_DRAG_DISTANCE) {
             this.editorEngine.overlay.clear();
-            frameView.view.drag(this.dragTarget.domId, dx, dy, x, y)
-        }
+            try {
+                await frameView.view.drag(this.dragTarget.domId, dx, dy, x, y);
+            } catch (error) {
+                console.error('Error during drag:', error);
+            }
+        }        
     }
 
     async handleDragAbsolute(
@@ -92,84 +105,113 @@ export class MoveManager {
             return;
         }
 
-        const offsetParent = await frameView.getOffsetParent(dragTarget.domId);
-        if (!offsetParent) {
-            console.error('No offset parent found for drag');
-            return;
+        try {
+            const offsetParent = await frameView.getOffsetParent(dragTarget.domId) as DomElement | null;
+            if (!offsetParent) {
+                console.error('No offset parent found for drag');
+                return;
+            }
+            
+            const parentRect = offsetParent.rect;
+            if (!parentRect) {
+                console.error('No parent rect found for drag');
+                return;
+            }
+
+            const newX = Math.round(x - (parentRect).x - initialOffset.x);
+            const newY = Math.round(y - (parentRect).y - initialOffset.y);
+            
+            const dx = Math.round(x - dragOrigin.x);
+            const dy = Math.round(y - dragOrigin.y);
+
+            this.editorEngine.overlay.clear();
+            this.editorEngine.style.updateMultiple({
+                left: `${newX}px`,
+                top: `${newY}px`,
+                transform: `translate(${dx}px, ${dy}px)`,
+            });
+        } catch (error) {
+            console.error('Error handling absolute drag:', error);
         }
-        const parentRect = offsetParent.rect;
-
-
-        const newX = Math.round(x - parentRect.x - initialOffset.x);
-        const newY = Math.round(y - parentRect.y - initialOffset.y);
-        
-
-        const dx = Math.round(x - dragOrigin.x);
-        const dy = Math.round(y - dragOrigin.y);
-
-        this.editorEngine.overlay.clear();
-        this.editorEngine.style.updateMultiple({
-            left: `${newX}px`,
-            top: `${newY}px`,
-            transform: `translate(${dx}px, ${dy}px)`,
-        });
     }
 
     async end(e: React.MouseEvent<HTMLDivElement>) {
+        if (!this.isDragInProgress) {
+            this.clear();
+            await this.endAllDrag();
+            return;
+        }
+        
         if (this.isDraggingAbsolute) {
             await this.editorEngine.history.commitTransaction();
             this.isDraggingAbsolute = false;
             this.clear();
+            return;
         }
 
         if (this.originalIndex === undefined || !this.dragTarget) {
             this.clear();
-            this.endAllDrag();
+            await this.endAllDrag();
             return;
         }
 
         const frameView = this.editorEngine.frames.get(this.dragTarget.frameId);
         if (!frameView) {
             console.error('No frameView found for drag end');
-            this.endAllDrag();
+            await this.endAllDrag();
             return;
         }
 
-        const res: {
-            newIndex: number;
-            child: DomElement;
-            parent: DomElement;
-        } | null = await frameView.view.endDrag(this.dragTarget.domId);
-        console.log('endDrag', res);
-        
-
-        if (res) {
-            const { child, parent, newIndex } = res;
-            console.log('endDrag', newIndex, this.originalIndex, frameView.frame.id);
-            if (newIndex !== this.originalIndex) {
-                const moveAction = this.createMoveAction(
-                    frameView.frame.id,
-                    child,
-                    parent,
-                    newIndex,
-                    this.originalIndex,
-                );
-                await this.editorEngine.action.run(moveAction);
-            } 
+        try {
+            const targetDomId = this.dragTarget.domId;
+            this.isDragInProgress = false;
+            
+            const res = await frameView.view.endDrag(targetDomId) as {
+                newIndex: number;
+                child: DomElement;
+                parent: DomElement;
+            } | null;
+            
+            if (res) {
+                const { child, parent, newIndex } = res;
+                if (newIndex !== this.originalIndex) {
+                    const moveAction = this.createMoveAction(
+                        frameView.frame.id,
+                        child,
+                        parent,
+                        newIndex,
+                        this.originalIndex,
+                    );
+                    await this.editorEngine.action.run(moveAction);
+                } 
+            }
+        } catch (error) {
+            console.error('Error ending drag:', error);
+            await this.endAllDrag();
+        } finally {
+            this.clear();
         }
-        this.clear();
     }
 
-    endAllDrag() {
+    async endAllDrag() {
+        const promises: Promise<unknown>[] = [];
+        
         this.editorEngine.frames.webviews.forEach((frameView) => {
-            frameView.view.endAllDrag();
+            try {
+                const promise = frameView.view.endAllDrag() as Promise<unknown>;
+                promises.push(promise);
+            } catch (error) {
+                console.error('Error in endAllDrag:', error);
+            }
         });
+        
+        await Promise.all(promises);
     }
 
-    moveSelected(direction: 'up' | 'down') {
+    async moveSelected(direction: 'up' | 'down') {
         const selected = this.editorEngine.elements.selected;
-        if (selected.length === 1) {
-            this.shiftElement(selected[0], direction);
+        if (selected.length === 1 && selected[0]) {
+            await this.shiftElement(selected[0], direction);
         } else {
             if (selected.length > 1) {
                 console.error('Multiple elements selected, cannot shift');
@@ -185,41 +227,45 @@ export class MoveManager {
             return;
         }
 
-        // Get current index and parent
-        const currentIndex = await frameView.getElementIndex(element.domId);
+        try {
+            // Get current index and parent
+            const currentIndex = await frameView.view.getElementIndex(element.domId) as number;
 
-        if (currentIndex === -1) {
-            return;
+            if (currentIndex === -1) {
+                return;
+            }
+
+            const parent = await frameView.view.getParentElement(element.domId) as DomElement;
+            if (!parent) {
+                return;
+            }
+
+            // Get filtered children count for accurate index calculation
+            const childrenCount = await frameView.view.getChildrenCount(parent.domId) as number;
+
+            // Calculate new index based on direction and bounds
+            const newIndex =
+                direction === 'up'
+                    ? Math.max(0, currentIndex - 1)
+                    : Math.min(childrenCount - 1, currentIndex + 1);
+
+            if (newIndex === currentIndex) {
+                return;
+            }
+
+            // Create and run move action
+            const moveAction = this.createMoveAction(
+                frameView.frame.id,
+                element,
+                parent,
+                newIndex,
+                currentIndex,
+            );
+
+            await this.editorEngine.action.run(moveAction);
+        } catch (error) {
+            console.error('Error shifting element:', error);
         }
-
-        const parent: DomElement | null = await frameView.getParentElement(element.domId);
-        if (!parent) {
-            return;
-        }
-
-        // Get filtered children count for accurate index calculation
-        const childrenCount = await frameView.getChildrenCount(parent.domId);
-
-        // Calculate new index based on direction and bounds
-        const newIndex =
-            direction === 'up'
-                ? Math.max(0, currentIndex - 1)
-                : Math.min(childrenCount - 1, currentIndex + 1);
-
-        if (newIndex === currentIndex) {
-            return;
-        }
-
-        // Create and run move action
-        const moveAction = this.createMoveAction(
-            frameView.id,
-            element,
-            parent,
-            newIndex,
-            currentIndex,
-        );
-
-        this.editorEngine.action.run(moveAction);
     }
 
     createMoveAction(
@@ -253,5 +299,6 @@ export class MoveManager {
         this.dragOrigin = undefined;
         this.dragTarget = undefined;
         this.isDraggingAbsolute = false;
+        this.isDragInProgress = false;
     }
 }

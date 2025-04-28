@@ -82,7 +82,6 @@ export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
                 // await handleMouseEvent(e, MouseAction.MOVE);
 
                 if (editorEngine.move.isDragging) {
-                    console.log('dragging');
                     await editorEngine.move.drag(e, getRelativeMousePosition);
                 } else if (
                     editorEngine.state.editorMode === EditorMode.DESIGN ||

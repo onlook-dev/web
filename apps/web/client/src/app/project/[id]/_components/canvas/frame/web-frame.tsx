@@ -148,9 +148,7 @@ export const WebFrameComponent = observer(forwardRef<WebFrameView, WebFrameViewP
             insertImage: promisifyMethod(penpalChild?.insertImage),
             removeImage: promisifyMethod(penpalChild?.removeImage),
             isChildTextEditable: promisifyMethod(penpalChild?.isChildTextEditable),
-            hideElement: promisifyMethod(penpalChild?.hideElement),
-            createDragStub: promisifyMethod(penpalChild?.createDragStub),
-            cloneElement: promisifyMethod(penpalChild?.cloneElement),
+            handleDocumentBody: promisifyMethod(penpalChild?.handleDocumentBody),
         };
 
         // Register the iframe with the editor engine
