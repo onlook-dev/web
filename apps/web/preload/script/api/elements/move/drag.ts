@@ -66,7 +66,6 @@ export function endDrag(domId: string): {
     parent: DomElement;
 } | null {
     const el = getHtmlElement(domId);
-    console.log('endDrag', el);
     if (!el) {
         console.warn('End drag element not found');
         endAllDrag();
@@ -83,8 +82,6 @@ export function endDrag(domId: string): {
     const stubIndex = getCurrentStubIndex(parent, el);
     cleanUpElementAfterDragging(el);
     removeStub();
-
-    console.log('endDrag cleaned', el, stubIndex);
 
     if (stubIndex === -1) {
         return null;
