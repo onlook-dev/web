@@ -135,7 +135,7 @@ export class ConversationManager {
     }
 
     deleteConversationInStorage(id: string) {
-        invokeMainChannel(MainChannels.DELETE_CONVERSATION, { id });
+        // invokeMainChannel(MainChannels.DELETE_CONVERSATION, { id });
     }
 
     saveConversationToStorage() {
@@ -143,9 +143,9 @@ export class ConversationManager {
             console.error('No conversation found');
             return;
         }
-        invokeMainChannel(MainChannels.SAVE_CONVERSATION, {
-            conversation: this.current,
-        });
+        // invokeMainChannel(MainChannels.SAVE_CONVERSATION, {
+        //     conversation: this.current,
+        // });
     }
 
     async generateConversationSummary(): Promise<void> {

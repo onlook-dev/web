@@ -47,7 +47,6 @@ export class ChatManager {
         this.stream = new StreamResolver();
         this.code = new ChatCodeManager(this, this.editorEngine);
         this.suggestions = new SuggestionManager();
-        // this.projectsManager
     }
 
     focusChatInput() {
@@ -148,9 +147,9 @@ export class ChatManager {
 
     stopStream() {
         const requestId = nanoid();
-        invokeMainChannel(MainChannels.SEND_STOP_STREAM_REQUEST, {
-            requestId,
-        });
+        // invokeMainChannel(MainChannels.SEND_STOP_STREAM_REQUEST, {
+        //     requestId,
+        // });
         sendAnalytics("stop chat stream");
     }
 
