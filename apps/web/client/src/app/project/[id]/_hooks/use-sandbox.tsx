@@ -11,6 +11,7 @@ export function useSandbox() {
     const { mutateAsync: create, isPending: isCreating } = api.csb.create.useMutation();
     const { mutateAsync: start, isPending: isStarting } = api.csb.start.useMutation();
     const { mutateAsync: hibernate, isPending: isStopping } = api.csb.hibernate.useMutation();
+    const { mutateAsync: reconnect, isPending: isReconnecting } = api.csb.reconnect.useMutation();
 
     const createSandbox = async () => {
         const res = await create(CSB_TEMPLATE_ID);
@@ -52,9 +53,12 @@ export function useSandbox() {
         isCreating,
         isStarting,
         isStopping,
+        isReconnecting,
         createSandbox,
-        startSandbox: startSession,
+        startSession,
         hibernateSandbox,
         startTask,
+        disconnect,
+        reconnect,
     };
 } 

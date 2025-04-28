@@ -6,6 +6,7 @@ import { Icons } from "@onlook/ui/icons/index";
 import { TooltipProvider } from "@onlook/ui/tooltip";
 import { useEffect } from "react";
 import { useSandbox } from "../_hooks/use-sandbox";
+import { useTabActive } from "../_hooks/use-tab-active";
 import { BottomBar } from "./bottom-bar";
 import { Canvas } from "./canvas";
 import { EditorBar } from "./editor-bar";
@@ -16,7 +17,8 @@ import { TopBar } from "./top-bar";
 export function Main({ project }: { project: Project }) {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectsManager();
-    const { startSandbox, isStarting, session } = useSandbox();
+    const { startSession, isStarting, session, isReconnecting, reconnect } = useSandbox();
+    const { tabState } = useTabActive();
 
     useEffect(() => {
         projectManager.project = project;
@@ -34,7 +36,7 @@ export function Main({ project }: { project: Project }) {
             console.error('No sandbox found');
             return;
         }
-        startSandbox(sandboxId);
+        startSession(sandboxId);
     }
 
     useEffect(() => {
@@ -43,6 +45,13 @@ export function Main({ project }: { project: Project }) {
             editorEngine.sandbox.index();
         }
     }, [session]);
+
+    useEffect(() => {
+        console.log('TabState', tabState);
+        if (tabState === 'reactivated' && session) {
+            reconnect(session.id);
+        }
+    }, [tabState, session]);
 
     if (isStarting) {
         return (
