@@ -8,6 +8,7 @@ import "./src/env";
 
 const nextConfig: NextConfig = {
     devIndicators: false,
+    serverExternalPackages: ["@mastra/*"],
 };
 
 const withNextIntl = createNextIntlPlugin();

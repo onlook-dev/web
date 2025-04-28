@@ -2,12 +2,12 @@ import type { EditorEngine } from '@/components/store/editor/engine';
 import type { ProjectManager } from '@/components/store/projects';
 import type {
     Action,
-    CodeDiff, CodeDiffRequest,
-    WriteCodeAction
+    CodeDiffRequest,
+    FileToRequests
 } from '@onlook/models';
 import { assertNever } from '@onlook/utility';
 import { makeAutoObservable } from 'mobx';
-import { getEditTextRequests, getGroupRequests, getInsertImageRequests, getInsertRequests, getMoveRequests, getRemoveImageRequests, getRemoveRequests, getStyleRequests, getUngroupRequests, getWriteCodeRequests } from './requests';
+import { getEditTextRequests, getGroupRequests, getInsertImageRequests, getInsertRequests, getMoveRequests, getRemoveImageRequests, getRemoveRequests, getStyleRequests, getUngroupRequests, getWriteCodeRequests, processGroupedRequests } from './requests';
 
 export class CodeManager {
     constructor(
@@ -17,13 +17,17 @@ export class CodeManager {
         makeAutoObservable(this);
     }
 
-    /**
-     * Group requests by file then by oid
-     */
-
     async write(action: Action) {
         const requests = await this.collectRequests(action);
-        this.writeRequest(requests);
+        await this.writeRequest(requests);
+    }
+
+    async writeRequest(requests: CodeDiffRequest[]) {
+        const groupedRequests = await this.groupRequestByFile(requests);
+        const codeDiffs = await processGroupedRequests(groupedRequests);
+        for (const diff of codeDiffs) {
+            await this.editorEngine.sandbox.writeFile(diff.path, diff.generated);
+        }
     }
 
     private async collectRequests(action: Action): Promise<CodeDiffRequest[]> {
@@ -53,17 +57,30 @@ export class CodeManager {
         }
     }
 
-    async writeRequest(requests: CodeDiffRequest[]) {
-        console.log('writeRequest', requests);
-        // Translates request to file changes
-    }
+    async groupRequestByFile(requests: CodeDiffRequest[]): Promise<FileToRequests> {
+        const requestByFile: FileToRequests = new Map();
 
-    runCodeDiffs(codeDiffs: CodeDiff[]) {
-        const writeCodeAction: WriteCodeAction = {
-            type: 'write-code',
-            diffs: codeDiffs,
-        };
-        this.editorEngine.action.run(writeCodeAction);
+        for (const request of requests) {
+            const templateNode = await this.editorEngine.sandbox.getTemplateNode(request.oid);
+            if (!templateNode) {
+                console.error(`Template node not found for oid: ${request.oid}`);
+                continue;
+            }
+            const codeBlock = await this.editorEngine.sandbox.readFile(templateNode.path);
+            if (!codeBlock) {
+                console.error(`Failed to read file: ${templateNode.path}`);
+                continue;
+            }
+            const path = templateNode.path;
+
+            let groupedRequest = requestByFile.get(path);
+            if (!groupedRequest) {
+                groupedRequest = { oidToRequest: new Map(), content: codeBlock };
+            }
+            groupedRequest.oidToRequest.set(request.oid, request);
+            requestByFile.set(path, groupedRequest);
+        }
+        return requestByFile;
     }
 
     clear() { }
