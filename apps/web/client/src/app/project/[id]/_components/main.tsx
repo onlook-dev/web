@@ -16,7 +16,7 @@ import { TopBar } from "./top-bar";
 export function Main({ project }: { project: Project }) {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectsManager();
-    const { startSandbox, isStarting } = useSandbox();
+    const { startSandbox, isStarting, session } = useSandbox();
 
     useEffect(() => {
         projectManager.project = project;
@@ -34,10 +34,15 @@ export function Main({ project }: { project: Project }) {
             console.error('No sandbox found');
             return;
         }
-        const session = await startSandbox(sandboxId);
-        editorEngine.sandbox.init(session);
-        await editorEngine.sandbox.index();
+        startSandbox(sandboxId);
     }
+
+    useEffect(() => {
+        if (session) {
+            editorEngine.sandbox.init(session);
+            editorEngine.sandbox.index();
+        }
+    }, [session]);
 
     if (isStarting) {
         return (

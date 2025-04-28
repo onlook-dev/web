@@ -17,7 +17,7 @@ export function useSandbox() {
         return res;
     };
 
-    const startSandbox = async (sandboxId: string) => {
+    const startSession = async (sandboxId: string) => {
         const startData = await start(sandboxId);
         const newSession = await connectToSandbox(startData);
         setSession(newSession);
@@ -41,6 +41,11 @@ export function useSandbox() {
         return null;
     };
 
+    const disconnect = async () => {
+        if (!session) return;
+        await session.disconnect();
+        setSession(null);
+    };
 
     return {
         session,
@@ -48,7 +53,7 @@ export function useSandbox() {
         isStarting,
         isStopping,
         createSandbox,
-        startSandbox,
+        startSandbox: startSession,
         hibernateSandbox,
         startTask,
     };
