@@ -1,24 +1,16 @@
 'use client';
 
-import { useEditorEngine } from "@/components/store";
 import { api } from "@/trpc/react";
 import type { SandboxSession } from "@codesandbox/sdk";
 import { connectToSandbox } from '@codesandbox/sdk/browser';
 import { CSB_TEMPLATE_ID } from "@onlook/constants";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function useSandbox() {
-    const editorEngine = useEditorEngine();
     const [session, setSession] = useState<SandboxSession | null>(null);
     const { mutateAsync: create, isPending: isCreating } = api.csb.create.useMutation();
     const { mutateAsync: start, isPending: isStarting } = api.csb.start.useMutation();
     const { mutateAsync: hibernate, isPending: isStopping } = api.csb.hibernate.useMutation();
-
-    useEffect(() => {
-        return () => {
-            editorEngine.sandbox.clear();
-        };
-    }, []);
 
     const createSandbox = async () => {
         const res = await create(CSB_TEMPLATE_ID);
