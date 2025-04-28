@@ -47,7 +47,6 @@ export function Main({ project }: { project: Project }) {
     }, [session]);
 
     useEffect(() => {
-        console.log('TabState', tabState);
         if (tabState === 'reactivated' && session) {
             reconnect(session.id);
         }
