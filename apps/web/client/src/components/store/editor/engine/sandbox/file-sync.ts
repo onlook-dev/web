@@ -9,28 +9,6 @@ export class FileSyncManager {
         this.restoreFromLocalStorage();
     }
 
-    private async restoreFromLocalStorage() {
-        try {
-            const storedCache = await localforage.getItem<Record<string, string>>(this.storageKey);
-            if (storedCache) {
-                Object.entries(storedCache).forEach(([key, value]) => {
-                    this.cache.set(key, value);
-                });
-            }
-        } catch (error) {
-            console.error('Error restoring from localForage:', error);
-        }
-    }
-
-    private async saveToLocalStorage() {
-        try {
-            const cacheObject = Object.fromEntries(this.cache.entries());
-            await localforage.setItem(this.storageKey, cacheObject);
-        } catch (error) {
-            console.error('Error saving to localForage:', error);
-        }
-    }
-
     has(filePath: string) {
         return this.cache.has(filePath);
     }
@@ -81,8 +59,39 @@ export class FileSyncManager {
         return Array.from(this.cache.keys());
     }
 
+    private async restoreFromLocalStorage() {
+        try {
+            const storedCache = await localforage.getItem<Record<string, string>>(this.storageKey);
+            if (storedCache) {
+                Object.entries(storedCache).forEach(([key, value]) => {
+                    this.cache.set(key, value);
+                });
+            }
+        } catch (error) {
+            console.error('Error restoring from localForage:', error);
+        }
+    }
+
+    private async saveToLocalStorage() {
+        try {
+            const cacheObject = Object.fromEntries(this.cache.entries());
+            await localforage.setItem(this.storageKey, cacheObject);
+        } catch (error) {
+            console.error('Error saving to localForage:', error);
+        }
+    }
+
+    private async clearLocalStorage() {
+        try {
+            await localforage.removeItem(this.storageKey);
+        } catch (error) {
+            console.error('Error clearing localForage:', error);
+        }
+    }
+
     async clear() {
         this.cache.clear();
-        await localforage.removeItem(this.storageKey);
+        this.cache = new Map();
+        await this.clearLocalStorage();
     }
 }
