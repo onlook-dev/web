@@ -1,13 +1,17 @@
+import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store';
 import { Icons } from '@onlook/ui/icons/index';
-import type { AssistantContent } from 'ai';
 import { observer } from 'mobx-react-lite';
 import { MessageContent } from './message-content';
 
 export const StreamMessage = observer(() => {
     const editorEngine = useEditorEngine();
-    const content = editorEngine.chat.stream.content;
-    const messageId = editorEngine.chat.stream.id;
+    const { messages, status } = useChatContext();
+    const streamMessage = messages.findLast(m => m.role === 'assistant');
+
+    if (!streamMessage || status !== 'streaming') {
+        return null;
+    }
 
     return (
         <>
@@ -17,12 +21,12 @@ export const StreamMessage = observer(() => {
                     <p>Thinking ...</p>
                 </div>
             )}
-            {content.length > 0 && (
+            {streamMessage.parts && (
                 <div className="px-4 py-2 text-small content-start">
                     <div className="flex flex-col text-wrap gap-2">
                         <MessageContent
-                            messageId={messageId}
-                            content={content as AssistantContent}
+                            messageId={streamMessage.id}
+                            content={streamMessage.parts}
                             applied={false}
                             isStream={true}
                         />

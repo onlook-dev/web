@@ -1,23 +1,24 @@
+import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store';
 import type { AssistantChatMessageImpl } from '@/components/store/editor/engine/chat/message/assistant';
-import type { ToolChatMessageImpl } from '@/components/store/editor/engine/chat/message/tool';
 import type { UserChatMessageImpl } from '@/components/store/editor/engine/chat/message/user';
 import { ChatMessageRole } from '@onlook/models/chat';
 import { Icons } from '@onlook/ui/icons';
+import { assertNever } from '@onlook/utility';
 import { observer } from 'mobx-react-lite';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef } from 'react';
 import { AssistantMessage } from './assistant-message';
+import { StreamMessage } from './stream-message';
 import { UserMessage } from './user-message';
-
 // import { ErrorMessage } from './error-message';
-// import { StreamMessage } from './stream-message';
 
 export const ChatMessages = observer(() => {
     const editorEngine = useEditorEngine();
     const t = useTranslations();
     const chatMessagesRef = useRef<HTMLDivElement>(null);
+    const { messages } = useChatContext();
 
     useEffect(() => {
         if (chatMessagesRef.current) {
@@ -26,7 +27,7 @@ export const ChatMessages = observer(() => {
     }, [editorEngine.chat.conversation.current?.messages.length]);
 
     const renderMessage = useCallback(
-        (message: AssistantChatMessageImpl | UserChatMessageImpl | ToolChatMessageImpl) => {
+        (message: AssistantChatMessageImpl | UserChatMessageImpl) => {
             let messageNode;
             switch (message.role) {
                 case ChatMessageRole.ASSISTANT:
@@ -35,9 +36,8 @@ export const ChatMessages = observer(() => {
                 case ChatMessageRole.USER:
                     messageNode = <UserMessage message={message} />;
                     break;
-                case ChatMessageRole.TOOL:
-                    // No need to render tool results messages
-                    break;
+                default:
+                    assertNever(message);
             }
             return <div key={message.id}>{messageNode}</div>;
         },
@@ -58,7 +58,7 @@ export const ChatMessages = observer(() => {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                 >
-                    {/* <StreamMessage /> */}
+                    <StreamMessage />
                     {/* <ErrorMessage /> */}
                     {[...editorEngine.chat.conversation.current.messages]
                         .reverse()
