@@ -18,7 +18,6 @@ import { SuggestionManager } from "./suggestions";
 export const FOCUS_CHAT_INPUT_EVENT = "focus-chat-input";
 
 export class ChatManager {
-    isWaiting = false;
     conversation: ConversationManager;
     code: ChatCodeManager;
     context: ChatContext;
@@ -127,7 +126,6 @@ export class ChatManager {
             false,
         );
 
-        this.isWaiting = true;
         const messages = this.conversation.current.getMessagesForStream();
         return messages;
     }

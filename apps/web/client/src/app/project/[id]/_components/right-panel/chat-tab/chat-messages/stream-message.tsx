@@ -1,21 +1,19 @@
 import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
-import { useEditorEngine } from '@/components/store';
+import { ChatMessageRole } from '@onlook/models/chat';
 import { Icons } from '@onlook/ui/icons/index';
-import { observer } from 'mobx-react-lite';
 import { MessageContent } from './message-content';
 
-export const StreamMessage = observer(() => {
-    const editorEngine = useEditorEngine();
+export const StreamMessage = () => {
     const { messages, status } = useChatContext();
-    const streamMessage = messages.findLast(m => m.role === 'assistant');
+    const streamMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 
-    if (!streamMessage || status !== 'streaming') {
+    if (!streamMessage || streamMessage.role !== ChatMessageRole.ASSISTANT || (status !== 'streaming' && status !== 'submitted')) {
         return null;
     }
 
     return (
         <>
-            {editorEngine.chat.isWaiting && (
+            {status === 'streaming' || status === 'submitted' && (
                 <div className="flex w-full h-full flex-row items-center gap-2 px-4 my-2 text-small content-start text-foreground-secondary">
                     <Icons.Shadow className="animate-spin" />
                     <p>Thinking ...</p>
@@ -35,4 +33,4 @@ export const StreamMessage = observer(() => {
             )}
         </>
     );
-});
+};

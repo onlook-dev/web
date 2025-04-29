@@ -18,7 +18,7 @@ import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
 export const ChatInput = observer(() => {
-    const { messages, setMessages, stop, reload } = useChatContext();
+    const { messages, setMessages, stop, reload, status } = useChatContext();
     const editorEngine = useEditorEngine();
     const t = useTranslations();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -294,7 +294,7 @@ export const ChatInput = observer(() => {
                     disabled={disabled}
                     handleImageEvent={handleImageEvent}
                 />
-                {editorEngine.chat.isWaiting ? (
+                {status === 'streaming' || status === 'submitted' ? (
                     <Tooltip open={actionTooltipOpen} onOpenChange={setActionTooltipOpen}>
                         <TooltipTrigger asChild>
                             <Button
@@ -316,7 +316,7 @@ export const ChatInput = observer(() => {
                         size={'icon'}
                         variant={'secondary'}
                         className="text-smallPlus w-fit h-full py-0.5 px-2.5 text-primary"
-                        disabled={inputEmpty || editorEngine.chat.isWaiting}
+                        disabled={inputEmpty || status !== 'ready'}
                         onClick={sendMessage}
                     >
                         <Icons.ArrowRight />
