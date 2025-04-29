@@ -5,7 +5,7 @@ import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable } from 'mobx';
 import { FileSyncManager } from './file-sync';
-import { normalizePath } from './helpers';
+import { isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 
 export class SandboxManager {
@@ -119,6 +119,9 @@ export class SandboxManager {
 
         watcher.onEvent((event) => {
             for (const path of event.paths) {
+                if (isSubdirectory(path, IGNORED_DIRECTORIES)) {
+                    continue;
+                }
                 const normalizedPath = normalizePath(path);
                 this.fileSync.updateCache(normalizedPath, event.type);
                 this.processFileForMapping(normalizedPath);
