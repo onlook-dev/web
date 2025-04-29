@@ -1,4 +1,5 @@
 import type { ProjectManager } from "@/components/store/projects";
+import type { UserManager } from "@/components/store/user";
 import { sendAnalytics } from "@/utils/analytics";
 import {
     ChatMessageRole,
@@ -11,7 +12,6 @@ import {
 import type { ParsedError } from "@onlook/utility";
 import type { CoreMessage } from "ai";
 import { makeAutoObservable } from "mobx";
-import { nanoid } from "nanoid/non-secure";
 import type { EditorEngine } from "..";
 import { ChatCodeManager } from "./code";
 import { ChatContext } from "./context";
@@ -31,7 +31,7 @@ export class ChatManager {
     constructor(
         private editorEngine: EditorEngine,
         private projectsManager: ProjectManager,
-        // private userManager: UserManager,
+        private userManager: UserManager,
     ) {
         makeAutoObservable(this);
         this.context = new ChatContext(
@@ -50,10 +50,10 @@ export class ChatManager {
         window.dispatchEvent(new Event(FOCUS_CHAT_INPUT_EVENT));
     }
 
-    async sendNewMessage(content: string): Promise<void> {
+    async getStreamMessages(content: string): Promise<CoreMessage[] | null> {
         if (!this.conversation.current) {
             console.error("No conversation found");
-            return;
+            return null;
         }
 
         const context = await this.context.getChatContext();
@@ -61,23 +61,23 @@ export class ChatManager {
         this.conversation.current.updateName(content);
         if (!userMessage) {
             console.error("Failed to add user message");
-            return;
+            return null;
         }
         sendAnalytics("send chat message", {
             content,
         });
-        await this.sendChatToAi(StreamRequestType.CHAT, content);
+        return this.generateStreamMessages(StreamRequestType.CHAT, content);
     }
 
-    async sendFixErrorToAi(errors: ParsedError[]): Promise<boolean> {
+    async getFixErrorMessages(errors: ParsedError[]): Promise<CoreMessage[] | null> {
         if (!this.conversation.current) {
             console.error("No conversation found");
-            return false;
+            return null;
         }
 
         if (errors.length === 0) {
             console.error("No errors found");
-            return false;
+            return null;
         }
 
         const prompt = `How can I resolve these errors? If you propose a fix, please make it concise.`;
@@ -90,67 +90,15 @@ export class ChatManager {
         this.conversation.current.updateName(errors[0]?.content ?? "Fix errors");
         if (!userMessage) {
             console.error("Failed to add user message");
-            return false;
+            return null;
         }
         sendAnalytics("send fix error chat message", {
             errors: errors.map((e) => e.content),
         });
-        await this.sendChatToAi(StreamRequestType.ERROR_FIX, prompt);
-        return true;
+        return this.generateStreamMessages(StreamRequestType.ERROR_FIX, prompt);
     }
 
-    async sendChatToAi(
-        requestType: StreamRequestType,
-        userPrompt?: string,
-    ): Promise<void> {
-        if (!this.conversation.current) {
-            console.error("No conversation found");
-            return;
-        }
-        // Save current changes before sending to AI
-        this.projectsManager.versions?.createCommit(
-            userPrompt ?? "Save before applying code",
-            false,
-        );
-
-        this.stream.clearBeforeSend();
-        this.isWaiting = true;
-        const messages = this.conversation.current.getMessagesForStream();
-        const res: CompletedStreamResponse | null = await this.sendStreamRequest(
-            messages,
-            requestType,
-        );
-        if (res) {
-            this.handleChatResponse(res, requestType);
-        } else {
-            console.error("No stream response found");
-        }
-        this.stream.clearAfterSend();
-        this.isWaiting = false;
-        sendAnalytics("receive chat response");
-    }
-
-    sendStreamRequest(
-        messages: CoreMessage[],
-        requestType: StreamRequestType,
-    ): Promise<CompletedStreamResponse | null> {
-        const requestId = nanoid();
-        return invokeMainChannel(MainChannels.SEND_CHAT_MESSAGES_STREAM, {
-            messages,
-            requestId,
-            requestType,
-        });
-    }
-
-    stopStream() {
-        const requestId = nanoid();
-        // invokeMainChannel(MainChannels.SEND_STOP_STREAM_REQUEST, {
-        //     requestId,
-        // });
-        sendAnalytics("stop chat stream");
-    }
-
-    resubmitMessage(id: string, newMessageContent: string) {
+    getResubmitMessages(id: string, newMessageContent: string) {
         if (!this.conversation.current) {
             console.error("No conversation found");
             return;
@@ -167,8 +115,26 @@ export class ChatManager {
 
         message.updateStringContent(newMessageContent);
         this.conversation.current.removeAllMessagesAfter(message);
-        this.sendChatToAi(StreamRequestType.CHAT);
-        sendAnalytics("resubmit chat message");
+        return this.generateStreamMessages(StreamRequestType.CHAT);
+    }
+
+    private async generateStreamMessages(
+        requestType: StreamRequestType,
+        userPrompt?: string,
+    ): Promise<CoreMessage[] | null> {
+        if (!this.conversation.current) {
+            console.error("No conversation found");
+            return null;
+        }
+        // Save current changes before sending to AI
+        this.projectsManager.versions?.createCommit(
+            userPrompt ?? "Save before chat",
+            false,
+        );
+
+        this.isWaiting = true;
+        const messages = this.conversation.current.getMessagesForStream();
+        return messages;
     }
 
     async handleChatResponse(
@@ -238,11 +204,11 @@ export class ChatManager {
     }
 
     autoApplyCode(assistantMessage: AssistantChatMessage) {
-        // if (this.userManager.settings.settings?.chat?.autoApplyCode) {
-        //     setTimeout(() => {
-        //         this.code.applyCode(assistantMessage.id);
-        //     }, 100);
-        // }
+        if (this.userManager.settings.settings?.chat?.autoApplyCode) {
+            setTimeout(() => {
+                this.code.applyCode(assistantMessage.id);
+            }, 100);
+        }
     }
 
     handleRateLimited(res: RateLimitedStreamResponse) {

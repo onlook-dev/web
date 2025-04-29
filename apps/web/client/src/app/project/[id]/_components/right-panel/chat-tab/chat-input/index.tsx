@@ -7,6 +7,7 @@ import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons';
 import { Textarea } from '@onlook/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@onlook/ui/tooltip';
+import { toast } from '@onlook/ui/use-toast';
 import { cn } from '@onlook/ui/utils';
 import { compressImage } from '@onlook/utility';
 import { observer } from 'mobx-react-lite';
@@ -109,7 +110,7 @@ export const ChatInput = observer(() => {
         }
     };
 
-    function sendMessage() {
+    async function sendMessage() {
         if (inputEmpty) {
             console.warn('Empty message');
             return;
@@ -118,7 +119,14 @@ export const ChatInput = observer(() => {
             console.warn('Already waiting for response');
             return;
         }
-        editorEngine.chat.sendNewMessage(inputValue);
+        const streamMessages = await editorEngine.chat.getStreamMessage(inputValue);
+        if (!streamMessages) {
+            toast({
+                title: 'Error',
+                description: 'Failed to send message. Please try again.',
+            });
+            return;
+        }
         setInputValue('');
     }
 
@@ -241,7 +249,6 @@ export const ChatInput = observer(() => {
             />
 
             <div className="flex flex-col w-full p-4">
-
                 <Textarea
                     ref={textareaRef}
                     disabled={disabled}

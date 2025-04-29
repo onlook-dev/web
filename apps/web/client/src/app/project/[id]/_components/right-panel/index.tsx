@@ -72,7 +72,7 @@ export const RightPanel = observer(() => {
                     </TabsContent>
                     <TabsContent className='h-full overflow-y-auto' value={EditorTabValue.DEV}>
                         {/* <DevTab /> */}
-                        hi
+                        Dev Tab
                     </TabsContent>
                 </Tabs>
             </ResizablePanel >

@@ -64,7 +64,7 @@ export const DevTab = observer(() => {
 
     const editorContainer = useRef<HTMLDivElement | null>(null);
     const editorViewsRef = useRef<Map<string, EditorView>>(new Map());
-    const treeRef = useRef<TreeApi<FileNode>>();
+    const treeRef = useRef<TreeApi<FileNode>>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const getActiveEditorView = (): EditorView | undefined => {
