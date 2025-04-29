@@ -17,12 +17,6 @@ export class ChatConversationImpl implements ChatConversation {
     createdAt: string;
     updatedAt: string;
 
-    // Summary
-    private readonly TOKEN_LIMIT = 200000;
-    private readonly SUMMARY_THRESHOLD = this.TOKEN_LIMIT * 0.75; // Trigger at 75% of token limit
-    private readonly RETAINED_MESSAGES = 10;
-    summaryMessage: AssistantChatMessageImpl | null = null;
-
     public tokenUsage: TokenUsage = {
         promptTokens: 0,
         completionTokens: 0,
@@ -61,18 +55,7 @@ export class ChatConversationImpl implements ChatConversation {
         conversation.createdAt = data.createdAt;
         conversation.updatedAt = data.updatedAt;
 
-        if (data.tokenUsage) {
-            conversation.tokenUsage = data.tokenUsage;
-        }
-        if (data.summaryMessage) {
-            conversation.summaryMessage = AssistantChatMessageImpl.fromJSON(data.summaryMessage);
-        }
-
         return conversation;
-    }
-
-    needsSummary(): boolean {
-        return this.tokenUsage.totalTokens > this.SUMMARY_THRESHOLD;
     }
 
     updateTokenUsage(usage: TokenUsage) {
@@ -80,16 +63,7 @@ export class ChatConversationImpl implements ChatConversation {
     }
 
     getMessagesForStream(): CoreMessage[] {
-        const messages: CoreMessage[] = [];
-
-        if (this.summaryMessage) {
-            messages.push(this.summaryMessage.toCoreMessage());
-            const retainedMessages = this.messages.slice(-this.RETAINED_MESSAGES);
-            messages.push(...retainedMessages.map((m) => m.toCoreMessage()));
-        } else {
-            messages.push(...this.messages.map((m) => m.toCoreMessage()));
-        }
-
+        const messages: CoreMessage[] = this.messages.map((m) => m.toCoreMessage());
         return this.validateAndFixToolMessages(messages);
     }
 
@@ -157,12 +131,6 @@ export class ChatConversationImpl implements ChatConversation {
         }
 
         return result;
-    }
-
-    setSummaryMessage(content: string) {
-        this.summaryMessage = new AssistantChatMessageImpl(
-            `Technical Summary of Previous Conversations:\n${content}`,
-        );
     }
 
     appendMessage(message: ChatMessageImpl) {

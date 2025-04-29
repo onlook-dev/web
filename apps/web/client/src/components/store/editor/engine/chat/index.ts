@@ -16,8 +16,7 @@ import type { EditorEngine } from "..";
 import { ChatCodeManager } from "./code";
 import { ChatContext } from "./context";
 import { ConversationManager } from "./conversation";
-import { isPromptTooLongError, PROMPT_TOO_LONG_ERROR } from "./helpers";
-import { StreamResolver } from "./stream";
+import { isPromptTooLongError } from "./helpers";
 import { SuggestionManager } from "./suggestions";
 
 export const FOCUS_CHAT_INPUT_EVENT = "focus-chat-input";
@@ -27,7 +26,6 @@ export class ChatManager {
     conversation: ConversationManager;
     code: ChatCodeManager;
     context: ChatContext;
-    stream: StreamResolver;
     suggestions: SuggestionManager;
 
     constructor(
@@ -44,9 +42,8 @@ export class ChatManager {
             this.editorEngine,
             this.projectsManager,
         );
-        this.stream = new StreamResolver();
         this.code = new ChatCodeManager(this, this.editorEngine);
-        this.suggestions = new SuggestionManager();
+        this.suggestions = new SuggestionManager(this.projectsManager);
     }
 
     focusChatInput() {
@@ -200,10 +197,6 @@ export class ChatManager {
             this.conversation.current.updateTokenUsage(res.usage);
         }
 
-        if (this.conversation.current.needsSummary()) {
-            await this.conversation.generateConversationSummary();
-        }
-
         this.handleNewCoreMessages(res.payload);
 
         if (
@@ -245,16 +238,16 @@ export class ChatManager {
     }
 
     autoApplyCode(assistantMessage: AssistantChatMessage) {
-        if (this.userManager.settings.settings?.chat?.autoApplyCode) {
-            setTimeout(() => {
-                this.code.applyCode(assistantMessage.id);
-            }, 100);
-        }
+        // if (this.userManager.settings.settings?.chat?.autoApplyCode) {
+        //     setTimeout(() => {
+        //         this.code.applyCode(assistantMessage.id);
+        //     }, 100);
+        // }
     }
 
     handleRateLimited(res: RateLimitedStreamResponse) {
-        this.stream.errorMessage = res.rateLimitResult?.reason;
-        this.stream.rateLimited = res.rateLimitResult ?? null;
+        // this.stream.errorMessage = res.rateLimitResult?.reason;
+        // this.stream.rateLimited = res.rateLimitResult ?? null;
         sendAnalytics("rate limited", {
             rateLimitResult: res.rateLimitResult,
         });
@@ -263,9 +256,9 @@ export class ChatManager {
     handleError(res: ErrorStreamResponse) {
         console.error("Error found in chat response", res.message);
         if (isPromptTooLongError(res.message)) {
-            this.stream.errorMessage = PROMPT_TOO_LONG_ERROR;
+            // this.stream.errorMessage = PROMPT_TOO_LONG_ERROR;
         } else {
-            this.stream.errorMessage = res.message;
+            // this.stream.errorMessage = res.message;
         }
         sendAnalytics("chat error", {
             content: res.message,
@@ -273,7 +266,6 @@ export class ChatManager {
     }
 
     clear() {
-        this.stream.clear();
         this.code.clear();
         this.context.clear();
         if (this.conversation) {

@@ -1,24 +1,24 @@
-// import type { ProjectsManager } from '@/lib/projects';
-// import { invokeMainChannel, sendAnalytics } from '@/lib/utils';
-// import { MainChannels } from '@onlook/constants';
+import { ProjectManager } from '@/components/store/projects';
+import { sendAnalytics } from '@/utils/analytics';
 import type { ChatSuggestion, Project } from '@onlook/models';
 import type { ImageMessageContext, ProjectSuggestions } from '@onlook/models/chat';
 import type { CoreMessage, CoreSystemMessage, ImagePart, TextPart } from 'ai';
 import { makeAutoObservable, reaction } from 'mobx';
 
+// TODO: Use hooks
 export class SuggestionManager {
     projectId: string | null = null;
     private _suggestions: ChatSuggestion[] = [];
     private _shouldHide = false;
 
     constructor(
-        // private projectsManager: ProjectsManager,
+        private projectManager: ProjectManager,
     ) {
         makeAutoObservable(this);
-        // reaction(
-        //     () => this.projectsManager.project,
-        //     (current) => this.getCurrentProjectSuggestions(current),
-        // );
+        reaction(
+            () => this.projectManager.project,
+            (current) => this.getCurrentProjectSuggestions(current),
+        );
     }
 
     get suggestions() {

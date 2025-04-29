@@ -72,7 +72,7 @@ export const ChatMessages = observer(() => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="flex-1 flex flex-col items-center justify-center text-foreground-tertiary/80"
+                        className="flex-1 flex flex-col items-center justify-center text-foreground-tertiary/80  h-full"
                     >
                         <div className="w-32 h-32">
                             <Icons.EmptyState className="w-full h-full" />
