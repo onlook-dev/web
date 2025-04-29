@@ -1,3 +1,4 @@
+import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine, useUserManager } from '@/components/store';
 import type { ClickRectState } from '@/components/store/editor/engine/overlay/state';
 import { EditorMode, EditorTabValue } from '@onlook/models';
@@ -12,7 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 const DIMENSIONS = {
     singleLineHeight: 32,
     minInputWidth: 280,
-    buttonHeight: 36, // Standard button height
+    buttonHeight: 36,
     multiLineRows: 4,
     minCharsToSubmit: 4,
 };
@@ -28,6 +29,7 @@ export const OverlayChat = observer(
     ({ selectedEl, elementId }: { selectedEl: ClickRectState | null; elementId: string }) => {
         const editorEngine = useEditorEngine();
         const userManager = useUserManager();
+        const { status } = useChatContext();
         const isPreviewMode = editorEngine.state.editorMode === EditorMode.PREVIEW;
         const [inputState, setInputState] = useState(DEFAULT_INPUT_STATE);
         const [isComposing, setIsComposing] = useState(false);
@@ -38,8 +40,8 @@ export const OverlayChat = observer(
         const shouldHideButton =
             !selectedEl ||
             isPreviewMode ||
-            editorEngine.chat.isWaiting ||
-            // editorEngine.chat.stream.content.length > 0 ||
+            status === 'streaming' ||
+            status === 'submitted' ||
             !userManager.settings.settings?.chat?.showMiniChat;
 
         useEffect(() => {
