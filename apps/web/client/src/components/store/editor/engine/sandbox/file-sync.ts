@@ -1,15 +1,17 @@
+import localforage from 'localforage';
+
 export class FileSyncManager {
     private cache: Map<string, string>;
     private storageKey = 'file-sync-cache';
 
-    constructor(private localforage: LocalForage) {
+    constructor() {
         this.cache = new Map();
         this.restoreFromLocalStorage();
     }
 
     private async restoreFromLocalStorage() {
         try {
-            const storedCache = await this.localforage.getItem<Record<string, string>>(this.storageKey);
+            const storedCache = await localforage.getItem<Record<string, string>>(this.storageKey);
             if (storedCache) {
                 Object.entries(storedCache).forEach(([key, value]) => {
                     this.cache.set(key, value);
@@ -23,7 +25,7 @@ export class FileSyncManager {
     private async saveToLocalStorage() {
         try {
             const cacheObject = Object.fromEntries(this.cache.entries());
-            await this.localforage.setItem(this.storageKey, cacheObject);
+            await localforage.setItem(this.storageKey, cacheObject);
         } catch (error) {
             console.error('Error saving to localForage:', error);
         }
@@ -81,6 +83,6 @@ export class FileSyncManager {
 
     async clear() {
         this.cache.clear();
-        await this.localforage.removeItem(this.storageKey);
+        await localforage.removeItem(this.storageKey);
     }
 }

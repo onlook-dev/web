@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
-import { FileSyncManager } from '../src/components/store/editor/engine/sandbox/file-sync';
+
+mock.module('localforage', () => ({
+    getItem: mock(async () => null),
+    setItem: mock(async () => undefined),
+    removeItem: mock(async () => undefined)
+}));
+
+import { FileSyncManager } from '../../src/components/store/editor/engine/sandbox/file-sync';
 
 describe('FileSyncManager', () => {
     let fileSyncManager: FileSyncManager;
@@ -8,6 +15,13 @@ describe('FileSyncManager', () => {
     let mockLocalforage: any;
 
     beforeEach(async () => {
+        // Create mock localforage  
+        mockLocalforage = {
+            getItem: mock(async () => null),
+            setItem: mock(async () => undefined),
+            removeItem: mock(async () => undefined)
+        };
+
         // Create mock file operations
         mockReadFile = mock(async (path: string) => {
             // Return mock content based on file path
@@ -24,15 +38,9 @@ describe('FileSyncManager', () => {
             return true;
         });
 
-        // Create mock localforage  
-        mockLocalforage = {
-            getItem: mock(async () => null),
-            setItem: mock(async () => undefined),
-            removeItem: mock(async () => undefined)
-        };
 
         // Create FileSyncManager instance
-        fileSyncManager = new FileSyncManager(mockLocalforage);
+        fileSyncManager = new FileSyncManager();
 
         // Wait for initialization to complete
         await new Promise(resolve => setTimeout(resolve, 10));

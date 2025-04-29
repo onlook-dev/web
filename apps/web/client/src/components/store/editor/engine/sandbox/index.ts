@@ -5,12 +5,13 @@ import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable } from 'mobx';
 import { FileSyncManager } from './file-sync';
+import { normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 
 export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
-    private fileSync: FileSyncManager = new FileSyncManager(localforage);
+    private fileSync: FileSyncManager = new FileSyncManager();
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
 
     constructor() {
@@ -69,11 +70,13 @@ export class SandboxManager {
     }
 
     async readFile(path: string): Promise<string | null> {
-        return this.fileSync.readOrFetch(path, this.readRemoteFile.bind(this));
+        const normalizedPath = normalizePath(path);
+        return this.fileSync.readOrFetch(normalizedPath, this.readRemoteFile.bind(this));
     }
 
     async writeFile(path: string, content: string): Promise<boolean> {
-        return this.fileSync.write(path, content, this.writeRemoteFile.bind(this));
+        const normalizedPath = normalizePath(path);
+        return this.fileSync.write(normalizedPath, content, this.writeRemoteFile.bind(this));
     }
 
     async listFilesRecursively(dir: string, ignore: string[] = [], extensions: string[] = []): Promise<string[]> {
