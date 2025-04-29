@@ -2,11 +2,10 @@ import { type ProjectManager } from '@/components/store/projects';
 import { sendAnalytics } from '@/utils/analytics';
 import { type ChatConversation, type ChatMessageContext } from '@onlook/models/chat';
 import type { Project } from '@onlook/models/project';
-import type { CoreAssistantMessage, CoreToolMessage, CoreUserMessage } from 'ai';
+import type { Message } from 'ai';
 import { makeAutoObservable, reaction } from 'mobx';
 import type { EditorEngine } from '../..';
 import { AssistantChatMessageImpl } from '../message/assistant';
-import { ToolChatMessageImpl } from '../message/tool';
 import { UserChatMessageImpl } from '../message/user';
 import { MOCK_CHAT_MESSAGES } from '../mockData';
 import { ChatConversationImpl } from './conversation';
@@ -139,50 +138,25 @@ export class ConversationManager {
         // });
     }
 
-    addUserMessage(
-        stringContent: string,
-        context: ChatMessageContext[],
-    ): UserChatMessageImpl | undefined {
+    addUserMessage(content: string, context: ChatMessageContext[]): UserChatMessageImpl | undefined {
         if (!this.current) {
             console.error('No conversation found');
             return;
         }
-        const newMessage = UserChatMessageImpl.fromStringContent(stringContent, context);
+        const newMessage = UserChatMessageImpl.fromStringContent(content, context);
         this.current.appendMessage(newMessage);
         this.saveConversationToStorage();
         return newMessage;
     }
 
-    addCoreUserMessage(coreMessage: CoreUserMessage): UserChatMessageImpl | undefined {
-        if (!this.current) {
-            console.error('No conversation found');
-            return;
-        }
-        const newMessage = UserChatMessageImpl.fromCoreMessage(coreMessage);
-        this.current.appendMessage(newMessage);
-        this.saveConversationToStorage();
-        return newMessage;
-    }
-
-    addCoreAssistantMessage(
-        coreMessage: CoreAssistantMessage,
+    addAssistantMessage(
+        message: Message,
     ): AssistantChatMessageImpl | undefined {
         if (!this.current) {
             console.error('No conversation found');
             return;
         }
-        const newMessage = AssistantChatMessageImpl.fromCoreMessage(coreMessage);
-        this.current.appendMessage(newMessage);
-        this.saveConversationToStorage();
-        return newMessage;
-    }
-
-    addCoreToolMessage(coreMessage: CoreToolMessage): ToolChatMessageImpl | undefined {
-        if (!this.current) {
-            console.error('No conversation found');
-            return;
-        }
-        const newMessage = ToolChatMessageImpl.fromCoreMessage(coreMessage);
+        const newMessage = AssistantChatMessageImpl.fromMessage(message);
         this.current.appendMessage(newMessage);
         this.saveConversationToStorage();
         return newMessage;

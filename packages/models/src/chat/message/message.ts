@@ -1,4 +1,4 @@
-import type { CoreAssistantMessage, CoreSystemMessage, CoreToolMessage, CoreUserMessage } from 'ai';
+import type { Message } from '@ai-sdk/react';
 import type { CodeDiff } from '../../code/index.ts';
 import { type ChatMessageContext } from './context.ts';
 
@@ -9,27 +9,22 @@ export enum ChatMessageRole {
     TOOL = 'tool',
 }
 
-export interface UserChatMessage extends CoreUserMessage {
+export interface UserChatMessage extends Message {
     id: string;
     context: ChatMessageContext[];
 }
 
-export interface AssistantChatMessage extends CoreAssistantMessage {
+export interface AssistantChatMessage extends Message {
     id: string;
     applied: boolean;
     snapshots: Record<string, CodeDiff> | null;
 }
 
-export interface SystemChatMessage extends CoreSystemMessage {
-    id: string;
-}
-
-export interface ToolChatMessage extends CoreToolMessage {
+export interface SystemChatMessage extends Message {
     id: string;
 }
 
 export type ChatMessage =
     | UserChatMessage
     | AssistantChatMessage
-    | SystemChatMessage
-    | ToolChatMessage;
+    | SystemChatMessage;

@@ -2,7 +2,6 @@
 import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store';
 import { FOCUS_CHAT_INPUT_EVENT } from '@/components/store/editor/engine/chat';
-import type { Message } from '@ai-sdk/react';
 import { EditorTabValue, type ImageMessageContext } from '@onlook/models';
 import { MessageContextType } from '@onlook/models/chat';
 import { Button } from '@onlook/ui/button';
@@ -13,15 +12,14 @@ import { toast } from '@onlook/ui/use-toast';
 import { cn } from '@onlook/ui/utils';
 import { compressImage } from '@onlook/utility';
 import { observer } from 'mobx-react-lite';
-import { nanoid } from 'nanoid';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
+
 export const ChatInput = observer(() => {
     const { messages, setMessages, stop, reload } = useChatContext();
-
     const editorEngine = useEditorEngine();
     const t = useTranslations();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -132,7 +130,7 @@ export const ChatInput = observer(() => {
             return;
         }
 
-        setMessages(streamMessages as Message[]);
+        setMessages(streamMessages);
         reload();
         setInputValue('');
     }
@@ -235,17 +233,6 @@ export const ChatInput = observer(() => {
                 }
             }}
         >
-            <div>
-                {messages.map(message => (
-                    <div key={nanoid()} className="whitespace-pre-wrap">
-                        {message.role === 'user' ? 'User: ' : 'AI: '}
-                        {message.parts.map((part, i) => {
-                            return <div key={`${message.id}-${i}`}>{JSON.stringify(part)}</div>;
-                        })}
-                    </div>
-                ))}
-            </div>
-
             <Suggestions
                 ref={suggestionRef}
                 disabled={disabled}

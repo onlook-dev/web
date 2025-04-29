@@ -4,19 +4,15 @@ import { sendAnalytics } from "@/utils/analytics";
 import {
     ChatMessageRole,
     StreamRequestType,
-    type AssistantChatMessage,
-    type CompletedStreamResponse,
-    type ErrorStreamResponse,
-    type RateLimitedStreamResponse,
+    type AssistantChatMessage
 } from "@onlook/models/chat";
 import type { ParsedError } from "@onlook/utility";
-import type { CoreMessage } from "ai";
+import type { Message } from "ai";
 import { makeAutoObservable } from "mobx";
 import type { EditorEngine } from "..";
 import { ChatCodeManager } from "./code";
 import { ChatContext } from "./context";
 import { ConversationManager } from "./conversation";
-import { isPromptTooLongError } from "./helpers";
 import { SuggestionManager } from "./suggestions";
 
 export const FOCUS_CHAT_INPUT_EVENT = "focus-chat-input";
@@ -50,7 +46,7 @@ export class ChatManager {
         window.dispatchEvent(new Event(FOCUS_CHAT_INPUT_EVENT));
     }
 
-    async getStreamMessages(content: string): Promise<CoreMessage[] | null> {
+    async getStreamMessages(content: string): Promise<Message[] | null> {
         if (!this.conversation.current) {
             console.error("No conversation found");
             return null;
@@ -66,10 +62,10 @@ export class ChatManager {
         sendAnalytics("send chat message", {
             content,
         });
-        return this.generateStreamMessages(StreamRequestType.CHAT, content);
+        return this.generateStreamMessages(content);
     }
 
-    async getFixErrorMessages(errors: ParsedError[]): Promise<CoreMessage[] | null> {
+    async getFixErrorMessages(errors: ParsedError[]): Promise<Message[] | null> {
         if (!this.conversation.current) {
             console.error("No conversation found");
             return null;
@@ -95,7 +91,7 @@ export class ChatManager {
         sendAnalytics("send fix error chat message", {
             errors: errors.map((e) => e.content),
         });
-        return this.generateStreamMessages(StreamRequestType.ERROR_FIX, prompt);
+        return this.generateStreamMessages(prompt);
     }
 
     getResubmitMessages(id: string, newMessageContent: string) {
@@ -113,15 +109,14 @@ export class ChatManager {
             return;
         }
 
-        message.updateStringContent(newMessageContent);
+        message.updateContent(newMessageContent);
         this.conversation.current.removeAllMessagesAfter(message);
         return this.generateStreamMessages(StreamRequestType.CHAT);
     }
 
     private async generateStreamMessages(
-        requestType: StreamRequestType,
         userPrompt?: string,
-    ): Promise<CoreMessage[] | null> {
+    ): Promise<Message[] | null> {
         if (!this.conversation.current) {
             console.error("No conversation found");
             return null;
@@ -137,100 +132,12 @@ export class ChatManager {
         return messages;
     }
 
-    async handleChatResponse(
-        res: CompletedStreamResponse,
-        requestType: StreamRequestType,
-    ) {
-        if (!res) {
-            console.error("No response found");
-            return;
-        }
-
-        if (res.type === "rate-limited") {
-            this.handleRateLimited(res);
-            return;
-        } else if (res.type === "error") {
-            this.handleError(res);
-            return;
-        }
-
-        if (!this.conversation.current) {
-            console.error("No conversation found");
-            return;
-        }
-
-        if (res.usage) {
-            this.conversation.current.updateTokenUsage(res.usage);
-        }
-
-        this.handleNewCoreMessages(res.payload);
-
-        if (
-            requestType === StreamRequestType.CHAT &&
-            this.conversation.current?.messages &&
-            this.conversation.current.messages.length > 0
-        ) {
-            this.suggestions.shouldHide = true;
-            const messages = this.suggestions.getNextSuggestionsMessages(
-                this.conversation.current.getMessagesForStream(),
-            );
-            console.log('suggestions messages', messages);
-            // TODO: Send messages to the chat
-        }
-
-        this.context.clearAttachments();
-    }
-
-    handleNewCoreMessages(messages: CoreMessage[]) {
-        for (const message of messages) {
-            if (message.role === ChatMessageRole.ASSISTANT) {
-                const assistantMessage =
-                    this.conversation.addCoreAssistantMessage(message);
-                if (!assistantMessage) {
-                    console.error("Failed to add assistant message");
-                } else {
-                    this.autoApplyCode(assistantMessage);
-                }
-            } else if (message.role === ChatMessageRole.USER) {
-                const userMessage = this.conversation.addCoreUserMessage(message);
-                if (!userMessage) {
-                    console.error("Failed to add user message");
-                }
-            } else if (message.role === ChatMessageRole.TOOL) {
-                const toolMessage = this.conversation.addCoreToolMessage(message);
-                if (!toolMessage) {
-                    console.error("Failed to add tool message");
-                }
-            }
-        }
-    }
-
     autoApplyCode(assistantMessage: AssistantChatMessage) {
         if (this.userManager.settings.settings?.chat?.autoApplyCode) {
             setTimeout(() => {
                 this.code.applyCode(assistantMessage.id);
             }, 100);
         }
-    }
-
-    handleRateLimited(res: RateLimitedStreamResponse) {
-        // this.stream.errorMessage = res.rateLimitResult?.reason;
-        // this.stream.rateLimited = res.rateLimitResult ?? null;
-        sendAnalytics("rate limited", {
-            rateLimitResult: res.rateLimitResult,
-        });
-    }
-
-    handleError(res: ErrorStreamResponse) {
-        console.error("Error found in chat response", res.message);
-        if (isPromptTooLongError(res.message)) {
-            // this.stream.errorMessage = PROMPT_TOO_LONG_ERROR;
-        } else {
-            // this.stream.errorMessage = res.message;
-        }
-        sendAnalytics("chat error", {
-            content: res.message,
-        });
     }
 
     clear() {
