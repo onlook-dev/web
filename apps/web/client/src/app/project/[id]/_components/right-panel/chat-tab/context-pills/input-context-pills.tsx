@@ -4,7 +4,7 @@ import { MessageContextType } from "@onlook/models/chat";
 import { cn } from "@onlook/ui/utils";
 import { observer } from "mobx-react-lite";
 import { AnimatePresence } from "motion/react";
-import { DraftContextPill } from '../context-pills/draft-context-pill';
+import { DraftContextPill } from './draft-context-pill';
 import { DraftImagePill } from "./draft-image-pill";
 
 export const InputContextPills = observer(() => {
