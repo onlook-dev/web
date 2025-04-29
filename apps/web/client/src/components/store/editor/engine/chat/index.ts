@@ -171,9 +171,11 @@ export class ChatManager {
             this.conversation.current.messages.length > 0
         ) {
             this.suggestions.shouldHide = true;
-            this.suggestions.generateNextSuggestions(
+            const messages = this.suggestions.getNextSuggestionsMessages(
                 this.conversation.current.getMessagesForStream(),
             );
+            console.log('suggestions messages', messages);
+            // TODO: Send messages to the chat
         }
 
         this.context.clearAttachments();

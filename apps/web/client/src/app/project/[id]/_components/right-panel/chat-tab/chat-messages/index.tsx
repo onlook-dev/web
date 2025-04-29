@@ -9,9 +9,10 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef } from 'react';
 import { AssistantMessage } from './assistant-message';
-import { ErrorMessage } from './error-message';
-import { StreamMessage } from './stream-message';
 import { UserMessage } from './user-message';
+
+// import { ErrorMessage } from './error-message';
+// import { StreamMessage } from './stream-message';
 
 export const ChatMessages = observer(() => {
     const editorEngine = useEditorEngine();
@@ -57,8 +58,8 @@ export const ChatMessages = observer(() => {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                 >
-                    <StreamMessage />
-                    <ErrorMessage />
+                    {/* <StreamMessage /> */}
+                    {/* <ErrorMessage /> */}
                     {[...editorEngine.chat.conversation.current.messages]
                         .reverse()
                         .map((message) => renderMessage(message))}

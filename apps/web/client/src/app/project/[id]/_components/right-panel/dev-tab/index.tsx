@@ -468,8 +468,8 @@ export const DevTab = observer(() => {
             if (newOpenedFiles.length > 0) {
                 // Tries to select the file at the same index, or the previous one
                 const newIndex = Math.min(fileIndex, newOpenedFiles.length - 1);
-                setActiveFile(newOpenedFiles[newIndex]);
-                setIsDirty(newOpenedFiles[newIndex].isDirty);
+                setActiveFile(newOpenedFiles[newIndex] ?? null);
+                setIsDirty(newOpenedFiles[newIndex]?.isDirty ?? false);
             } else {
                 setActiveFile(null);
                 setIsDirty(false);

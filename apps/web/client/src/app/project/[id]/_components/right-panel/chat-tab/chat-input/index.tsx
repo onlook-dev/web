@@ -13,13 +13,14 @@ import { toast } from '@onlook/ui/use-toast';
 import { cn } from '@onlook/ui/utils';
 import { compressImage } from '@onlook/utility';
 import { observer } from 'mobx-react-lite';
+import { nanoid } from 'nanoid';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
 export const ChatInput = observer(() => {
-    const { setMessages, stop, handleSubmit } = useChatContext();
+    const { messages, setMessages, stop, reload } = useChatContext();
 
     const editorEngine = useEditorEngine();
     const t = useTranslations();
@@ -132,8 +133,8 @@ export const ChatInput = observer(() => {
         }
 
         setMessages(streamMessages as Message[]);
-        console.log('streamMessages', streamMessages);
-        handleSubmit();
+        reload();
+        setInputValue('');
     }
 
     const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -234,6 +235,17 @@ export const ChatInput = observer(() => {
                 }
             }}
         >
+            <div>
+                {messages.map(message => (
+                    <div key={nanoid()} className="whitespace-pre-wrap">
+                        {message.role === 'user' ? 'User: ' : 'AI: '}
+                        {message.parts.map((part, i) => {
+                            return <div key={`${message.id}-${i}`}>{JSON.stringify(part)}</div>;
+                        })}
+                    </div>
+                ))}
+            </div>
+
             <Suggestions
                 ref={suggestionRef}
                 disabled={disabled}

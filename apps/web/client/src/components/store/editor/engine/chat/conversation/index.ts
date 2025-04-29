@@ -28,7 +28,6 @@ export class ConversationManager {
     }
 
     async getCurrentProjectConversations(project: Project | null) {
-        this.editorEngine.chat.stream.clear();
         if (!project) {
             return;
         }
@@ -78,7 +77,6 @@ export class ConversationManager {
         }
         this.current = new ChatConversationImpl(this.projectId, []);
         this.conversations.push(this.current);
-        this.editorEngine.chat.stream.clear();
         sendAnalytics('start new conversation');
     }
 
@@ -89,7 +87,6 @@ export class ConversationManager {
             return;
         }
         this.current = match;
-        this.editorEngine.chat.stream.clear();
         sendAnalytics('select conversation');
     }
 
@@ -118,7 +115,6 @@ export class ConversationManager {
                 this.conversations.push(this.current);
             }
         }
-        this.editorEngine.chat.stream.clear();
         sendAnalytics('delete conversation');
     }
 

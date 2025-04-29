@@ -9,22 +9,12 @@ import { observer } from 'mobx-react-lite';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
-const SPACING = {
-    base: 8,
-    padding: 16,
-};
-
 const DIMENSIONS = {
     singleLineHeight: 32,
     minInputWidth: 280,
     buttonHeight: 36, // Standard button height
     multiLineRows: 4,
     minCharsToSubmit: 4,
-};
-
-const ANIMATION = {
-    DISTANCE_THRESHOLD: 300, // pixels - adjust this value as needed
-    TRANSITION_DURATION: 100, // ms
 };
 
 const DEFAULT_INPUT_STATE = {
@@ -49,7 +39,7 @@ export const OverlayChat = observer(
             !selectedEl ||
             isPreviewMode ||
             editorEngine.chat.isWaiting ||
-            editorEngine.chat.stream.content.length > 0 ||
+            // editorEngine.chat.stream.content.length > 0 ||
             !userManager.settings.settings?.chat?.showMiniChat;
 
         useEffect(() => {
@@ -90,7 +80,9 @@ export const OverlayChat = observer(
         const handleSubmit = async () => {
             const messageToSend = inputState.value;
             editorEngine.state.rightPanelTab = EditorTabValue.CHAT;
-            await editorEngine.chat.getStreamMessage(messageToSend);
+            const streamMessages = await editorEngine.chat.getStreamMessages(messageToSend);
+            // TODO: Send messages to the chat
+
             setInputState(DEFAULT_INPUT_STATE);
         };
 
