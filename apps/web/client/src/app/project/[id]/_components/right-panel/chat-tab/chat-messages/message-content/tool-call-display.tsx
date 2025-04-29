@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
 import { CodeBlock } from '../../code-change-display/code-block';
+
 export const ToolCallDisplay = observer(
     ({ toolCall, isStream }: { toolCall: ToolCallPart; isStream: boolean }) => {
         const userManager = useUserManager();

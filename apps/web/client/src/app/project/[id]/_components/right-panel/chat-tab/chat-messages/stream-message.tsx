@@ -26,7 +26,7 @@ export const StreamMessage = observer(() => {
                     <div className="flex flex-col text-wrap gap-2">
                         <MessageContent
                             messageId={streamMessage.id}
-                            content={streamMessage.parts}
+                            parts={streamMessage.parts}
                             applied={false}
                             isStream={true}
                         />
