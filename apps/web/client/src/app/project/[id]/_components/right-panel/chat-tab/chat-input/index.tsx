@@ -1,6 +1,8 @@
 
+import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store';
 import { FOCUS_CHAT_INPUT_EVENT } from '@/components/store/editor/engine/chat';
+import type { Message } from '@ai-sdk/react';
 import { EditorTabValue, type ImageMessageContext } from '@onlook/models';
 import { MessageContextType } from '@onlook/models/chat';
 import { Button } from '@onlook/ui/button';
@@ -17,9 +19,10 @@ import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
 export const ChatInput = observer(() => {
+    const { setMessages, stop, handleSubmit } = useChatContext();
+
     const editorEngine = useEditorEngine();
     const t = useTranslations();
-
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [inputValue, setInputValue] = useState('');
     const [isComposing, setIsComposing] = useState(false);
@@ -119,7 +122,7 @@ export const ChatInput = observer(() => {
             console.warn('Already waiting for response');
             return;
         }
-        const streamMessages = await editorEngine.chat.getStreamMessage(inputValue);
+        const streamMessages = await editorEngine.chat.getStreamMessages(inputValue);
         if (!streamMessages) {
             toast({
                 title: 'Error',
@@ -127,7 +130,10 @@ export const ChatInput = observer(() => {
             });
             return;
         }
-        setInputValue('');
+
+        setMessages(streamMessages as Message[]);
+        console.log('streamMessages', streamMessages);
+        handleSubmit();
     }
 
     const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -300,7 +306,7 @@ export const ChatInput = observer(() => {
                                 className="text-smallPlus w-fit h-full py-0.5 px-2.5 text-primary"
                                 onClick={() => {
                                     setActionTooltipOpen(false);
-                                    editorEngine.chat.stopStream();
+                                    stop();
                                 }}
                             >
                                 <Icons.Stop />
