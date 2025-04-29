@@ -17,9 +17,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
-
 export const ChatInput = observer(() => {
-    const { messages, setMessages, stop, reload } = useChatContext();
+    const { messages, setMessages, stop, handleSubmit, reload } = useChatContext();
     const editorEngine = useEditorEngine();
     const t = useTranslations();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -253,6 +252,17 @@ export const ChatInput = observer(() => {
                 }}
             />
 
+            {messages.map(message => (
+                <div key={message.id} className="whitespace-pre-wrap">
+                    {message.role === 'user' ? 'User: ' : 'AI: '}
+                    {message.parts.map((part, i) => {
+                        switch (part.type) {
+                            case 'text':
+                                return <div key={`${message.id}-${i}`}>{part.text}</div>;
+                        }
+                    })}
+                </div>
+            ))}
             <div className="flex flex-col w-full p-4">
                 <Textarea
                     ref={textareaRef}
