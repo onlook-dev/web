@@ -31,11 +31,11 @@ export const MessageContent = observer(
                 );
             } else if (part.type === 'tool-invocation') {
                 return (
-                    <ToolCallDisplay key={part.toolInvocation.toolCallId} toolCall={part.toolInvocation} isStream={isStream} />
+                    <ToolCallDisplay key={part.toolInvocation.toolCallId} toolInvocation={part.toolInvocation} isStream={isStream} />
                 );
             } else if (part.type === 'reasoning') {
                 return (
-                    <div key={part.text} className="border-2 border-green-500">
+                    <div key={part.reasoning} className="border-2 border-green-500">
                         reasoning: {JSON.stringify(part, null, 2)}
                     </div>
                 );
