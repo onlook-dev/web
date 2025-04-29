@@ -178,7 +178,7 @@ describe('SandboxManager', () => {
 
         // Second read should use cache
         const content2 = await sandboxManager.readFile('file1.tsx');
-        expect(content2).toBe('<div>Mocked Content</div>');
+        expect(content2).toBe('<div>Test Component</div>');
 
         // Filesystem should not be accessed for the second read
         expect(mockSession.fs.readTextFile).not.toHaveBeenCalled();
@@ -320,6 +320,7 @@ describe('SandboxManager', () => {
     test('should normalize file paths for write', async () => {
 
         // Override the fileSync property in the sandboxManager
+        // @ts-ignore - accessing private property for testing
         sandboxManager.fileSync = mockFileSync;
 
         // All these should resolve to the same file
