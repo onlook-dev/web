@@ -30,13 +30,14 @@ export class SandboxManager {
 
         const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS);
         for (const file of files) {
-            const content = await this.readFile(file);
+            const normalizedPath = normalizePath(file);
+            const content = await this.readFile(normalizedPath);
             if (!content) {
-                console.error(`Failed to read file ${file}`);
+                console.error(`Failed to read file ${normalizedPath}`);
                 continue;
             }
 
-            await this.processFileForMapping(file);
+            await this.processFileForMapping(normalizedPath);
         }
     }
 
@@ -89,19 +90,19 @@ export class SandboxManager {
         const entries = await this.session.fs.readdir(dir);
 
         for (const entry of entries) {
-            const fullPath = dir === './' ? entry.name : `${dir}/${entry.name}`;
+            const fullPath = `${dir}/${entry.name}`;
+            const normalizedPath = normalizePath(fullPath);
             if (entry.type === 'directory') {
-                const dirName = entry.name;
-                if (ignore.includes(dirName)) {
+                if (ignore.includes(entry.name)) {
                     continue;
                 }
-                const subFiles = await this.listFilesRecursively(fullPath, ignore, extensions);
+                const subFiles = await this.listFilesRecursively(normalizedPath, ignore, extensions);
                 results.push(...subFiles);
             } else {
                 if (extensions.length > 0 && !extensions.includes(entry.name.split('.').pop() || '')) {
                     continue;
                 }
-                results.push(fullPath);
+                results.push(normalizedPath);
             }
         }
 
@@ -118,8 +119,9 @@ export class SandboxManager {
 
         watcher.onEvent((event) => {
             for (const path of event.paths) {
-                this.fileSync.updateCache(path, event.type);
-                this.processFileForMapping(path);
+                const normalizedPath = normalizePath(path);
+                this.fileSync.updateCache(normalizedPath, event.type);
+                this.processFileForMapping(normalizedPath);
             }
         });
 
@@ -127,7 +129,8 @@ export class SandboxManager {
     }
 
     async processFileForMapping(file: string) {
-        await this.templateNodeMap.processFileForMapping(file, this.readFile.bind(this), this.writeFile.bind(this));
+        const normalizedPath = normalizePath(file);
+        await this.templateNodeMap.processFileForMapping(normalizedPath, this.readFile.bind(this), this.writeFile.bind(this));
     }
 
     async getTemplateNode(oid: string): Promise<TemplateNode | null> {
