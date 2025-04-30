@@ -14,6 +14,7 @@ import { compressImage } from '@onlook/utility';
 import { observer } from 'mobx-react-lite';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
+import { InputContextPills } from '../context-pills/input-context-pills';
 import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
@@ -253,6 +254,7 @@ export const ChatInput = observer(() => {
                 }}
             />
             <div className="flex flex-col w-full p-4">
+                <InputContextPills />
                 <Textarea
                     ref={textareaRef}
                     disabled={disabled}
