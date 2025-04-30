@@ -6,8 +6,10 @@ import { MessageContent } from './message-content';
 export const StreamMessage = () => {
     const { messages, status } = useChatContext();
     const streamMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+    const isWaiting = status === 'streaming' || status === 'submitted';
+    const isAssistantMessage = streamMessage?.role === ChatMessageRole.ASSISTANT;
 
-    if (!streamMessage || streamMessage.role !== ChatMessageRole.ASSISTANT || (status !== 'streaming' && status !== 'submitted')) {
+    if (!streamMessage || !isAssistantMessage || !isWaiting) {
         return null;
     }
 

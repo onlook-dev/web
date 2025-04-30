@@ -26,6 +26,7 @@ export const ChatInput = observer(() => {
     const [isComposing, setIsComposing] = useState(false);
     const [actionTooltipOpen, setActionTooltipOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const isWaiting = status === 'streaming' || status === 'submitted';
 
     const focusInput = () => {
         requestAnimationFrame(() => {
@@ -34,7 +35,7 @@ export const ChatInput = observer(() => {
     };
 
     useEffect(() => {
-        if (textareaRef.current && !editorEngine.chat.isWaiting) {
+        if (textareaRef.current && !isWaiting) {
             focusInput();
         }
     }, [editorEngine.chat.conversation.current?.messages.length]);
@@ -47,7 +48,7 @@ export const ChatInput = observer(() => {
 
     useEffect(() => {
         const focusHandler = () => {
-            if (textareaRef.current && !editorEngine.chat.isWaiting) {
+            if (textareaRef.current && !isWaiting) {
                 focusInput();
             }
         };
@@ -73,7 +74,7 @@ export const ChatInput = observer(() => {
         return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
     }, []);
 
-    const disabled = editorEngine.chat.isWaiting || editorEngine.chat.context.context.length === 0;
+    const disabled = isWaiting || editorEngine.chat.context.context.length === 0;
     const inputEmpty = !inputValue || inputValue.trim().length === 0;
 
     function handleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -116,7 +117,7 @@ export const ChatInput = observer(() => {
             console.warn('Empty message');
             return;
         }
-        if (editorEngine.chat.isWaiting) {
+        if (isWaiting) {
             console.warn('Already waiting for response');
             return;
         }
@@ -294,7 +295,7 @@ export const ChatInput = observer(() => {
                     disabled={disabled}
                     handleImageEvent={handleImageEvent}
                 />
-                {status === 'streaming' || status === 'submitted' ? (
+                {isWaiting ? (
                     <Tooltip open={actionTooltipOpen} onOpenChange={setActionTooltipOpen}>
                         <TooltipTrigger asChild>
                             <Button

@@ -36,12 +36,11 @@ export const OverlayChat = observer(
         const textareaRef = useRef<HTMLTextAreaElement>(null);
         const prevChatPositionRef = useRef<{ x: number; y: number } | null>(null);
         const t = useTranslations();
-
+        const isWaiting = status === 'streaming' || status === 'submitted';
         const shouldHideButton =
             !selectedEl ||
             isPreviewMode ||
-            status === 'streaming' ||
-            status === 'submitted' ||
+            isWaiting ||
             !userManager.settings.settings?.chat?.showMiniChat;
 
         useEffect(() => {
