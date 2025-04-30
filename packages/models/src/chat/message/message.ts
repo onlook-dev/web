@@ -10,12 +10,10 @@ export enum ChatMessageRole {
 }
 
 export interface UserChatMessage extends Message {
-    id: string;
     context: ChatMessageContext[];
 }
 
 export interface AssistantChatMessage extends Message {
-    id: string;
     applied: boolean;
     snapshots: Record<string, CodeDiff> | null;
 }
