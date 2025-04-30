@@ -18,7 +18,7 @@ import { Suggestions, type SuggestionsRef } from '../suggestions';
 import { ActionButtons } from './action-buttons';
 
 export const ChatInput = observer(() => {
-    const { messages, setMessages, stop, reload, status } = useChatContext();
+    const { setMessages, stop, reload, status } = useChatContext();
     const editorEngine = useEditorEngine();
     const t = useTranslations();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
