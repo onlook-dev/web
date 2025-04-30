@@ -30,19 +30,19 @@ export default async function RootLayout({
     return (
         <html lang={locale} className={inter.variable} suppressHydrationWarning>
             <body>
-                <TRPCReactProvider>
-                    <NextIntlClientProvider>
-                        <ThemeProvider
-                            attribute="class"
-                            defaultTheme="system"
-                            enableSystem
-                            disableTransitionOnChange
-                        >
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="dark"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <TRPCReactProvider>
+                        <NextIntlClientProvider>
                             <Modals />
                             {children}
-                        </ThemeProvider>
-                    </NextIntlClientProvider>
-                </TRPCReactProvider>
+                        </NextIntlClientProvider>
+                    </TRPCReactProvider>
+                </ThemeProvider>
             </body>
         </html>
     );
