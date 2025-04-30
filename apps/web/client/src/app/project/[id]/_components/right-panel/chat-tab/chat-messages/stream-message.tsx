@@ -13,12 +13,10 @@ export const StreamMessage = () => {
 
     return (
         <>
-            {status === 'streaming' || status === 'submitted' && (
-                <div className="flex w-full h-full flex-row items-center gap-2 px-4 my-2 text-small content-start text-foreground-secondary">
-                    <Icons.Shadow className="animate-spin" />
-                    <p>Thinking ...</p>
-                </div>
-            )}
+            <div className="flex w-full h-full flex-row items-center gap-2 px-4 my-2 text-small content-start text-foreground-secondary">
+                <Icons.Shadow className="animate-spin" />
+                <p>Thinking ...</p>
+            </div>
             {streamMessage.parts && (
                 <div className="px-4 py-2 text-small content-start">
                     <div className="flex flex-col text-wrap gap-2">
