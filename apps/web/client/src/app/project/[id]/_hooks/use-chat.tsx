@@ -1,7 +1,7 @@
 import { useEditorEngine } from '@/components/store';
 import type { EditorEngine } from '@/components/store/editor/engine';
 import { useChat, type UseChatHelpers } from '@ai-sdk/react';
-import { LIST_FILES_TOOL_NAME, LIST_FILES_TOOL_PARAMETERS, READ_FILES_TOOL_NAME, READ_FILES_TOOL_PARAMETERS } from '@onlook/ai';
+import { LIST_FILES_TOOL_NAME, LIST_FILES_TOOL_PARAMETERS, ONLOOK_INSTRUCTIONS, ONLOOK_INSTRUCTIONS_TOOL_NAME, READ_FILES_TOOL_NAME, READ_FILES_TOOL_PARAMETERS } from '@onlook/ai';
 import type { ToolCall } from 'ai';
 import { createContext, useContext } from 'react';
 import { z } from 'zod';
@@ -12,8 +12,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const editorEngine = useEditorEngine();
     const chat = useChat({
         id: 'user-chat', api: '/api/chat', onFinish: (message) => {
+            console.log('Done, message', message);
             editorEngine.chat.conversation.addAssistantMessage(message);
         },
+        maxSteps: 10,
         onToolCall: (toolCall) => handleToolCall(toolCall.toolCall, editorEngine)
     });
     return <ChatContext.Provider value={chat}>{children}</ChatContext.Provider>;
@@ -31,9 +33,11 @@ function handleToolCall(toolCall: ToolCall<string, unknown>, editorEngine: Edito
             return handleListFilesTool(toolCall.args as z.infer<typeof LIST_FILES_TOOL_PARAMETERS>, editorEngine);
         case READ_FILES_TOOL_NAME:
             return handleReadFilesTool(toolCall.args as z.infer<typeof READ_FILES_TOOL_PARAMETERS>, editorEngine);
+        case ONLOOK_INSTRUCTIONS_TOOL_NAME:
+            return ONLOOK_INSTRUCTIONS;
         default:
             console.error(`Unknown tool call: ${toolCall.toolName}`);
-            return null;
+            return 'unknown tool call';
     }
 }
 

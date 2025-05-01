@@ -28,7 +28,7 @@ export const readFilesTool = tool({
 export const ONLOOK_INSTRUCTIONS_TOOL_NAME = 'onlook_instructions';
 export const onlookInstructionsTool = tool({
     description: 'Get the instructions for the Onlook AI',
-    parameters: z.any(),
+    parameters: z.object({}),
     execute: async () => ONLOOK_INSTRUCTIONS,
 });
 

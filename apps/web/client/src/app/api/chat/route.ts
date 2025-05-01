@@ -2,17 +2,17 @@ import { chatToolSet, initModel } from '@onlook/ai';
 import { CLAUDE_MODELS, LLMProvider } from '@onlook/models';
 import { generateObject, NoSuchToolError, streamText } from 'ai';
 
-// TODO: Add tools
-export async function POST(req: Request) {
-    const { messages } = await req.json();
+const model = await initModel(LLMProvider.ANTHROPIC, CLAUDE_MODELS.SONNET);
 
-    const model = await initModel(LLMProvider.ANTHROPIC, CLAUDE_MODELS.SONNET);
+export async function POST(req: Request) {
+    const { messages, maxSteps, maxTokens } = await req.json();
 
     const result = streamText({
         model,
         messages,
-        maxSteps: 10,
+        maxSteps,
         tools: chatToolSet,
+        toolCallStreaming: true,
         maxTokens: 64000,
         experimental_repairToolCall: async ({
             toolCall,
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         }) => {
             if (NoSuchToolError.isInstance(error)) {
                 console.error('Invalid tool name', toolCall.toolName);
-                return null; // do not attempt to fix invalid tool names
+                return null;
             }
             const tool = tools[toolCall.toolName as keyof typeof tools];
 
@@ -46,5 +46,6 @@ export async function POST(req: Request) {
             return { ...toolCall, args: JSON.stringify(repairedArgs) };
         },
     });
+
     return result.toDataStreamResponse();
 }
