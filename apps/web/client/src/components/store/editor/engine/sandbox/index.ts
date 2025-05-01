@@ -94,7 +94,11 @@ export class SandboxManager {
     }
 
     async listAllFiles() {
-        return this.fileSync.listFiles();
+        return this.fileSync.listAllFiles();
+    }
+
+    async listFiles(dir: string) {
+        return this.session?.fs.readdir(dir);
     }
 
     async listFilesRecursively(dir: string, ignore: string[] = [], extensions: string[] = []): Promise<string[]> {

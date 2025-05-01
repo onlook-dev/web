@@ -38,7 +38,7 @@ function handleToolCall(toolCall: ToolCall<string, unknown>, editorEngine: Edito
 }
 
 function handleListFilesTool(args: z.infer<typeof LIST_FILES_TOOL_PARAMETERS>, editorEngine: EditorEngine) {
-    return editorEngine.sandbox.listAllFiles();
+    return editorEngine.sandbox.listFiles(args.path);
 }
 
 function handleReadFilesTool(args: z.infer<typeof READ_FILES_TOOL_PARAMETERS>, editorEngine: EditorEngine) {
