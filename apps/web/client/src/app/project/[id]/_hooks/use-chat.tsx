@@ -14,8 +14,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         id: 'user-chat', api: '/api/chat',
         maxSteps: 10,
         onToolCall: (toolCall) => handleToolCall(toolCall.toolCall, editorEngine),
-        onFinish: (message) => {
-            editorEngine.chat.conversation.addAssistantMessage(message);
+        onFinish: (message, config) => {
+            if (config.finishReason === 'stop') {
+                editorEngine.chat.conversation.addAssistantMessage(message);
+            }
         },
     });
     return <ChatContext.Provider value={chat}>{children}</ChatContext.Provider>;
