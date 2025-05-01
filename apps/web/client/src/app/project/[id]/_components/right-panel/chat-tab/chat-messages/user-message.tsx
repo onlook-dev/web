@@ -72,7 +72,6 @@ export const UserMessage = ({ message }: UserMessageProps) => {
             console.error('Failed to resubmit message');
             return;
         }
-        console.log('newMessages', newMessages);
         setMessages(newMessages);
         await reload();
     }

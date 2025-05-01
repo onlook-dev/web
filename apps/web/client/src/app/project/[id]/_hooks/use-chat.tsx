@@ -12,7 +12,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const editorEngine = useEditorEngine();
     const chat = useChat({
         id: 'user-chat', api: '/api/chat', onFinish: (message) => {
-            console.log('Done, message', message);
             editorEngine.chat.conversation.addAssistantMessage(message);
         },
         maxSteps: 10,

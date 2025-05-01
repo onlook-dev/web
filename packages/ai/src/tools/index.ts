@@ -1,6 +1,5 @@
 import { tool, type ToolSet } from 'ai';
 import { z } from 'zod';
-import { ONLOOK_INSTRUCTIONS } from '../prompt/onlook';
 
 export const LIST_FILES_TOOL_NAME = 'list_files';
 export const LIST_FILES_TOOL_PARAMETERS = z.object({
@@ -29,7 +28,6 @@ export const ONLOOK_INSTRUCTIONS_TOOL_NAME = 'onlook_instructions';
 export const onlookInstructionsTool = tool({
     description: 'Get the instructions for the Onlook AI',
     parameters: z.object({}),
-    execute: async () => ONLOOK_INSTRUCTIONS,
 });
 
 export const chatToolSet: ToolSet = {
