@@ -32,25 +32,24 @@ export const ChatMessages = observer(() => {
         return <div key={`message-${message.id}`}>{messageNode}</div>;
     };
 
-    return (
-        <ChatMessageList>
-            {!messages && !editorEngine.elements.selected.length && (
-                <div className="flex-1 flex flex-col items-center justify-center text-foreground-tertiary/80 h-full">
-                    <div className="w-32 h-32">
-                        <Icons.EmptyState className="w-full h-full" />
-                    </div>
-                    <p className="text-center text-regularPlus text-balance max-w-[300px]">
-                        {t('editor.panels.edit.tabs.chat.emptyState')}
-                    </p>
+    if (!messages && !editorEngine.elements.selected.length) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center text-foreground-tertiary/80 h-full">
+                <div className="w-32 h-32">
+                    <Icons.EmptyState className="w-full h-full" />
                 </div>
-            )}
+                <p className="text-center text-regularPlus text-balance max-w-[300px]">
+                    {t('editor.panels.edit.tabs.chat.emptyState')}
+                </p>
+            </div>
+        )
+    }
+
+    return (
+        <ChatMessageList >
             {messages?.map((message) => renderMessage(message))}
-            <div id='message-stream'>
-                <StreamMessage />
-            </div>
-            <div id='message-error' >
-                <ErrorMessage />
-            </div>
+            <StreamMessage />
+            <ErrorMessage />
         </ChatMessageList>
     );
 });

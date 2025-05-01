@@ -7,7 +7,6 @@ import { makeAutoObservable, reaction } from 'mobx';
 import type { EditorEngine } from '../..';
 import { AssistantChatMessageImpl } from '../message/assistant';
 import { UserChatMessageImpl } from '../message/user';
-import { MOCK_CHAT_MESSAGES } from '../mockData';
 import { ChatConversationImpl } from './conversation';
 
 export class ConversationManager {
@@ -117,7 +116,7 @@ export class ConversationManager {
     }
 
     async getConversationFromStorage(id: string): Promise<ChatConversation[] | null> {
-        return [new ChatConversationImpl(id, MOCK_CHAT_MESSAGES)];
+        // return [new ChatConversationImpl(id, MOCK_CHAT_MESSAGES)];
         return null;
     }
 

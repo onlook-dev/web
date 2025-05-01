@@ -54,12 +54,19 @@ const MOCK_ASSISTANT_MSG_1 = new AssistantChatMessageImpl({
         {
             type: 'tool-invocation',
             toolInvocation: {
-                state: 'call',
+                state: 'result',
                 toolName: 'listFiles',
                 args: {
                     path: '/Users/kietho/workplace/onlook/test/test/app',
                 },
                 toolCallId: nanoid(),
+                result: {
+                    files: [
+                        {
+                            path: '/Users/kietho/workplace/onlook/test/test/app/page.tsx',
+                        },
+                    ],
+                },
             },
         },
     ],
