@@ -1,3 +1,4 @@
+import { useChatContext } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store';
 import type { AssistantChatMessageImpl } from '@/components/store/editor/engine/chat/message/assistant';
 import type { UserChatMessageImpl } from '@/components/store/editor/engine/chat/message/user';
@@ -15,6 +16,7 @@ import { UserMessage } from './user-message';
 export const ChatMessages = observer(() => {
     const editorEngine = useEditorEngine();
     const t = useTranslations();
+    const { messages: chatMessages } = useChatContext();
     const messages = editorEngine.chat.conversation.current?.messages;
 
     const renderMessage = (message: AssistantChatMessageImpl | UserChatMessageImpl) => {
@@ -32,12 +34,10 @@ export const ChatMessages = observer(() => {
         return <div key={`message-${message.id}`}>{messageNode}</div>;
     };
 
-    if (!messages && !editorEngine.elements.selected.length) {
-        return (
+    if (!messages || messages.length === 0) {
+        return !editorEngine.elements.selected.length && (
             <div className="flex-1 flex flex-col items-center justify-center text-foreground-tertiary/80 h-full">
-                <div className="w-32 h-32">
-                    <Icons.EmptyState className="w-full h-full" />
-                </div>
+                <Icons.EmptyState className="size-32" />
                 <p className="text-center text-regularPlus text-balance max-w-[300px]">
                     {t('editor.panels.edit.tabs.chat.emptyState')}
                 </p>
@@ -46,7 +46,7 @@ export const ChatMessages = observer(() => {
     }
 
     return (
-        <ChatMessageList >
+        <ChatMessageList contentKey={chatMessages?.map((message) => message.content).join('|') ?? ''}>
             {messages?.map((message) => renderMessage(message))}
             <StreamMessage />
             <ErrorMessage />

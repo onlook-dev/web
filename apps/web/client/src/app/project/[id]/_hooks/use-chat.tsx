@@ -11,11 +11,12 @@ const ChatContext = createContext<UseChatHelpers | null>(null);
 export function ChatProvider({ children }: { children: React.ReactNode }) {
     const editorEngine = useEditorEngine();
     const chat = useChat({
-        id: 'user-chat', api: '/api/chat', onFinish: (message) => {
+        id: 'user-chat', api: '/api/chat',
+        maxSteps: 10,
+        onToolCall: (toolCall) => handleToolCall(toolCall.toolCall, editorEngine),
+        onFinish: (message) => {
             editorEngine.chat.conversation.addAssistantMessage(message);
         },
-        maxSteps: 10,
-        onToolCall: (toolCall) => handleToolCall(toolCall.toolCall, editorEngine)
     });
     return <ChatContext.Provider value={chat}>{children}</ChatContext.Provider>;
 }

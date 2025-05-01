@@ -6,10 +6,11 @@ import { useAutoScroll } from "./hooks/use-auto-scroll";
 
 interface ChatMessageListProps extends React.HTMLAttributes<HTMLDivElement> {
     smooth?: boolean;
+    contentKey: string;
 }
 
 const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
-    ({ className, children, smooth = true, ...props }, _ref) => {
+    ({ className, children, smooth = true, contentKey, ...props }, _ref) => {
         const {
             scrollRef,
             isAtBottom,
@@ -19,6 +20,7 @@ const ChatMessageList = React.forwardRef<HTMLDivElement, ChatMessageListProps>(
         } = useAutoScroll({
             smooth,
             content: children,
+            contentKey,
         });
 
         return (

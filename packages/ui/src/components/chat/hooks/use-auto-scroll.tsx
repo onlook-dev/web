@@ -10,10 +10,11 @@ interface UseAutoScrollOptions {
     offset?: number;
     smooth?: boolean;
     content?: React.ReactNode;
+    contentKey?: string;
 }
 
 export function useAutoScroll(options: UseAutoScrollOptions = {}) {
-    const { offset = 20, smooth = false, content } = options;
+    const { offset = 20, smooth = false, content, contentKey } = options;
     const scrollRef = useRef<HTMLDivElement>(null);
     const lastContentHeight = useRef(0);
     const userHasScrolled = useRef(false);
@@ -94,7 +95,7 @@ export function useAutoScroll(options: UseAutoScrollOptions = {}) {
             }
             lastContentHeight.current = currentHeight;
         }
-    }, [content, scrollState.autoScrollEnabled, scrollToBottom]);
+    }, [content, contentKey, scrollState.autoScrollEnabled, scrollToBottom]);
 
     useEffect(() => {
         const element = scrollRef.current;
