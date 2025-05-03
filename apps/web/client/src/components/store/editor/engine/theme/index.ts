@@ -2,7 +2,7 @@
 // import { invokeMainChannel } from '@/lib/utils';
 // import type { ColorItem } from '@/routes/editor/LayersPanel/BrandTab/ColorPanel/ColorPalletGroup';
 // import { DEFAULT_COLOR_NAME, MainChannels } from '@onlook/models';
-import type { ProjectManager } from '@/components/store/projects';
+import type { ProjectManager } from '@/components/store/project';
 import { DEFAULT_COLOR_NAME } from '@onlook/constants';
 import type { ConfigResult, ParsedColors, ThemeColors } from '@onlook/models/assets';
 import { SystemTheme } from '@onlook/models/assets';

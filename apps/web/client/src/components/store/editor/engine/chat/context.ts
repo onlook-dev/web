@@ -1,4 +1,4 @@
-import type { ProjectManager } from '@/components/store/projects';
+import type { ProjectManager } from '@/components/store/project';
 import type { DomElement } from '@onlook/models';
 import {
     MessageContextType,

@@ -1,4 +1,4 @@
-import type { ProjectManager } from "@/components/store/projects";
+import type { ProjectManager } from "@/components/store/project";
 import type { UserManager } from "@/components/store/user";
 import { sendAnalytics } from "@/utils/analytics";
 import {
@@ -25,20 +25,20 @@ export class ChatManager {
 
     constructor(
         private editorEngine: EditorEngine,
-        private projectsManager: ProjectManager,
+        private projectManager: ProjectManager,
         private userManager: UserManager,
     ) {
         makeAutoObservable(this);
         this.context = new ChatContext(
             this.editorEngine,
-            this.projectsManager,
+            this.projectManager,
         );
         this.conversation = new ConversationManager(
             this.editorEngine,
-            this.projectsManager,
+            this.projectManager,
         );
         this.code = new ChatCodeManager(this, this.editorEngine);
-        this.suggestions = new SuggestionManager(this.projectsManager);
+        this.suggestions = new SuggestionManager(this.projectManager);
     }
 
     focusChatInput() {

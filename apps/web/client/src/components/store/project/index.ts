@@ -8,7 +8,7 @@ export class DomainsManager {
 }
 
 export class VersionsManager {
-    constructor() { }
+    constructor(private projectManager: ProjectManager) { }
 }
 
 export class ProjectManager {
@@ -18,6 +18,8 @@ export class ProjectManager {
 
     constructor() {
         makeAutoObservable(this);
+        this.domains = new DomainsManager();
+        this.versions = new VersionsManager(this);
     }
 
     get project() {

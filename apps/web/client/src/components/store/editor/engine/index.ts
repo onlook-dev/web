@@ -1,4 +1,4 @@
-import { type ProjectManager } from '@/components/store/projects';
+import { type ProjectManager } from '@/components/store/project';
 import { makeAutoObservable } from 'mobx';
 import type { UserManager } from '../../user';
 import { ActionManager } from './action';
@@ -56,27 +56,16 @@ export class EditorEngine {
     readonly window: WindowManager = new WindowManager(this);
 
     constructor(
-        private projectsManager: ProjectManager,
+        private projectManager: ProjectManager,
         private userManager: UserManager,
     ) {
         makeAutoObservable(this);
-        this.chat = new ChatManager(this,
-            this.projectsManager,
-            this.userManager
-        );
-        this.pages = new PagesManager(this,
-            // this.projectsManager
-        );
-        this.error = new ErrorManager(this, this.projectsManager);
-        // this.image = new ImageManager(this,this.projectsManager);
-        // this.error = new ErrorManager(this, this.projectsManager);
-        this.image = new ImageManager(this
-            // ,this.projectsManager
-        );
-        this.theme = new ThemeManager(this, this.projectsManager);
-        this.font = new FontManager(this
-            // , this.projectsManager
-        );
+        this.chat = new ChatManager(this, this.projectManager, this.userManager);
+        this.pages = new PagesManager(this, this.projectManager);
+        this.error = new ErrorManager(this, this.projectManager);
+        this.image = new ImageManager(this, this.projectManager);
+        this.theme = new ThemeManager(this, this.projectManager);
+        this.font = new FontManager(this, this.projectManager);
     }
 
     clear() {

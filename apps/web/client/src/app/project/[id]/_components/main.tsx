@@ -1,7 +1,7 @@
 'use client';
 
 import { ChatProvider } from "@/app/project/[id]/_hooks/use-chat";
-import { useEditorEngine, useProjectsManager } from "@/components/store";
+import { useEditorEngine, useProjectManager } from "@/components/store";
 import type { Project } from "@onlook/models";
 import { TooltipProvider } from "@onlook/ui/tooltip";
 import { useEffect } from "react";
@@ -16,7 +16,7 @@ import { TopBar } from "./top-bar";
 
 export function Main({ project }: { project: Project }) {
     const editorEngine = useEditorEngine();
-    const projectManager = useProjectsManager();
+    const projectManager = useProjectManager();
     const { startSession, isStarting, session, isReconnecting, reconnect } = useSandbox();
     const { tabState } = useTabActive();
 
