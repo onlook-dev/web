@@ -2,10 +2,20 @@ import type { Project } from '@onlook/models';
 import { makeAutoObservable } from 'mobx';
 import { nanoid } from 'nanoid';
 
+// Stubs for now
+export class DomainsManager {
+    constructor() { }
+}
+
+export class VersionsManager {
+    constructor() { }
+}
+
 export class ProjectManager {
     private _project: Project | null = null;
-    // private _domains: DomainsManager | null = null;
-    // private _versions: VersionsManager | null = null;
+    readonly domains: DomainsManager | null = null;
+    readonly versions: VersionsManager | null = null;
+
     constructor() {
         makeAutoObservable(this);
     }
@@ -14,40 +24,29 @@ export class ProjectManager {
         return this._project;
     }
 
-    get versions(): VersionsManager | null {
-        return this._versions;
-    }
-
     set project(project: Project | null) {
         this._project = project;
     }
 
     createProject(
         name: string,
-        url: string,
-        folderPath: string,
-        commands: {
-            install: string;
-            run: string;
-            build: string;
-        },
+        previewUrl: string,
     ): Project {
         const newProject: Project = {
             id: nanoid(),
             name,
-            url,
-            folderPath,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            commands,
-            previewImg: null,
-            settings: null,
             domains: {
                 base: null,
                 custom: null,
             },
-            metadata: null,
-            env: {},
+            metadata: {
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                previewImg: null,
+            },
+            canvas: null,
+            sandbox: null,
+            previewUrl,
         };
 
         return newProject;
