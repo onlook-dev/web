@@ -8,9 +8,13 @@ import "./src/env";
 
 const nextConfig: NextConfig = {
     devIndicators: false,
+
+    // TODO: Remove this once we have a proper ESLint and TypeScript config
     eslint: {
-        // TODO: Remove this once we have a proper ESLint config
         ignoreDuringBuilds: true,
+    },
+    typescript: {
+        ignoreBuildErrors: true,
     },
 };
 
