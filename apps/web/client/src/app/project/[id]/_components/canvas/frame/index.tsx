@@ -22,7 +22,6 @@ export const FrameView =
                     <ResizeHandles frame={frame} />
                     {frame.type === FrameType.WEB && <WebFrameComponent frame={frame as WebFrame} ref={webFrameRef} />}
                     <GestureScreen frame={frame as WebFrame} />
-                    {/* {domFailed && shouldShowDomFailed && renderNotRunning()} */}
                 </div>
             </div>
         );
