@@ -28,7 +28,6 @@ import { WindowManager } from './window';
 
 export class EditorEngine {
     readonly chat: ChatManager;
-    readonly code: CodeManager;
     readonly error: ErrorManager;
     readonly image: ImageManager;
     readonly theme: ThemeManager;
@@ -51,6 +50,7 @@ export class EditorEngine {
     readonly action: ActionManager = new ActionManager(this);
     readonly style: StyleManager = new StyleManager(this);
     readonly frames: FramesManager = new FramesManager(this);
+    readonly code: CodeManager = new CodeManager(this);
 
     // TODO: This could be part of frames manager
     readonly window: WindowManager = new WindowManager(this);
@@ -64,7 +64,6 @@ export class EditorEngine {
             this.projectsManager,
             this.userManager
         );
-        // this.code = new CodeManager(this, this.projectsManager);
         this.pages = new PagesManager(this,
             // this.projectsManager
         );
@@ -74,13 +73,10 @@ export class EditorEngine {
         this.image = new ImageManager(this
             // ,this.projectsManager
         );
-        this.theme = new ThemeManager(this
-            // , this.projectsManager
-        );
+        this.theme = new ThemeManager(this, this.projectsManager);
         this.font = new FontManager(this
             // , this.projectsManager
         );
-        this.code = new CodeManager(this, this.projectsManager);
     }
 
     clear() {

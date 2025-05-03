@@ -121,10 +121,12 @@ export class ChatManager {
             return null;
         }
         // Save current changes before sending to AI
-        this.projectsManager.versions?.createCommit(
-            userPrompt ?? "Save before chat",
-            false,
-        );
+
+        // TODO: Reenable this
+        // this.projectsManager.versions?.createCommit(
+        //     userPrompt ?? "Save before chat",
+        //     false,
+        // );
 
         const messages = this.conversation.current.getMessagesForStream();
         return messages;

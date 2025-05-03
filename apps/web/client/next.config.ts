@@ -8,6 +8,10 @@ import "./src/env";
 
 const nextConfig: NextConfig = {
     devIndicators: false,
+    eslint: {
+        // TODO: Remove this once we have a proper ESLint config
+        ignoreDuringBuilds: true,
+    },
 };
 
 const withNextIntl = createNextIntlPlugin();
