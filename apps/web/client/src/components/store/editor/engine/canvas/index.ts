@@ -83,15 +83,15 @@ export class CanvasManager {
         return this.frames.find((f) => f.id === id);
     }
 
-    saveFrame(id: string, newSettings: Partial<Frame>) {
-        // let frame = this.frames.find((f) => f.id === id);
-        // if (!frame) {
-        //     return;
-        // }
+    saveFrame(id: string, newFrame: Frame) {
+        let frame = this.frames.find((f) => f.id === id);
+        if (!frame) {
+            return;
+        }
 
-        // frame = { ...frame, ...newSettings };
-        // this.frames = this.frames.map((f) => (f.id === id ? frame : f));
-        // this.saveSettings();
+        frame = { ...frame, ...newFrame };
+        this.frames = this.frames.map((f) => (f.id === id ? frame : f));
+        this.saveSettings();
     }
 
     saveFrames(frames: Frame[]) {

@@ -75,13 +75,15 @@ export function Main({ project }: { project: Project }) {
                         <EditorBar />
                     </div>
 
-                    {/* <div className="absolute w-screen h-screen flex items-center justify-center z-30">
-                    <StagingToggle selectedElement={selectedElement} onElementSelect={setSelectedElement} />
-                </div> */}
-
-                    {/* <div className="absolute top-20 left-[80px] z-50 h-[calc(100%-80px)]">
-                    <Panels selectedElement={selectedElement} />
-                </div> */}
+                    {/* TODO: Remove these */}
+                    {/* 
+                    <div className="absolute w-screen h-screen flex items-center justify-center z-30">
+                        <StagingToggle selectedElement={selectedElement} onElementSelect={setSelectedElement} />
+                    </div> 
+                    <div className="absolute top-20 left-[80px] z-50 h-[calc(100%-80px)]">
+                        <Panels selectedElement={selectedElement} />
+                    </div> 
+                     */}
 
                     <div className="absolute top-20 left-0 animate-layer-panel-in h-[calc(100%-80px)] z-1">
                         <LeftPanel />
