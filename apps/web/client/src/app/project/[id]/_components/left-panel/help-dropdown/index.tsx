@@ -1,5 +1,4 @@
 
-import { useTheme } from '@/app/_components/theme';
 import { useEditorEngine, useUserManager } from '@/components/store';
 import { Language, LANGUAGE_DISPLAY_NAMES, Links } from '@onlook/constants';
 import { SystemTheme } from '@onlook/models/assets';
@@ -16,6 +15,7 @@ import {
 import { Icons } from '@onlook/ui/icons';
 import { observer } from 'mobx-react-lite';
 import { useTranslations } from 'next-intl';
+import { useTheme } from "next-themes";
 import { useState } from 'react';
 // import { invokeMainChannel } from '@/lib/utils';
 
@@ -41,10 +41,6 @@ export const HelpDropdown = observer(() => {
                 sideOffset={-55}
                 className="w-48"
             >
-                <DropdownMenuItem onClick={() => invokeMainChannel(MainChannels.RELOAD_APP)}>
-                    <Icons.Reload className="w-4 h-4 mr-2" />
-                    {t('help.menu.reloadOnlook')}
-                </DropdownMenuItem>
                 <DropdownMenuSub>
                     <DropdownMenuSubTrigger className="text-sm">
                         {theme === SystemTheme.DARK && <Icons.Moon className="w-4 h-4 mr-2" />}
@@ -135,12 +131,7 @@ export const HelpDropdown = observer(() => {
                             {t('help.menu.contactUs.github')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            onClick={() =>
-                                invokeMainChannel(
-                                    MainChannels.OPEN_EXTERNAL_WINDOW,
-                                    'mailto:contact@onlook.com',
-                                )
-                            }
+                            onClick={() => window.open('mailto:support@onlook.com', '_blank')}
                         >
                             <Icons.EnvelopeClosed className="w-4 h-4 mr-2" />
                             {t('help.menu.contactUs.email')}

@@ -133,8 +133,7 @@ export const Icons = {
     OnlookLogo: ({ className, ...props }: IconProps) => (
         <svg
             xmlns="http://www.w3.org/2000/svg"
-            width={22}
-            height={22}
+            viewBox="0 0 22 22"
             fill="none"
             className={className}
             {...props}
@@ -250,10 +249,11 @@ export const Icons = {
     OnlookTextLogo: ({ className, ...props }: IconProps) => (
         <svg
             xmlns="http://www.w3.org/2000/svg"
-            width={139}
-            height={17}
+            width="139"
+            height="17"
+            viewBox="0 0 139 17"
             fill="none"
-            className={cn('w-1/4 dark:invert', className)}
+            className={cn('w-auto h-auto preserve-aspect-ratio dark:invert', className)}
             {...props}
         >
             <path

@@ -1,4 +1,4 @@
-import type { DomElement } from '@onlook/models';
+import type { DomElement, DomElementStyles } from '@onlook/models';
 import {
     type Change,
     type StyleActionTarget,
@@ -6,12 +6,12 @@ import {
 } from '@onlook/models/actions';
 import { StyleChangeType, type StyleChange } from '@onlook/models/style';
 import { makeAutoObservable, reaction } from 'mobx';
-import type { EditorEngine } from '..';
 import type { CSSProperties } from 'react';
+import type { EditorEngine } from '..';
 
 
 export interface SelectedStyle {
-    styles: CSSProperties;
+    styles: DomElementStyles;
     parentRect: DOMRect;
     rect: DOMRect;
 }
@@ -46,7 +46,7 @@ export class StyleManager {
         this.updateMultiple({ [style]: value });
     }
 
-    updateMultiple(styles: CSSProperties) {
+    updateMultiple(styles: Record<string, string>) {
         const action = this.getUpdateStyleAction(styles);
         this.editorEngine.action.run(action);
         this.updateStyleNoAction(styles);
@@ -140,14 +140,8 @@ export class StyleManager {
         const newMap = new Map<string, SelectedStyle>();
         let newSelectedStyle: SelectedStyle | null = null;
         for (const selectedEl of selectedElements) {
-            const computedStyles = selectedEl.styles?.computed ?? {};
-            const definedStyles = selectedEl.styles?.defined ?? {};
-            const styles: Partial<CSSProperties> = {
-                ...computedStyles,
-                ...definedStyles,
-            };
             const selectedStyle: SelectedStyle = {
-                styles: styles as CSSProperties,
+                styles: selectedEl.styles ?? ({ defined: {}, computed: {} } as DomElementStyles),
                 parentRect: selectedEl?.parent?.rect ?? ({} as DOMRect),
                 rect: selectedEl?.rect ?? ({} as DOMRect),
             };
@@ -157,10 +151,6 @@ export class StyleManager {
         this.domIdToStyle = newMap;
         this.selectedStyle = newSelectedStyle;
     }
-
-    // getValue(style: keyof CSSProperties): string | null {
-    //     return this.selectedStyle?.styles[style] ?? null;
-    // }
 
     clear() {
         // Clear state

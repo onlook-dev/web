@@ -68,7 +68,7 @@ export class AstManager {
             console.warn('Failed to processNodeForMap: No oid found');
             return;
         }
-        const templateNode = await this.getTemplateNodeById(node.oid);
+        const templateNode = await this.editorEngine.sandbox.getTemplateNode(node.oid);
         if (!templateNode) {
             console.warn('Failed to processNodeForMap: Template node not found');
             return;
@@ -127,7 +127,7 @@ export class AstManager {
             console.warn('Failed to findNodeInstance: Parent has no oid');
             return;
         }
-        const parentTemplateNode = await this.getTemplateNodeById(parent.oid);
+        const parentTemplateNode = await this.editorEngine.sandbox.getTemplateNode(parent.oid);
         if (!parentTemplateNode) {
             console.warn('Failed to findNodeInstance: Parent template node not found');
             return;
@@ -176,14 +176,6 @@ export class AstManager {
             return null;
         }
         return doc.querySelector(`[${EditorAttributes.DATA_ONLOOK_DOM_ID}='${domId}']`) || null;
-    }
-
-    async getTemplateNodeById(oid: string | null): Promise<TemplateNode | null> {
-        if (!oid) {
-            console.warn('Failed to getTemplateNodeById: No oid found');
-            return null;
-        }
-        return invokeMainChannel(MainChannels.GET_TEMPLATE_NODE, { id: oid });
     }
 
     updateElementInstance(frameId: string, domId: string, instanceId: string, component: string) {

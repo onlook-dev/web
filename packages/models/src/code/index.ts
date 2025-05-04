@@ -13,3 +13,8 @@ export interface CodeDiff {
     generated: string;
     path: string;
 }
+
+export type FileToRequests = Map<string, {
+    oidToRequest: Map<string, CodeDiffRequest>;
+    content: string;
+}>;

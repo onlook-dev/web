@@ -1,4 +1,5 @@
 import type { CoreElementType, DomElement, DynamicType } from '@onlook/models';
+import type { RemoveElementAction } from '@onlook/models/actions';
 import { toast } from '@onlook/ui/use-toast';
 import { makeAutoObservable } from 'mobx';
 import type { EditorEngine } from '..';
@@ -10,7 +11,7 @@ export class ElementsManager {
     private _selected: DomElement[] = [];
 
     constructor(private editorEngine: EditorEngine) {
-        makeAutoObservable(this, {});
+        makeAutoObservable(this);
     }
 
     get hovered() {
@@ -25,7 +26,12 @@ export class ElementsManager {
         this._selected = elements;
     }
 
-    mouseover(domEl: DomElement, frameData: FrameData) {
+    mouseover(domEl: DomElement) {
+        const frameData = this.editorEngine.frames.get(domEl.frameId);
+        if (!frameData) {
+            console.error('Frame data not found');
+            return;
+        }
         if (this._hovered?.domId && this._hovered.domId === domEl.domId) {
             return;
         }
@@ -41,7 +47,7 @@ export class ElementsManager {
         this.setHoveredElement(frameEl);
     }
 
-    shiftClick(domEl: DomElement, frameData: FrameData) {
+    shiftClick(domEl: DomElement) {
         const selectedEls = this.selected;
         const isAlreadySelected = selectedEls.some((el) => el.domId === domEl.domId);
         let newSelectedEls: DomElement[] = [];
@@ -50,15 +56,20 @@ export class ElementsManager {
         } else {
             newSelectedEls = [...selectedEls, domEl];
         }
-        this.click(newSelectedEls, frameData);
+        this.click(newSelectedEls);
     }
 
-    click(domEls: DomElement[], frameData: FrameData) {
-        const { view } = frameData;
+    click(domEls: DomElement[]) {
         this.editorEngine.overlay.state.removeClickRects();
         this.clearSelectedElements();
 
         for (const domEl of domEls) {
+            const frameData = this.editorEngine.frames.get(domEl.frameId);
+            if (!frameData) {
+                console.error('Frame data not found');
+                continue;
+            }
+            const { view } = frameData;
             const adjustedRect = adaptRectToCanvas(domEl.rect, view);
             const isComponent = !!domEl.instanceId;
             this.editorEngine.overlay.state.addClickRect(
@@ -71,25 +82,21 @@ export class ElementsManager {
         }
     }
 
-    async refreshSelectedElements(frame: FrameData) {
-        const newSelected: DomElement[] = [];
-        for (const el of this.selected) {
-            const newEl: DomElement | null = await frame.view.getElementByDomId(el.domId, true);
-            if (!newEl) {
-                console.error('Element not found');
-                continue;
-            }
-            newSelected.push(newEl);
-        }
-        this.click(newSelected, frame);
-    }
-
     setHoveredElement(element: DomElement) {
         this._hovered = element;
     }
 
     clearHoveredElement() {
         this._hovered = undefined;
+    }
+
+    emitError(error: string) {
+        console.error(error);
+        toast({
+            title: 'Cannot delete element',
+            description: error,
+            variant: 'destructive',
+        });
     }
 
     async delete() {
@@ -105,42 +112,36 @@ export class ElementsManager {
                 console.error('Frame data not found');
                 return;
             }
-            const { view, frame } = frameData;
-
             const { shouldDelete, error } = await this.shouldDelete(selectedEl, frameData);
 
             if (!shouldDelete) {
-                toast({
-                    title: 'Cannot delete element',
-                    description: error,
-                    variant: 'destructive',
-                });
+                this.emitError(error ?? 'Unknown error');
                 return;
             }
 
-            const removeAction = await frameData.view.getRemoveAction(selectedEl.domId, frameId);
+            const removeAction: RemoveElementAction | null = await frameData.view.getRemoveAction(selectedEl.domId, frameId);
+
             if (!removeAction) {
-                console.error('Remove action not found');
-                toast({
-                    title: 'Cannot delete element',
-                    description: 'Remove action not found. Try refreshing the page.',
-                    variant: 'destructive',
-                });
+                this.emitError('Remove action not found. Try refreshing the page.');
                 return;
             }
             const oid = selectedEl.instanceId ?? selectedEl.oid;
-            const codeBlock = await this.editorEngine.code.getCodeBlock(oid);
+            if (!oid) {
+                this.emitError('OID not found. Try refreshing the page.');
+                return;
+            }
+            const codeBlock = await this.editorEngine.sandbox.getCodeBlock(oid);
+
             if (!codeBlock) {
-                toast({
-                    title: 'Cannot delete element',
-                    description: 'Code block not found. Try refreshing the page.',
-                    variant: 'destructive',
-                });
+                this.emitError('Code block not found. Try refreshing the page.');
                 return;
             }
 
             removeAction.codeBlock = codeBlock;
-            this.editorEngine.action.run(removeAction);
+
+            this.editorEngine.action.run(removeAction).catch((err) => {
+                console.error('Error deleting element', err);
+            });
         }
     }
 

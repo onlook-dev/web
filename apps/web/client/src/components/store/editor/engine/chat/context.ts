@@ -1,4 +1,4 @@
-// import type { ProjectsManager } from '@/lib/projects';
+import type { ProjectManager } from '@/components/store/project';
 import type { DomElement } from '@onlook/models';
 import {
     MessageContextType,
@@ -12,26 +12,19 @@ import {
 import type { ParsedError } from '@onlook/utility';
 import { makeAutoObservable, reaction } from 'mobx';
 import type { EditorEngine } from '..';
+
 export class ChatContext {
-    context: ChatMessageContext[] = [];
+    context: ChatMessageContext[] = this.getProjectContext();
 
     constructor(
         private editorEngine: EditorEngine,
-        // private projectsManager: ProjectsManager,
+        private projectManager: ProjectManager,
     ) {
         makeAutoObservable(this);
-        // reaction(
-        //     () => this.editorEngine.elements.selected,
-        //     () => this.getChatContext().then((context) => (this.context = context)),
-        // );
-        // reaction(
-        //     () => this.projectsManager.project?.folderPath,
-        //     (folderPath) => {
-        //         if (folderPath) {
-        //             this.getChatContext().then((context) => (this.context = context));
-        //         }
-        //     },
-        // );
+        reaction(
+            () => this.editorEngine.elements.selected,
+            () => this.getChatContext().then((context) => (this.context = context)),
+        );
     }
 
     async getChatContext(): Promise<ChatMessageContext[]> {
@@ -58,7 +51,7 @@ export class ChatContext {
     private async getFileContext(fileNames: Set<string>): Promise<FileMessageContext[]> {
         const fileContext: FileMessageContext[] = [];
         for (const fileName of fileNames) {
-            const fileContent = await this.editorEngine.code.getFileContent(fileName, false);
+            const fileContent = await this.editorEngine.sandbox.readFile(fileName);
             if (fileContent === null) {
                 continue;
             }
@@ -83,12 +76,12 @@ export class ChatContext {
                 continue;
             }
 
-            const codeBlock = await this.editorEngine.code.getCodeBlock(oid, true);
+            const codeBlock = await this.editorEngine.sandbox.getCodeBlock(oid);
             if (codeBlock === null) {
                 continue;
             }
 
-            const templateNode = await this.editorEngine.ast.getTemplateNodeById(oid);
+            const templateNode = await this.editorEngine.sandbox.getTemplateNode(oid);
             if (!templateNode) {
                 continue;
             }
@@ -111,57 +104,13 @@ export class ChatContext {
         this.context = [];
     }
 
-    async addScreenshotContext() {
-        const screenshot = await this.getScreenshotContext();
-        if (screenshot) {
-            this.context.push(screenshot);
-        }
-    }
-
-    async getScreenshotContext(): Promise<ImageMessageContext | null> {
-        if (this.editorEngine.elements.selected.length === 0) {
-            return null;
-        }
-        const frameId = this.editorEngine.elements.selected[0].frameId;
-        if (!frameId) {
-            return null;
-        }
-
-        const timestamp = Date.now();
-        const screenshotName = `chat-screenshot-${timestamp}`;
-
-        try {
-            const result = await this.editorEngine.takeWebviewScreenshot(screenshotName, frameId);
-            if (!result?.image) {
-                console.error('Failed to capture screenshot');
-                return null;
-            }
-            const { image } = result;
-
-            return {
-                type: MessageContextType.IMAGE,
-                content: image,
-                mimeType: 'image/png',
-                displayName: 'screen',
-            };
-        } catch (error) {
-            console.error('Failed to capture screenshot:', error);
-            return null;
-        }
-    }
-
     getProjectContext(): ProjectMessageContext[] {
-        const folderPath = this.projectsManager.project?.folderPath;
-        if (!folderPath) {
-            return [];
-        }
-
         return [
             {
                 type: MessageContextType.PROJECT,
                 content: '',
                 displayName: 'Project',
-                path: folderPath,
+                path: './',
             },
         ];
     }
@@ -182,13 +131,5 @@ export class ChatContext {
 
     async clearAttachments() {
         this.context = this.context.filter((context) => context.type !== MessageContextType.IMAGE);
-    }
-
-    dispose() {
-        // Clear context
-        this.clear();
-
-        // Clear references
-        this.editorEngine = null as any;
     }
 }

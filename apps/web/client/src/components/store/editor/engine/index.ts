@@ -1,11 +1,11 @@
+import { type ProjectManager } from '@/components/store/project';
 import { makeAutoObservable } from 'mobx';
-
-import { type ProjectManager } from '@/components/store/projects';
+import type { UserManager } from '../../user';
 import { ActionManager } from './action';
 import { AstManager } from './ast';
 import { CanvasManager } from './canvas';
 import { ChatManager } from './chat';
-import { type CodeManager } from './code';
+import { CodeManager } from './code';
 import { CopyManager } from './copy';
 import { ElementsManager } from './element';
 import { ErrorManager } from './error';
@@ -18,30 +18,27 @@ import { InsertManager } from './insert';
 import { MoveManager } from './move';
 import { OverlayManager } from './overlay';
 import { PagesManager } from './pages';
-import { ProjectInfoManager } from './projectinfo';
 import { SandboxManager } from './sandbox';
 import { StateManager } from './state';
 import { StyleManager } from './style';
 import { TextEditingManager } from './text';
 import { ThemeManager } from './theme';
+import { WindowManager } from './window';
 
 export class EditorEngine {
     readonly chat: ChatManager;
-    readonly code: CodeManager;
     readonly error: ErrorManager;
     readonly image: ImageManager;
-    readonly frames: FramesManager;
     readonly theme: ThemeManager;
     readonly font: FontManager;
     readonly pages: PagesManager;
 
     readonly canvas: CanvasManager = new CanvasManager();
     readonly state: StateManager = new StateManager();
+    readonly sandbox: SandboxManager = new SandboxManager();
     readonly history: HistoryManager = new HistoryManager(this);
     readonly elements: ElementsManager = new ElementsManager(this);
     readonly overlay: OverlayManager = new OverlayManager(this);
-
-    readonly projectInfo: ProjectInfoManager = new ProjectInfoManager();
     readonly text: TextEditingManager = new TextEditingManager(this);
     readonly insert: InsertManager = new InsertManager(this);
     readonly move: MoveManager = new MoveManager(this);
@@ -50,48 +47,24 @@ export class EditorEngine {
     readonly ast: AstManager = new AstManager(this);
     readonly action: ActionManager = new ActionManager(this);
     readonly style: StyleManager = new StyleManager(this);
-    readonly sandbox: SandboxManager = new SandboxManager(this);
+    readonly frames: FramesManager = new FramesManager(this);
+    readonly code: CodeManager = new CodeManager(this);
 
-    // TODO: Window, Frames, Webviews should be Frames
-    // readonly window: WindowManager = new WindowManager(this);
+    // TODO: This could be part of frames manager
+    readonly window: WindowManager = new WindowManager(this);
 
     constructor(
-        private projectsManager: ProjectManager,
-        // private userManager: UserManager,
+        private projectManager: ProjectManager,
+        private userManager: UserManager,
     ) {
         makeAutoObservable(this);
-        this.chat = new ChatManager(this,
-            this.projectsManager,
-            // this.userManager
-        );
-        this.frames = new FramesManager(this,
-            // this.projectsManager
-        );
-        // this.code = new CodeManager(this, this.projectsManager);
-        this.pages = new PagesManager(this,
-            // this.projectsManager
-        );
-        this.error = new ErrorManager(this, this.projectsManager);
-        // this.image = new ImageManager(this,this.projectsManager);
-        // this.error = new ErrorManager(this, this.projectsManager);
-        this.image = new ImageManager(this
-            // ,this.projectsManager
-        );
-        this.theme = new ThemeManager(this
-            // , this.projectsManager
-        );
-        this.font = new FontManager(this
-            // , this.projectsManager
-        );
+        this.chat = new ChatManager(this, this.projectManager, this.userManager);
+        this.pages = new PagesManager(this, this.projectManager);
+        this.error = new ErrorManager(this, this.projectManager);
+        this.image = new ImageManager(this, this.projectManager);
+        this.theme = new ThemeManager(this, this.projectManager);
+        this.font = new FontManager(this, this.projectManager);
     }
-
-    // get errors() {
-    //     return this.errorManager;
-    // }
-
-    // get pages() {
-    //     return this.pagesManager;
-    // }
 
     clear() {
         // TODO: Choose dispose or clear

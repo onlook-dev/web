@@ -31,8 +31,9 @@
         "@onlook/typescript": "*"
     },
     "dependencies": {
+        "@onlook/fonts": "*",
+        "browser-image-compression": "^2.0.2",
         "normalize-url": "^8.0.1",
-        "tldts": "^6.1.82",
-        "@onlook/fonts": "*"
+        "tldts": "^6.1.82"
     }
 }

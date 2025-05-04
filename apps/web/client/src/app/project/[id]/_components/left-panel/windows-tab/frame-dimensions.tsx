@@ -68,21 +68,21 @@ const deviceOptions: DeviceOptions = {
     },
 };
 
-export const FrameDimensions = ({ settings }: { settings: Frame }) => {
+export const FrameDimensions = ({ frame }: { frame: Frame }) => {
     const editorEngine = useEditorEngine();
-    const [device, setDevice] = useState(settings.device ?? DefaultSettings.DEVICE);
+    const [device, setDevice] = useState(frame.device ?? DefaultSettings.DEVICE);
     const [orientation, setOrientation] = useState(
-        settings.orientation ?? DefaultSettings.ORIENTATION,
+        frame.orientation ?? DefaultSettings.ORIENTATION,
     );
     const [width, setWidth] = useState(
-        settings.dimension.width ?? DefaultSettings.FRAME_DIMENSION.width,
+        frame.dimension.width ?? DefaultSettings.FRAME_DIMENSION.width,
     );
     const [height, setHeight] = useState(
-        settings.dimension.height ?? DefaultSettings.FRAME_DIMENSION.height,
+        frame.dimension.height ?? DefaultSettings.FRAME_DIMENSION.height,
     );
     // const [responsive, setResponsive] = useState('Closest Size');
     const [aspectRatioLocked, setAspectRatioLocked] = useState(
-        settings.aspectRatioLocked ?? DefaultSettings.ASPECT_RATIO_LOCKED,
+        frame.aspectRatioLocked ?? DefaultSettings.ASPECT_RATIO_LOCKED,
     );
     const [aspectRatio, setAspectRatio] = useState(width / height);
     const [step, setStep] = useState(1);
@@ -101,23 +101,23 @@ export const FrameDimensions = ({ settings }: { settings: Frame }) => {
             }
         };
 
-        editorEngine.canvas.observeSettings(settings.id, observer);
+        editorEngine.canvas.observeSettings(frame.id, observer);
 
-        return editorEngine.canvas.unobserveSettings(settings.id, observer);
+        return editorEngine.canvas.unobserveSettings(frame.id, observer);
     }, []);
 
     useEffect(() => {
-        setDevice(settings.device || DefaultSettings.DEVICE);
-        setOrientation(settings.orientation || DefaultSettings.ORIENTATION);
-        setWidth(settings.dimension.width || DefaultSettings.FRAME_DIMENSION.width);
-        setHeight(settings.dimension.height || DefaultSettings.FRAME_DIMENSION.height);
-        setAspectRatioLocked(settings.aspectRatioLocked || DefaultSettings.ASPECT_RATIO_LOCKED);
-    }, [settings.id]);
+        setDevice(frame.device || DefaultSettings.DEVICE);
+        setOrientation(frame.orientation || DefaultSettings.ORIENTATION);
+        setWidth(frame.dimension.width || DefaultSettings.FRAME_DIMENSION.width);
+        setHeight(frame.dimension.height || DefaultSettings.FRAME_DIMENSION.height);
+        setAspectRatioLocked(frame.aspectRatioLocked || DefaultSettings.ASPECT_RATIO_LOCKED);
+    }, [frame.id]);
 
     useEffect(() => {
         const [deviceCategory, deviceName] = device.split(':');
         if (deviceName === 'Custom') {
-            editorEngine.canvas.saveFrame(settings.id, {
+            editorEngine.canvas.saveFrame(frame.id, {
                 device: device,
             });
             return;

@@ -15,6 +15,7 @@ const config = {
         },
         extend: {
             colors: {
+                ...colors,
                 background: {
                     DEFAULT: 'hsl(var(--background))',
                     onlook: 'hsl(var(--background-onlook))',
@@ -122,7 +123,6 @@ const config = {
                 },
                 input: 'hsl(var(--input))',
                 ring: 'hsl(var(--ring))',
-                ...colors,
             },
             fontSize: {
                 title1: [

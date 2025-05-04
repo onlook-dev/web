@@ -1,5 +1,6 @@
 import { sendAnalytics } from '@/utils/analytics';
 import { CodeBlockProcessor } from '@onlook/ai';
+import type { WriteCodeAction } from '@onlook/models/actions';
 import { ChatMessageRole, type AssistantChatMessage, type CodeBlock } from '@onlook/models/chat';
 import type { CodeDiff } from '@onlook/models/code';
 import { toast } from '@onlook/ui/use-toast';
@@ -31,12 +32,12 @@ export class ChatCodeManager {
 
         const fileToCodeBlocks = this.getFileToCodeBlocks(message);
 
-        for (const [file, codeBlocks] of fileToCodeBlocks) {
+        for (const [filePath, codeBlocks] of fileToCodeBlocks) {
             // If file doesn't exist, we'll assume it's a new file and create it
             const originalContent =
-                (await this.editorEngine.code.getFileContent(file, false)) || '';
+                (await this.editorEngine.sandbox.readFile(filePath)) || '';
             if (originalContent == null) {
-                console.error('Failed to get file content', file);
+                console.error('Failed to get file content', filePath);
                 continue;
             }
             let content = originalContent;
@@ -53,15 +54,15 @@ export class ChatCodeManager {
                 content = result.text;
             }
 
-            const success = await this.writeFileContent(file, content, originalContent);
+            const success = await this.editorEngine.sandbox.writeFile(filePath, content);
             if (!success) {
                 console.error('Failed to write file content');
                 continue;
             }
 
             message.applied = true;
-            message.snapshots[file] = {
-                path: file,
+            message.snapshots[filePath] = {
+                path: filePath,
                 original: originalContent,
                 generated: content,
             };
@@ -71,14 +72,14 @@ export class ChatCodeManager {
 
         const selectedWebviews = this.editorEngine.frames.selected;
         for (const frame of selectedWebviews) {
-            await this.editorEngine.ast.refreshAstDoc(frame);
+            await this.editorEngine.ast.refreshAstDoc(frame.view);
         }
 
         this.chat.suggestions.shouldHide = false;
 
         setTimeout(() => {
             this.editorEngine.frames.reload();
-            this.editorEngine.errors.clear();
+            this.editorEngine.error.clear();
         }, 500);
         sendAnalytics('apply code change');
     }
@@ -131,21 +132,20 @@ export class ChatCodeManager {
                 generated: content,
             },
         ];
-        this.editorEngine.code.runCodeDiffs(codeDiff);
+        const action: WriteCodeAction = {
+            type: 'write-code',
+            diffs: codeDiff,
+        };
+        this.editorEngine.action.run(action);
         return true;
     }
 
     getFileToCodeBlocks(message: AssistantChatMessage) {
-        // TODO: Need to handle failure cases
-        const content = message.content;
-        const contentString =
-            typeof content === 'string'
-                ? content
-                : content.map((part) => (part.type === 'text' ? part.text : '')).join('');
-        const codeBlocks = this.processor.extractCodeBlocks(contentString);
+        const codeBlocks = this.processor.extractCodeBlocks(message.content);
         const fileToCode: Map<string, CodeBlock[]> = new Map();
         for (const codeBlock of codeBlocks) {
             if (!codeBlock.fileName) {
+                console.error('No file name found in code block', codeBlock);
                 continue;
             }
             fileToCode.set(codeBlock.fileName, [
@@ -156,12 +156,5 @@ export class ChatCodeManager {
         return fileToCode;
     }
 
-    dispose() {
-        // Clean up processor
-        this.processor = null as any;
-
-        // Clear references
-        this.chat = null as any;
-        this.editorEngine = null as any;
-    }
+    clear() { }
 }
