@@ -1,4 +1,4 @@
-project_id = "web"
+project_id = "onlook-web"
 
 [api]
 enabled = true
