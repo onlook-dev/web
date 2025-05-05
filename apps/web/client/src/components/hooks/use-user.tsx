@@ -8,7 +8,7 @@ type UserContextType = {
     user: User | null;
     name: string | null;
     image: string | null;
-    handleSignOut: () => Promise<void>;
+    handleSignOut: (redirectRoute?: string) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -42,9 +42,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         fetchUser();
     }, []);
 
-    const handleSignOut = async () => {
+    const handleSignOut = async (redirectRoute?: string) => {
         await supabase.auth.signOut();
-        redirect(Routes.LOGIN);
+        clearUser();
+        redirect(redirectRoute || Routes.LOGIN);
+    }
+
+    const clearUser = () => {
+        setUser(null);
+        setName(null);
+        setImage(null);
     }
 
     return <UserContext.Provider value={{ user, name, image, handleSignOut }}>{children}</UserContext.Provider>;
