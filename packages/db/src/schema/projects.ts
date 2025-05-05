@@ -7,7 +7,6 @@ export const projects = pgTable("projects", {
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     previewImg: varchar("preview_img", { length: 2048 }),
-    sandboxId: varchar("sandbox_id", { length: 64 }),
 });
 
 export type Project = typeof projects.$inferSelect;
