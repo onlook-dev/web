@@ -1,12 +1,14 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { SignInMethod } from '@onlook/models'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-export async function login(provider: 'github' | 'google') {
+export async function login(provider: SignInMethod) {
     const supabase = await createClient()
     const origin = (await headers()).get('origin')
+
     // If already session, redirect
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
