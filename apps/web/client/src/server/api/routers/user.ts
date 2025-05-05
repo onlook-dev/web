@@ -1,4 +1,4 @@
-import { userInsertSchema, users } from "@onlook/db";
+import { userInsertSchema, userProjects, users } from "@onlook/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
@@ -8,7 +8,11 @@ export const userRouter = createTRPCRouter({
         const user = await ctx.db.query.users.findFirst({
             where: eq(users.id, input),
             with: {
-                projects: true,
+                userProjects: {
+                    with: {
+                        project: true,
+                    }
+                }
             }
         })
         return user
@@ -20,4 +24,13 @@ export const userRouter = createTRPCRouter({
         }
         return user[0]
     }),
-});  
+    getProjects: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
+        const projects = await ctx.db.query.userProjects.findMany({
+            where: eq(userProjects.userId, input),
+            with: {
+                project: true,
+            }
+        })
+        return projects
+    }),
+});
