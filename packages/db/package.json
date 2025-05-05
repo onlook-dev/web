@@ -7,8 +7,8 @@
     "scripts": {
         "lint": "eslint .",
         "typecheck": "tsc --noEmit",
-        "db:generate": "drizzle-kit generate:pg",
-        "db:push": "drizzle-kit push:pg",
+        "db:gen": "drizzle-kit generate",
+        "db:push": "drizzle-kit push",
         "db:studio": "drizzle-kit studio"
     },
     "dependencies": {
