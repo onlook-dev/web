@@ -8,8 +8,8 @@ import { usePathname } from 'next/navigation'
 
 export const CurrentUserAvatar = ({ className }: { className?: string }) => {
     const currentPath = usePathname()
-    const { image, name, handleSignOut } = useUserContext()
-    const initials = name
+    const { user, handleSignOut } = useUserContext()
+    const initials = user?.name
         ?.split(' ')
         ?.map((word) => word[0])
         ?.join('')
@@ -19,7 +19,7 @@ export const CurrentUserAvatar = ({ className }: { className?: string }) => {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Avatar className={className}>
-                    {image && <AvatarImage src={image} alt={initials} />}
+                    {user?.image && <AvatarImage src={user.image} alt={initials} />}
                     <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
