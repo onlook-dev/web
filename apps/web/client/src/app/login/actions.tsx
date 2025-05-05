@@ -15,6 +15,8 @@ export async function login(provider: SignInMethod) {
         redirect('/')
     }
 
+    // Start OAuth flow
+    // Note: User object will be created in the auth callback route if it doesn't exist
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
