@@ -6,6 +6,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 type UserContextType = {
     user: User | null;
+    name: string | null;
+    image: string | null;
     handleSignOut: () => Promise<void>;
 };
 
@@ -14,6 +16,8 @@ const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     const [user, setUser] = useState<User | null>(null);
+    const [image, setImage] = useState<string | null>(null);
+    const [name, setName] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -21,8 +25,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             if (supabaseUser) {
                 // Map Supabase user to our app's User type
                 setUser({
-                    name: supabaseUser.user_metadata?.name || supabaseUser.email || 'Anonymous'
+                    name: supabaseUser.user_metadata?.full_name ||
+                        supabaseUser.user_metadata?.name ||
+                        supabaseUser.email ||
+                        'Anonymous',
                 });
+                setName(supabaseUser.user_metadata?.full_name ||
+                    supabaseUser.user_metadata?.name ||
+                    supabaseUser.email ||
+                    'Anonymous');
+                setImage(supabaseUser.user_metadata?.avatar_url || null);
             } else {
                 setUser(null);
             }
@@ -35,7 +47,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         redirect(Routes.LOGIN);
     }
 
-    return <UserContext.Provider value={{ user, handleSignOut }}>{children}</UserContext.Provider>;
+    return <UserContext.Provider value={{ user, name, image, handleSignOut }}>{children}</UserContext.Provider>;
 }
 
 export function useUserContext() {
