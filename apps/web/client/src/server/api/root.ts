@@ -1,6 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { csbRouter } from "./routers/csb";
-import { editorForwardRouter } from "./routers/editor";
+import { editorForwardRouter } from "./routers/forward/editor";
 import { projectRouter } from "./routers/project";
 import { userRouter } from "./routers/user";
 
