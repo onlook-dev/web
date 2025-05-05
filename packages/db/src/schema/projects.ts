@@ -1,13 +1,13 @@
-import { json, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
-export const projects = pgTable('projects', {
-    id: serial('id').primaryKey(),
-    name: text('name').notNull(),
-    description: text('description'),
-    userId: text('user_id').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    data: json('data')
+export const projects = pgTable("projects", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }),
+    previewUrl: varchar("preview_url", { length: 2048 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    previewImg: varchar("preview_img", { length: 2048 }),
+    sandboxId: varchar("sandbox_id", { length: 64 }),
 });
 
 export type Project = typeof projects.$inferSelect;
