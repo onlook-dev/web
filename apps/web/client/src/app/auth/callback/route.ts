@@ -36,7 +36,7 @@ async function getOrCreateUser(userId: string): Promise<User> {
     const user = await api.user.getById(userId)
     if (!user) {
         console.log(`User ${userId} not found, creating...`)
-        const newUser = await api.user.create(userId)
+        const newUser = await api.user.create({ id: userId })
         return newUser
     }
     console.log(`User ${userId} found, returning...`)
