@@ -1,11 +1,10 @@
 import generate from '@babel/generator';
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
-import type { ObjectExpression, ObjectMethod, ObjectProperty, SpreadElement } from '@babel/types';
+import type { ObjectExpression, Node, ObjectMethod, ObjectProperty, SpreadElement } from '@babel/types';
 import type {
     ClassReplacement,
     ColorUpdate,
-    ConfigUpdateResult,
     UpdateResult,
 } from '@onlook/models/assets';
 import { SystemTheme } from '@onlook/models/assets';
@@ -382,106 +381,6 @@ export function extractColorsFromTailwindConfig(fileContent: string): Record<str
     }
 }
 
-
-
-async function deleteColorGroup(
-    { configPath, cssPath, configContent, cssContent }: ColorUpdate,
-    groupName: string,
-    projectRoot: string,
-    colorName?: string,
-): Promise<UpdateResult> {
-    const camelCaseName = camelCase(groupName);
-
-    // Update config file
-    const updateAst = parse(configContent, {
-        sourceType: 'module',
-        plugins: ['typescript', 'jsx'],
-    });
-
-    traverse(updateAst, {
-        ObjectProperty(path) {
-            if (isColorsObjectProperty(path)) {
-                const colorObj = path.node.value;
-                if (!isObjectExpression(colorObj)) {
-                    return;
-                }
-
-                // Find the group
-                const groupProp = colorObj.properties.find((prop) =>
-                    isValidTailwindConfigProperty(prop, camelCaseName),
-                );
-
-                if (groupProp && 'value' in groupProp) {
-                    if (isObjectExpression(groupProp.value)) {
-                        if (colorName) {
-                            // Delete specific color within group
-                            const colorIndex = groupProp.value.properties.findIndex((prop) =>
-                                isValidTailwindConfigProperty(prop, colorName),
-                            );
-
-                            if (colorIndex !== -1) {
-                                groupProp.value.properties.splice(colorIndex, 1);
-
-                                // If group is empty after deletion, remove the entire group
-                                if (groupProp.value.properties.length === 0) {
-                                    const groupIndex = colorObj.properties.indexOf(groupProp);
-                                    colorObj.properties.splice(groupIndex, 1);
-                                }
-                            }
-                        } else {
-                            // Delete entire group
-                            const index = colorObj.properties.indexOf(groupProp);
-                            colorObj.properties.splice(index, 1);
-                        }
-                    } else {
-                        // Delete entire group if it's direct value
-                        const index = colorObj.properties.indexOf(groupProp);
-                        colorObj.properties.splice(index, 1);
-                    }
-                }
-            }
-        },
-    });
-
-    // Update CSS file
-    const cssLines = cssContent.split('\n');
-    const updatedCssLines = cssLines.filter((line) => {
-        const trimmedLine = line.trim();
-        if (colorName) {
-            // Only remove the specific color variable
-            const shouldKeep = !trimmedLine.endsWith(`--${camelCaseName}-${colorName}`);
-            if (!shouldKeep) {
-                console.log('Removing CSS variable:', trimmedLine);
-            }
-            return shouldKeep;
-        }
-        // Remove all variables that start with the group name
-        const shouldKeep = !trimmedLine.startsWith(`--${camelCaseName}`);
-        if (!shouldKeep) {
-            console.log('Removing CSS variable:', trimmedLine);
-        }
-        return shouldKeep;
-    });
-    const updatedCssContent = updatedCssLines.join('\n');
-    const formattedCssContent = await formatContent(cssPath, updatedCssContent);
-    await writeFile(cssPath, formattedCssContent);
-
-    const output = generate(updateAst, {}, configContent);
-    const formattedContent = await formatContent(configPath, output.code);
-    await writeFile(configPath, formattedContent);
-
-    // Also delete the color group in the class references
-    const replacements: ClassReplacement[] = [];
-    replacements.push({
-        oldClass: camelCaseName,
-        newClass: '',
-    });
-    await updateClassReferences(projectRoot, replacements);
-
-    return { success: true };
-}
-
-
 /**
  * Check if the property is a valid tailwind config property
  * @param prop - The property to check
@@ -535,19 +434,6 @@ export function extractObject(node: Node): Record<string, any> {
     });
 
     return result;
-}
-
-export function isColorsObjectProperty(path: any): boolean {
-    return (
-        path.parent.type === 'ObjectExpression' &&
-        path.node.key.type === 'Identifier' &&
-        path.node.key.name === 'colors' &&
-        path.node.value.type === 'ObjectExpression'
-    );
-}
-
-export function isObjectExpression(node: any): node is ObjectExpression {
-    return node.type === 'ObjectExpression';
 }
 
 

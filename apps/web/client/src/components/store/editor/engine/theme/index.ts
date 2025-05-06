@@ -21,8 +21,6 @@ import {
   addTailwindRootColor,
   extractColorsFromTailwindConfig,
   extractTailwindCssVariables,
-  isColorsObjectProperty,
-  isObjectExpression,
   isValidTailwindConfigProperty,
   modifyTailwindConfig,
   updateTailwindCssVariable,
@@ -31,7 +29,7 @@ import traverse from "@babel/traverse";
 import { parse } from "@babel/parser";
 import generate from "@babel/generator";
 import type { CodeDiffRequest } from "@onlook/models/code";
-import { transformAst } from "@onlook/parser";
+import { getNodeClasses, isObjectExpression, isColorsObjectProperty, transformAst } from "@onlook/parser";
 import { getOidFromJsxElement } from "@onlook/parser/src/code-edit/helpers";
 
 interface ColorValue {
@@ -315,7 +313,7 @@ export class ThemeManager {
             lightModeColors[`${colorName}-${shade}`]?.value;
           const darkModeValue = darkModeColors[`${colorName}-${shade}`]?.value;
           colorItems.push({
-            name: shade,
+            name: shade ?? "",
             originalKey: `${colorName}-${shade}`,
             lightColor: lightModeValue ?? "",
             darkColor: darkModeValue ?? "",
@@ -435,88 +433,90 @@ export class ThemeManager {
 
       // Update config file
       const updateAst = parse(configContent, {
-          sourceType: 'module',
-          plugins: ['typescript', 'jsx'],
+        sourceType: "module",
+        plugins: ["typescript", "jsx"],
       });
-  
+
       traverse(updateAst, {
-          ObjectProperty(path) {
-              if (isColorsObjectProperty(path)) {
-                  const colorObj = path.node.value;
-                  if (!isObjectExpression(colorObj)) {
-                      return;
-                  }
-  
-                  // Find the group
-                  const groupProp = colorObj.properties.find((prop) =>
-                      isValidTailwindConfigProperty(prop, camelCaseName),
+        ObjectProperty(path) {
+          if (isColorsObjectProperty(path)) {
+            const colorObj = path.node.value;
+            if (!isObjectExpression(colorObj)) {
+              return;
+            }
+
+            // Find the group
+            const groupProp = colorObj.properties.find((prop) =>
+              isValidTailwindConfigProperty(prop, camelCaseName),
+            );
+
+            if (groupProp && "value" in groupProp) {
+              if (isObjectExpression(groupProp.value)) {
+                if (colorName) {
+                  // Delete specific color within group
+                  const colorIndex = groupProp.value.properties.findIndex(
+                    (prop) => isValidTailwindConfigProperty(prop, colorName),
                   );
-  
-                  if (groupProp && 'value' in groupProp) {
-                      if (isObjectExpression(groupProp.value)) {
-                          if (colorName) {
-                              // Delete specific color within group
-                              const colorIndex = groupProp.value.properties.findIndex((prop) =>
-                                  isValidTailwindConfigProperty(prop, colorName),
-                              );
-  
-                              if (colorIndex !== -1) {
-                                  groupProp.value.properties.splice(colorIndex, 1);
-  
-                                  // If group is empty after deletion, remove the entire group
-                                  if (groupProp.value.properties.length === 0) {
-                                      const groupIndex = colorObj.properties.indexOf(groupProp);
-                                      colorObj.properties.splice(groupIndex, 1);
-                                  }
-                              }
-                          } else {
-                              // Delete entire group
-                              const index = colorObj.properties.indexOf(groupProp);
-                              colorObj.properties.splice(index, 1);
-                          }
-                      } else {
-                          // Delete entire group if it's direct value
-                          const index = colorObj.properties.indexOf(groupProp);
-                          colorObj.properties.splice(index, 1);
-                      }
+
+                  if (colorIndex !== -1) {
+                    groupProp.value.properties.splice(colorIndex, 1);
+
+                    // If group is empty after deletion, remove the entire group
+                    if (groupProp.value.properties.length === 0) {
+                      const groupIndex = colorObj.properties.indexOf(groupProp);
+                      colorObj.properties.splice(groupIndex, 1);
+                    }
                   }
+                } else {
+                  // Delete entire group
+                  const index = colorObj.properties.indexOf(groupProp);
+                  colorObj.properties.splice(index, 1);
+                }
+              } else {
+                // Delete entire group if it's direct value
+                const index = colorObj.properties.indexOf(groupProp);
+                colorObj.properties.splice(index, 1);
               }
-          },
-      });
-  
-      // Update CSS file
-      const cssLines = cssContent.split('\n');
-      const updatedCssLines = cssLines.filter((line) => {
-          const trimmedLine = line.trim();
-          if (colorName) {
-              // Only remove the specific color variable
-              const shouldKeep = !trimmedLine.endsWith(`--${camelCaseName}-${colorName}`);
-              if (!shouldKeep) {
-                  console.log('Removing CSS variable:', trimmedLine);
-              }
-              return shouldKeep;
+            }
           }
-          // Remove all variables that start with the group name
-          const shouldKeep = !trimmedLine.startsWith(`--${camelCaseName}`);
+        },
+      });
+
+      // Update CSS file
+      const cssLines = cssContent.split("\n");
+      const updatedCssLines = cssLines.filter((line) => {
+        const trimmedLine = line.trim();
+        if (colorName) {
+          // Only remove the specific color variable
+          const shouldKeep = !trimmedLine.endsWith(
+            `--${camelCaseName}-${colorName}`,
+          );
           if (!shouldKeep) {
-              console.log('Removing CSS variable:', trimmedLine);
+            console.log("Removing CSS variable:", trimmedLine);
           }
           return shouldKeep;
+        }
+        // Remove all variables that start with the group name
+        const shouldKeep = !trimmedLine.startsWith(`--${camelCaseName}`);
+        if (!shouldKeep) {
+          console.log("Removing CSS variable:", trimmedLine);
+        }
+        return shouldKeep;
       });
-      const updatedCssContent = updatedCssLines.join('\n');
+      const updatedCssContent = updatedCssLines.join("\n");
       await this.editorEngine.sandbox.writeFile(cssPath, updatedCssContent);
-  
+
       const output = generate(updateAst, {}, configContent).code;
       await this.editorEngine.sandbox.writeFile(configPath, output);
-  
+
       // Also delete the color group in the class references
       const replacements: ClassReplacement[] = [];
       replacements.push({
-          oldClass: camelCaseName,
-          newClass: '',
+        oldClass: camelCaseName,
+        newClass: "",
       });
       await this.updateClassReferences(replacements);
-  
+
       return { success: true };
     } catch (error) {
       return {
@@ -580,11 +580,7 @@ export class ThemeManager {
     }
 
     try {
-      await this.updateTailwindColorConfig(
-        "",
-        "#FFFFFF",
-        newName.trim(),
-      );
+      await this.updateTailwindColorConfig("", "#FFFFFF", newName.trim());
       // Refresh colors
       await this.scanConfig();
     } catch (error) {
@@ -956,9 +952,9 @@ export class ThemeManager {
     const { keyUpdated, valueUpdated, output } = this.updateTailwindConfigFile(
       configContent,
       parentKey,
-      keyName,
       newName,
       newCssVarName,
+      keyName,
     );
 
     if (keyUpdated || valueUpdated) {
@@ -1076,9 +1072,9 @@ export class ThemeManager {
   updateTailwindConfigFile(
     configContent: string,
     parentKey: string,
-    keyName: string,
     newName: string,
     newCssVarName: string,
+    keyName?: string,
   ): ConfigUpdateResult {
     let keyUpdated = false;
     let valueUpdated = false;
@@ -1202,7 +1198,9 @@ export class ThemeManager {
 
   async updateClassReferences(replacements: ClassReplacement[]): Promise<void> {
     const sourceFiles = this.editorEngine.sandbox.listAllFiles();
-    const filesToUpdate = sourceFiles.filter((file) => file.endsWith(".tsx")) as string[];
+    const filesToUpdate = sourceFiles.filter((file) =>
+      file.endsWith(".tsx"),
+    ) as string[];
     const contents = await this.editorEngine.sandbox.readFiles(filesToUpdate);
 
     await Promise.all(
