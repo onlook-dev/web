@@ -3,9 +3,16 @@
 import { api } from "@/trpc/react";
 import type { Canvas as DbCanvas, Frame as DbFrame, Project as DbProject } from "@onlook/db";
 import type { Canvas, FrameType, Project, WebFrame } from "@onlook/models";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-export function useProjects(userId: string) {
+type ProjectsContextType = {
+    projects: Project[];
+    isLoadingProjects: boolean;
+};
+
+const ProjectsContext = createContext<ProjectsContextType | null>(null);
+
+export function ProjectsProvider({ userId, children }: { userId: string, children: React.ReactNode }) {
     const { data: fetchedProjects, isLoading: isLoadingProjects } = api.project.getByUserId.useQuery({ id: userId });
     const [projects, setProjects] = useState<Project[]>([]);
 
@@ -61,8 +68,15 @@ export function useProjects(userId: string) {
         };
     };
 
-    return {
-        projects,
-        isLoadingProjects,
-    };
-} 
+    return (
+        <ProjectsContext.Provider value={{ projects, isLoadingProjects }}>
+            {children}
+        </ProjectsContext.Provider>
+    );
+}
+
+export function useProjectsContext() {
+    const context = useContext(ProjectsContext);
+    if (!context) throw new Error('useProjectsContext must be used within a ProjectsProvider');
+    return context;
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useProjects } from '@/components/hooks/use-project';
+import { useProjectsContext } from '@/components/hooks/use-projects';
 import type { Project } from '@onlook/models';
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
@@ -9,7 +9,7 @@ import { ProjectInfo } from './info';
 
 // TODO: This will use a projects manager, not project manager
 export const SelectProject = observer(() => {
-    const { projects, isLoadingProjects } = useProjects('019f68a5-3f34-4ced-97a9-42f7026ff744');
+    const { projects, isLoadingProjects } = useProjectsContext();
     const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
     const [direction, setDirection] = useState(0);
 
