@@ -1,5 +1,3 @@
-// import { AuthManager } from '@/lib/auth';
-// import { AppStateManager } from '@/lib/state';
 import { createContext, useContext } from 'react';
 import { EditorEngine } from './editor/engine';
 import { ProjectManager } from './project';
@@ -19,14 +17,3 @@ const EditorEngineContext = createContext(editorEngine);
 export const useUserManager = () => useContext(UserContext);
 export const useEditorEngine = () => useContext(EditorEngineContext);
 export const useProjectManager = () => useContext(ProjectContext);
-
-// TODO: Likely deprecated
-// const authManager = new AuthManager();
-// const appStateManager = new AppStateManager();
-// const AuthContext = createContext(authManager);
-// const AppStateContext = createContext(appStateManager);
-
-// export const useAuthManager = () => useContext(AuthContext);
-// export const useRouteManager = () => useContext(RouteContext);
-// export const useUpdateManager = () => useContext(UpdateContext);
-// export const useAppStateManager = () => useContext(AppStateContext);
