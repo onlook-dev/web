@@ -125,7 +125,6 @@ export class FontManager {
     });
 
     this.loadInitialFonts();
-    this.scanFonts();
 
     const fontConfigDisposer = reaction(
       () => this.editorEngine.sandbox.readFile(this.fontConfigPath),
