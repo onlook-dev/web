@@ -1,6 +1,6 @@
 import { makeAutoObservable, reaction } from "mobx";
 import type { EditorEngine } from "..";
-import { FAMILIES } from "@onlook/fonts";
+import { createStringLiteralWithFont, createTemplateLiteralWithFont, extractFontConfig, extractFontImport, FAMILIES, findFontClass, removeFontsFromClassName } from "@onlook/fonts";
 import type { Font } from "@onlook/models/assets";
 import { type FileSyncManager } from "../sandbox/file-sync";
 import localforage from "localforage";
@@ -11,21 +11,14 @@ import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
 import { generate } from "@babel/generator";
 import { camelCase } from "lodash";
-import * as t from "@babel/types";
+
 import type { NodePath } from "@babel/traverse";
 import { DefaultSettings } from "@onlook/constants";
 import * as pathModule from "path";
 import type { ParseResult } from "@babel/parser";
-import {
-  createStringLiteralWithFont,
-  createTemplateLiteralWithFont,
-  extractFontConfig,
-  findFontClass,
-  removeFontsFromClassName,
-} from "./util";
 import { normalizePath } from "../sandbox/helpers";
 import { getFontFileName } from "@onlook/utility";
-
+import * as t from "@babel/types";
 type TraverseCallback = (
   classNameAttr: t.JSXAttribute,
   ast: ParseResult<t.File>,
@@ -259,77 +252,8 @@ export class FontManager {
         return [];
       }
 
-      const fonts: Font[] = [];
-
       try {
-        const ast = parse(content, {
-          sourceType: "module",
-          plugins: ["typescript", "jsx"],
-        });
-
-        const fontImports: Record<string, string> = {};
-
-        traverse(ast, {
-          // Extract font imports from 'next/font/google' and 'next/font/local'
-          ImportDeclaration(path) {
-            const source = path.node.source.value;
-            if (source === "next/font/google") {
-              path.node.specifiers.forEach((specifier) => {
-                if (
-                  t.isImportSpecifier(specifier) &&
-                  t.isIdentifier(specifier.imported)
-                ) {
-                  fontImports[specifier.imported.name] =
-                    specifier.imported.name;
-                }
-              });
-            } else if (source === "next/font/local") {
-              path.node.specifiers.forEach((specifier) => {
-                if (
-                  t.isImportDefaultSpecifier(specifier) &&
-                  t.isIdentifier(specifier.local)
-                ) {
-                  fontImports[specifier.local.name] = "localFont";
-                }
-              });
-            }
-          },
-
-          VariableDeclaration(path) {
-            const parentNode = path.parent;
-            if (!t.isExportNamedDeclaration(parentNode)) {
-              return;
-            }
-
-            path.node.declarations.forEach((declarator) => {
-              if (!t.isIdentifier(declarator.id) || !declarator.init) {
-                return;
-              }
-
-              const fontId = declarator.id.name;
-
-              if (t.isCallExpression(declarator.init)) {
-                const callee = declarator.init.callee;
-
-                let fontType = "";
-                if (t.isIdentifier(callee) && fontImports[callee.name]) {
-                  fontType = fontImports[callee.name] ?? "";
-                }
-
-                const configArg = declarator.init.arguments[0];
-                if (t.isObjectExpression(configArg)) {
-                  const fontConfig = extractFontConfig(
-                    fontId,
-                    fontType,
-                    configArg,
-                  );
-                  fonts.push(fontConfig);
-                }
-              }
-            });
-          },
-        });
-
+        const fonts = extractFontImport(content);
         this._fonts = fonts;
         return fonts;
       } catch (parseError) {
