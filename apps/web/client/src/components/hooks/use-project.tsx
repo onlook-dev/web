@@ -6,7 +6,7 @@ import type { Canvas, FrameType, Project, WebFrame } from "@onlook/models";
 import { useEffect, useState } from "react";
 
 export function useProjects(userId: string) {
-    const { data: fetchedProjects, isLoading: isLoadingProjects } = api.project.getByUserId.useQuery(userId);
+    const { data: fetchedProjects, isLoading: isLoadingProjects } = api.project.getByUserId.useQuery({ id: userId });
     const [projects, setProjects] = useState<Project[]>([]);
 
     useEffect(() => {

@@ -13,10 +13,10 @@ export const projectRouter = createTRPCRouter({
             return project;
         }),
     getByUserId: protectedProcedure
-        .input(z.string())
+        .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {
             const projects = await ctx.db.query.userProjects.findMany({
-                where: eq(userProjects.userId, input),
+                where: eq(userProjects.userId, input.id),
                 with: {
                     project: {
                         with: {

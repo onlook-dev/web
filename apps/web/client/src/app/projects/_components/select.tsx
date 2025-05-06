@@ -9,7 +9,7 @@ import { ProjectInfo } from './info';
 
 // TODO: This will use a projects manager, not project manager
 export const SelectProject = observer(() => {
-    const { projects, isLoadingProjects } = useProjects('test');
+    const { projects, isLoadingProjects } = useProjects('019f68a5-3f34-4ced-97a9-42f7026ff744');
     const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
     const [direction, setDirection] = useState(0);
 
