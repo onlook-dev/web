@@ -61,8 +61,6 @@ export class ThemeManager {
     try {
       const configResult = await this.scanTailwindConfig();
 
-      console.log(configResult);
-
       if (!configResult) {
         return;
       }
@@ -1089,101 +1087,15 @@ export class ThemeManager {
           }
 
           colorObj.properties.forEach((colorProp) => {
-            if (
-              colorProp.type === "ObjectProperty" &&
-              (colorProp.key.type === "Identifier" ||
-                colorProp.key.type === "NumericLiteral") &&
-              (colorProp.key.type === "Identifier"
-                ? colorProp.key.name === parentKey
-                : String(colorProp.key.value) === parentKey)
-            ) {
+            if (this.isMatchingProperty(colorProp, parentKey)) {
               // If the keyName is not provided, we are renaming the root color
               if (!keyName) {
-                if (parentKey && newName !== parentKey) {
-                  if (colorProp.key.type === "Identifier") {
-                    colorProp.key.name = newName;
-                  } else {
-                    colorProp.key = {
-                      type: "Identifier",
-                      name: newName,
-                    };
-                  }
-                  keyUpdated = true;
-
-                  // Then we need to update the child css variables or direct color values
-                  if (colorProp.value.type === "ObjectExpression") {
-                    colorProp.value.properties.forEach((nestedProp) => {
-                      if (
-                        nestedProp.type === "ObjectProperty" &&
-                        (nestedProp.key.type === "Identifier" ||
-                          nestedProp.key.type === "NumericLiteral") &&
-                        nestedProp.value.type === "StringLiteral"
-                      ) {
-                        // Special handling for DEFAULT
-                        const keyValue =
-                          nestedProp.key.type === "Identifier"
-                            ? nestedProp.key.name
-                            : String(nestedProp.key.value);
-
-                        const oldVarName =
-                          keyValue === DEFAULT_COLOR_NAME
-                            ? parentKey
-                            : `${parentKey}-${keyValue}`;
-                        const newVarName =
-                          keyValue === DEFAULT_COLOR_NAME
-                            ? newName
-                            : `${newName}-${keyValue}`;
-
-                        nestedProp.value.value = nestedProp.value.value.replace(
-                          new RegExp(`--${oldVarName}`, "g"),
-                          `--${newVarName}`,
-                        );
-                      }
-                    });
-                  } else if (colorProp.value.type === "StringLiteral") {
-                    colorProp.value.value = colorProp.value.value.replace(
-                      new RegExp(`--${parentKey}`, "g"),
-                      `--${newName}`,
-                    );
-                  }
-                }
+                const updated = this.handleRootColorUpdate(colorProp, parentKey, newName);
+                keyUpdated = updated;
               } else {
-                const nestedObj = colorProp.value;
-                if (!isObjectExpression(nestedObj)) {
-                  return false;
-                }
-                nestedObj.properties.forEach((nestedProp) => {
-                  if (
-                    nestedProp.type === "ObjectProperty" &&
-                    (nestedProp.key.type === "Identifier" ||
-                      nestedProp.key.type === "NumericLiteral") &&
-                    ((nestedProp.key.type === "Identifier" &&
-                      nestedProp.key.name === keyName) ||
-                      (nestedProp.key.type === "NumericLiteral" &&
-                        String(nestedProp.key.value) === keyName))
-                  ) {
-                    if (newName !== keyName) {
-                      if (nestedProp.key.type === "Identifier") {
-                        nestedProp.key.name = newName;
-                      } else if (nestedProp.key.type === "NumericLiteral") {
-                        nestedProp.key = {
-                          type: "Identifier",
-                          name: newName,
-                        };
-                      }
-                      keyUpdated = true;
-                    }
-                    if (nestedProp.value.type === "StringLiteral") {
-                      // Special handling for DEFAULT values
-                      const varName =
-                        keyName === DEFAULT_COLOR_NAME
-                          ? parentKey
-                          : newCssVarName;
-                      nestedProp.value.value = `var(--${varName})`;
-                      valueUpdated = true;
-                    }
-                  }
-                });
+                const result = this.handleNestedColorUpdate(colorProp, keyName, newName, newCssVarName);
+                keyUpdated = keyUpdated || result.keyUpdated;
+                valueUpdated = valueUpdated || result.valueUpdated;
               }
             }
           });
@@ -1195,6 +1107,120 @@ export class ThemeManager {
     });
 
     return { keyUpdated, valueUpdated, output };
+  }
+
+  private isMatchingProperty(prop: any, keyName: string): boolean {
+    return (
+      prop.type === "ObjectProperty" &&
+      (prop.key.type === "Identifier" || prop.key.type === "NumericLiteral") &&
+      (prop.key.type === "Identifier"
+        ? prop.key.name === keyName
+        : String(prop.key.value) === keyName)
+    );
+  }
+
+  private handleRootColorUpdate(colorProp: any, parentKey: string, newName: string): boolean {
+    if (parentKey && newName !== parentKey) {
+      // Update the key name
+      if (colorProp.key.type === "Identifier") {
+        colorProp.key.name = newName;
+      } else {
+        colorProp.key = {
+          type: "Identifier",
+          name: newName,
+        };
+      }
+
+      // Then update the child css variables or direct color values
+      if (colorProp.value.type === "ObjectExpression") {
+        colorProp.value.properties.forEach((nestedProp: any) => {
+          if (
+            nestedProp.type === "ObjectProperty" &&
+            (nestedProp.key.type === "Identifier" || nestedProp.key.type === "NumericLiteral") &&
+            nestedProp.value.type === "StringLiteral"
+          ) {
+            // Special handling for DEFAULT
+            const keyValue =
+              nestedProp.key.type === "Identifier"
+                ? nestedProp.key.name
+                : String(nestedProp.key.value);
+
+            const oldVarName =
+              keyValue === DEFAULT_COLOR_NAME
+                ? parentKey
+                : `${parentKey}-${keyValue}`;
+            const newVarName =
+              keyValue === DEFAULT_COLOR_NAME
+                ? newName
+                : `${newName}-${keyValue}`;
+
+            nestedProp.value.value = nestedProp.value.value.replace(
+              new RegExp(`--${oldVarName}`, "g"),
+              `--${newVarName}`
+            );
+          }
+        });
+      } else if (colorProp.value.type === "StringLiteral") {
+        colorProp.value.value = colorProp.value.value.replace(
+          new RegExp(`--${parentKey}`, "g"),
+          `--${newName}`
+        );
+      }
+      
+      return true;
+    }
+    
+    return false;
+  }
+
+  private handleNestedColorUpdate(
+    colorProp: any,
+    keyName: string,
+    newName: string,
+    newCssVarName: string
+  ): { keyUpdated: boolean; valueUpdated: boolean } {
+    let keyUpdated = false;
+    let valueUpdated = false;
+    
+    const nestedObj = colorProp.value;
+    if (!isObjectExpression(nestedObj)) {
+      return { keyUpdated, valueUpdated };
+    }
+    
+    nestedObj.properties.forEach((nestedProp) => {
+      if (
+        nestedProp.type === "ObjectProperty" &&
+        (nestedProp.key.type === "Identifier" || nestedProp.key.type === "NumericLiteral") &&
+        ((nestedProp.key.type === "Identifier" && nestedProp.key.name === keyName) ||
+          (nestedProp.key.type === "NumericLiteral" && String(nestedProp.key.value) === keyName))
+      ) {
+        // Update key if name changed
+        if (newName !== keyName) {
+          if (nestedProp.key.type === "Identifier") {
+            nestedProp.key.name = newName;
+          } else if (nestedProp.key.type === "NumericLiteral") {
+            nestedProp.key = {
+              type: "Identifier",
+              name: newName,
+            };
+          }
+          keyUpdated = true;
+        }
+        
+        // Update value
+        if (nestedProp.value.type === "StringLiteral") {
+          // Special handling for DEFAULT values
+          const varName =
+            keyName === DEFAULT_COLOR_NAME
+              ? colorProp.key.name
+              : newCssVarName;
+          nestedProp.value.value = `var(--${varName})`;
+          valueUpdated = true;
+        }
+      }
+    });
+    
+    return { keyUpdated, valueUpdated };
   }
 
   async updateClassReferences(replacements: ClassReplacement[]): Promise<void> {

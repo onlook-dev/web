@@ -1,4 +1,5 @@
 import * as t from "@babel/types";
+import type { Font } from "@onlook/models";
 
 const FONT_WEIGHT_REGEX =
     /font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)/;
@@ -253,4 +254,26 @@ export function removeFontsFromClassName(
       console.error('Error in removeFontsFromClassName:', error);
       return false;
   }
+}
+
+export function createFontConfigAst(font: Font) {
+  return t.objectExpression([
+    t.objectProperty(
+      t.identifier("subsets"),
+      t.arrayExpression(font.subsets.map((s) => t.stringLiteral(s))),
+    ),
+    t.objectProperty(
+      t.identifier("weight"),
+      t.arrayExpression((font.weight ?? []).map((w) => t.stringLiteral(w))),
+    ),
+    t.objectProperty(
+      t.identifier("style"),
+      t.arrayExpression((font.styles ?? []).map((s) => t.stringLiteral(s))),
+    ),
+    t.objectProperty(
+      t.identifier("variable"),
+      t.stringLiteral(font.variable),
+    ),
+    t.objectProperty(t.identifier("display"), t.stringLiteral("swap")),
+  ]);
 }

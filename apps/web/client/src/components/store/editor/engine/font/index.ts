@@ -1,13 +1,16 @@
 import { makeAutoObservable, reaction } from "mobx";
 import type { EditorEngine } from "..";
 import {
+  createFontConfigAst,
   createStringLiteralWithFont,
   createTemplateLiteralWithFont,
+  extractExistingFontImport,
   extractFontConfig,
   extractFontImport,
   FAMILIES,
   findFontClass,
   removeFontsFromClassName,
+  validateFontImportAndExport,
 } from "@onlook/fonts";
 import type { Font } from "@onlook/models/assets";
 import * as FlexSearch from "flexsearch";
@@ -291,147 +294,11 @@ export class FontManager {
         return [];
       }
 
-      try {
-        const ast = parse(content, {
-          sourceType: "module",
-          plugins: ["typescript", "jsx"],
-        });
-
-        const fontImports: Record<string, string> = {};
-        const fontVariables: string[] = [];
-        const fonts: Font[] = [];
-        let updatedAst = false;
-
-        traverse(ast, {
-          ImportDeclaration(path) {
-            if (!path.node?.source?.value) {
-              return;
-            }
-
-            const source = path.node.source.value;
-            if (source === "next/font/google") {
-              if (!path.node.specifiers) {
-                return;
-              }
-
-              path.node.specifiers.forEach((specifier) => {
-                if (
-                  t.isImportSpecifier(specifier) &&
-                  t.isIdentifier(specifier.imported)
-                ) {
-                  fontImports[specifier.imported.name] =
-                    specifier.imported.name;
-                  try {
-                    path.remove();
-                  } catch (removeError) {
-                    console.error("Error removing font import:", removeError);
-                  }
-                }
-              });
-            } else if (source === "next/font/local") {
-              if (!path.node.specifiers) {
-                return;
-              }
-
-              path.node.specifiers.forEach((specifier) => {
-                if (
-                  t.isImportDefaultSpecifier(specifier) &&
-                  t.isIdentifier(specifier.local)
-                ) {
-                  fontImports[specifier.local.name] = "localFont";
-                  try {
-                    path.remove();
-                  } catch (removeError) {
-                    console.error("Error removing font import:", removeError);
-                  }
-                }
-              });
-            }
-          },
-
-          VariableDeclaration(path) {
-            if (!path.node?.declarations) {
-              return;
-            }
-
-            path.node.declarations.forEach((declarator) => {
-              if (!t.isIdentifier(declarator.id) || !declarator.init) {
-                return;
-              }
-
-              if (t.isCallExpression(declarator.init)) {
-                const callee = declarator.init.callee;
-                if (t.isIdentifier(callee) && fontImports[callee.name]) {
-                  const fontType = fontImports[callee.name] ?? "";
-                  const configArg = declarator.init.arguments[0];
-                  fontVariables.push(declarator.id.name);
-
-                  if (t.isObjectExpression(configArg)) {
-                    const fontConfig = extractFontConfig(
-                      declarator.id.name,
-                      fontType,
-                      configArg,
-                    );
-
-                    if (!fontConfig.variable) {
-                      fontConfig.variable = `--font-${declarator.id.name}`;
-                    }
-
-                    fonts.push(fontConfig);
-                  }
-                  updatedAst = true;
-                  try {
-                    path.remove();
-                  } catch (removeError) {
-                    console.error("Error removing font variable:", removeError);
-                  }
-                }
-              }
-            });
-          },
-
-          JSXOpeningElement(path) {
-            if (
-              !path.node ||
-              !t.isJSXIdentifier(path.node.name) ||
-              !path.node.attributes
-            ) {
-              return;
-            }
-
-            path.node.attributes.forEach((attr) => {
-              if (
-                t.isJSXAttribute(attr) &&
-                t.isJSXIdentifier(attr.name) &&
-                attr.name.name === "className"
-              ) {
-                try {
-                  if (
-                    removeFontsFromClassName(attr, { fontIds: fontVariables })
-                  ) {
-                    updatedAst = true;
-                  }
-                } catch (classNameError) {
-                  console.error("Error processing className:", classNameError);
-                }
-              }
-            });
-          },
-        });
-
-        if (updatedAst) {
-          try {
-            const { code } = generate(ast);
-            await sandbox.writeFile(normalizePath(layoutPath), code);
-          } catch (generateError) {
-            console.error("Error generating code from AST:", generateError);
-          }
-        }
-        return fonts;
-      } catch (parseError) {
-        console.error(`Error parsing layout file ${layoutPath}:`, parseError);
-        return [];
+      const { fonts, code } = extractExistingFontImport(content);
+      if (code) {
+        await sandbox.writeFile(normalizePath(layoutPath), code);
       }
+      return fonts;
     } catch (error) {
       console.error("Error scanning existing fonts:", error);
       return [];
@@ -469,39 +336,7 @@ export class FontManager {
         plugins: ["typescript", "jsx"],
       });
 
-      let hasGoogleFontImport = false;
-      let hasImportName = false;
-      let hasFontExport = false;
-
-      // Check if import and export already exists
-      traverse(ast, {
-        ImportDeclaration(path: NodePath<t.ImportDeclaration>) {
-          if (path.node.source.value === "next/font/google") {
-            hasGoogleFontImport = true;
-            path.node.specifiers.forEach((specifier) => {
-              if (
-                t.isImportSpecifier(specifier) &&
-                t.isIdentifier(specifier.imported) &&
-                specifier.imported.name === importName
-              ) {
-                hasImportName = true;
-              }
-            });
-          }
-        },
-        ExportNamedDeclaration(path: NodePath<t.ExportNamedDeclaration>) {
-          if (
-            t.isVariableDeclaration(path.node.declaration) &&
-            path.node.declaration.declarations.some(
-              (declaration) =>
-                t.isIdentifier(declaration.id) &&
-                declaration.id.name === fontName,
-            )
-          ) {
-            hasFontExport = true;
-          }
-        },
-      });
+      const { hasGoogleFontImport, hasImportName, hasFontExport } = validateFontImportAndExport(content, importName, fontName);
 
       if (hasFontExport) {
         console.log(`Font ${fontName} already exists in font.ts`);
@@ -509,25 +344,7 @@ export class FontManager {
       }
 
       // Create the AST nodes for the new font
-      const fontConfigObject = t.objectExpression([
-        t.objectProperty(
-          t.identifier("subsets"),
-          t.arrayExpression(font.subsets.map((s) => t.stringLiteral(s))),
-        ),
-        t.objectProperty(
-          t.identifier("weight"),
-          t.arrayExpression((font.weight ?? []).map((w) => t.stringLiteral(w))),
-        ),
-        t.objectProperty(
-          t.identifier("style"),
-          t.arrayExpression((font.styles ?? []).map((s) => t.stringLiteral(s))),
-        ),
-        t.objectProperty(
-          t.identifier("variable"),
-          t.stringLiteral(font.variable),
-        ),
-        t.objectProperty(t.identifier("display"), t.stringLiteral("swap")),
-      ]);
+      const fontConfigObject = createFontConfigAst(font);
 
       const fontDeclaration = t.variableDeclaration("const", [
         t.variableDeclarator(
