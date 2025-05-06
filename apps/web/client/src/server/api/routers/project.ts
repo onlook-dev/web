@@ -1,10 +1,10 @@
 import { projectInsertSchema, projects, userProjects } from "@onlook/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const projectRouter = createTRPCRouter({
-    getById: publicProcedure
+    getById: protectedProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {
             const project = await ctx.db.query.projects.findFirst({
@@ -12,24 +12,32 @@ export const projectRouter = createTRPCRouter({
             });
             return project;
         }),
-    getByUserId: publicProcedure
+    getByUserId: protectedProcedure
         .input(z.string())
         .query(async ({ ctx, input }) => {
             const projects = await ctx.db.query.userProjects.findMany({
                 where: eq(userProjects.userId, input),
                 with: {
-                    project: true,
+                    project: {
+                        with: {
+                            canvas: {
+                                with: {
+                                    frames: true,
+                                }
+                            },
+                        }
+                    },
                 }
             })
             return projects
         }),
-    create: publicProcedure
+    create: protectedProcedure
         .input(projectInsertSchema)
         .mutation(async ({ ctx, input }) => {
             const project = await ctx.db.insert(projects).values(input).returning();
             return project[0];
         }),
-    createUserProject: publicProcedure
+    createUserProject: protectedProcedure
         .input(z.object({ project: projectInsertSchema, userId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             return await ctx.db.transaction(async (tx) => {

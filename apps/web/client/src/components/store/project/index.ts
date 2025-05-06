@@ -46,9 +46,16 @@ export class ProjectManager {
                 updatedAt: new Date().toISOString(),
                 previewImg: null,
             },
-            canvas: null,
-            sandbox: null,
-            previewUrl,
+            canvas: {
+                id: nanoid(),
+                scale: 1,
+                position: null,
+                frames: [],
+            },
+            sandbox: {
+                id: nanoid(),
+                url: previewUrl,
+            },
         };
 
         return newProject;
