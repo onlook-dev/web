@@ -516,6 +516,7 @@ export class ThemeManager {
         newClass: "",
       });
       await this.updateClassReferences(replacements);
+      await this.scanConfig();
 
       return { success: true };
     } catch (error) {
