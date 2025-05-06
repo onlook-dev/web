@@ -12,6 +12,12 @@ type ProjectsContextType = {
 
 const ProjectsContext = createContext<ProjectsContextType | null>(null);
 
+export function useProjectsContext() {
+    const context = useContext(ProjectsContext);
+    if (!context) throw new Error('useProjectsContext must be used within a ProjectsProvider');
+    return context;
+}
+
 export function ProjectsProvider({ userId, children }: { userId: string, children: React.ReactNode }) {
     const { data: fetchedProjects, isLoading: isLoadingProjects } = api.project.getByUserId.useQuery({ id: userId });
     const [projects, setProjects] = useState<Project[]>([]);
@@ -73,10 +79,4 @@ export function ProjectsProvider({ userId, children }: { userId: string, childre
             {children}
         </ProjectsContext.Provider>
     );
-}
-
-export function useProjectsContext() {
-    const context = useContext(ProjectsContext);
-    if (!context) throw new Error('useProjectsContext must be used within a ProjectsProvider');
-    return context;
 }

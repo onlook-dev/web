@@ -15,6 +15,12 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType | null>(null);
 
+export function useUserContext() {
+    const context = useContext(UserContext);
+    if (!context) throw new Error('useUserContext must be used within a UserProvider');
+    return context;
+}
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     const [user, setUser] = useState<User | null>(null);
@@ -48,10 +54,4 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
 
     return <UserContext.Provider value={{ user, handleSignOut }}>{children}</UserContext.Provider>;
-}
-
-export function useUserContext() {
-    const context = useContext(UserContext);
-    if (!context) throw new Error('useUserContext must be used within a UserProvider');
-    return context;
 }
