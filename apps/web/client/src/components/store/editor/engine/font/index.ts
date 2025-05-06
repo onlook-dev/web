@@ -1,9 +1,15 @@
 import { makeAutoObservable, reaction } from "mobx";
 import type { EditorEngine } from "..";
-import { createStringLiteralWithFont, createTemplateLiteralWithFont, extractFontConfig, extractFontImport, FAMILIES, findFontClass, removeFontsFromClassName } from "@onlook/fonts";
+import {
+  createStringLiteralWithFont,
+  createTemplateLiteralWithFont,
+  extractFontConfig,
+  extractFontImport,
+  FAMILIES,
+  findFontClass,
+  removeFontsFromClassName,
+} from "@onlook/fonts";
 import type { Font } from "@onlook/models/assets";
-import { type FileSyncManager } from "../sandbox/file-sync";
-import localforage from "localforage";
 import * as FlexSearch from "flexsearch";
 import * as WebFont from "webfontloader";
 import type { ProjectManager } from "@/components/store/project";
@@ -65,8 +71,6 @@ type SearchResult = {
   }>;
 };
 
-type DocumentSearchResults = Record<string, SearchResult>;
-
 interface CodeDiff {
   original: string;
   generated: string;
@@ -90,7 +94,7 @@ export class FontManager {
 
   fontConfigPath = normalizePath(DefaultSettings.FONT_CONFIG);
   tailwindConfigPath = normalizePath(DefaultSettings.TAILWIND_CONFIG);
-  fontImportPath = './fonts';
+  fontImportPath = "./fonts";
 
   constructor(
     private editorEngine: EditorEngine,
@@ -110,22 +114,18 @@ export class FontManager {
 
     // Add all font families to the search index
     this._allFontFamilies.forEach((font) => {
-      const doc: SearchDocument = {
+      this._fontSearchIndex.add(font.id, {
         id: font.id,
         family: font.family,
         subsets: font.subsets,
         variable: font.variable,
         weights: font.weights,
         styles: font.styles,
-      };
-      const data: DocumentData = {
-        id: doc.id,
-        content: JSON.stringify(doc),
-      };
-      void this._fontSearchIndex.add(data);
+      });
     });
 
-    this.initializeFonts();
+    this.loadInitialFonts();
+    this.scanFonts();
 
     const fontConfigDisposer = reaction(
       () => this.editorEngine.sandbox.readFile(this.fontConfigPath),
@@ -164,26 +164,18 @@ export class FontManager {
     this.disposers.push(fontConfigDisposer, defaultFontDisposer);
   }
 
-  private async initializeFonts() {
-    this.convertFont();
-    await this.loadInitialFonts();
-    await this.scanFonts();
-  }
-
-  private convertFont() {
-    this._fontFamilies = FAMILIES.map((font) => ({
+  private convertFont(font: RawFont): Font {
+    return {
       ...font,
-      weight: font.weights.map((weight) => weight.toString()),
-      styles: font.styles.map((style) => style.toString()),
+      weight: font.weights,
+      styles: font.styles || [],
       variable: `--font-${font.id}`,
-    }));
+    };
   }
 
   private async loadInitialFonts() {
     const initialFonts = this._allFontFamilies.slice(0, this._batchSize);
-    const convertedFonts = initialFonts.map((font) =>
-      this.convertRawFont(font),
-    );
+    const convertedFonts = initialFonts.map((font) => this.convertFont(font));
     this._systemFonts = convertedFonts;
     this._currentFontIndex = this._batchSize;
 
@@ -253,7 +245,7 @@ export class FontManager {
       }
 
       try {
-        const fonts = extractFontImport(content);
+        const fonts = extractFontImport(content);        
         this._fonts = fonts;
         return fonts;
       } catch (parseError) {
@@ -1064,40 +1056,34 @@ export class FontManager {
   }
 
   async searchFonts(query: string): Promise<Font[]> {
-    try {
-      const searchResults = (await this._fontSearchIndex.search(
-        query,
-      )) as unknown as DocumentSearchResults;
-      const fonts = Object.values(searchResults).flatMap((result) =>
-        result.result.map((item) => {
-          const doc = JSON.parse(item.doc.content) as SearchDocument;
-          const font = this._allFontFamilies.find((f) => f.id === doc.id);
-          if (!font) {
-            throw new Error(`Font ${doc.id} not found in font families`);
-          }
-          return {
-            id: font.id,
-            family: font.family,
-            subsets: font.subsets,
-            variable: `--font-${font.family.toLowerCase().replace(/\s+/g, "-")}`,
-            weight: font.weights,
-            styles: font.styles,
-            type: font.type,
-          };
-        }),
-      );
+    if (!query) {
+      this._searchResults = [];
+      return [];
+    }
 
-      if (fonts.length > 0) {
-        await this.loadFontBatch(fonts);
-        this._searchResults = fonts;
+    try {
+      // Search using FlexSearch
+      const searchResults = await this._fontSearchIndex.search(query, {
+        limit: 20,
+        suggest: true,
+        enrich: true,
+      });
+
+      const fonts = Object.values(searchResults)
+        .flatMap((result) => result.result)
+        .map((font) => this.convertFont(font.doc))
+        .filter((font) => !this._fonts.some((f) => f.family === font.family));
+
+      if (fonts.length === 0) {
+        this._searchResults = [];
+        return [];
       }
 
+      await this.loadFontBatch(fonts);
+      this._searchResults = fonts;
       return fonts;
     } catch (error) {
-      console.error(
-        "Error searching fonts:",
-        error instanceof Error ? error.message : String(error),
-      );
+      console.error("Error searching fonts:", error);
       return [];
     }
   }
@@ -1289,7 +1275,12 @@ export class FontManager {
           }
 
           if (updatedAst) {
-            await this.updateFileWithImport(normalizedFilePath, content, ast, fontName);
+            await this.updateFileWithImport(
+              normalizedFilePath,
+              content,
+              ast,
+              fontName,
+            );
           }
         },
       );
@@ -1300,7 +1291,10 @@ export class FontManager {
         );
       }
     } catch (error) {
-      console.error(`Error adding font variable to ${normalizedFilePath}:`, error);
+      console.error(
+        `Error adding font variable to ${normalizedFilePath}:`,
+        error,
+      );
     }
   }
 
@@ -1362,7 +1356,6 @@ export class FontManager {
       }
 
       const normalizedFilePath = normalizePath(layoutPath);
-
 
       const content = (await sandbox.readFile(normalizedFilePath)) ?? "";
       if (!content) {
@@ -1507,19 +1500,23 @@ export class FontManager {
 
     const normalizedFilePath = normalizePath(filePath);
 
-    await this.traverseClassName(normalizedFilePath, targetElements, (classNameAttr) => {
-      if (t.isStringLiteral(classNameAttr.value)) {
-        currentFont = findFontClass(classNameAttr.value.value);
-      } else if (t.isJSXExpressionContainer(classNameAttr.value)) {
-        const expr = classNameAttr.value.expression;
-        if (t.isTemplateLiteral(expr)) {
-          const firstQuasi = expr.quasis[0];
-          if (firstQuasi) {
-            currentFont = findFontClass(firstQuasi.value.raw);
+    await this.traverseClassName(
+      normalizedFilePath,
+      targetElements,
+      (classNameAttr) => {
+        if (t.isStringLiteral(classNameAttr.value)) {
+          currentFont = findFontClass(classNameAttr.value.value);
+        } else if (t.isJSXExpressionContainer(classNameAttr.value)) {
+          const expr = classNameAttr.value.expression;
+          if (t.isTemplateLiteral(expr)) {
+            const firstQuasi = expr.quasis[0];
+            if (firstQuasi) {
+              currentFont = findFontClass(firstQuasi.value.raw);
+            }
           }
         }
-      }
-    });
+      },
+    );
 
     return currentFont;
   }
@@ -1617,8 +1614,8 @@ export class FontManager {
       );
 
       for (const font of removedFonts) {
-        await this.removeFontVariableFromLayout(font.id);
         await this.removeFontFromTailwindConfig(font);
+        await this.removeFontVariableFromLayout(font.id);
       }
 
       if (addedFonts.length > 0) {
