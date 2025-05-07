@@ -15,10 +15,4 @@ export default function Page() {
             </div>
         </ProjectsProvider>
     );
-<<<<<<< HEAD
 }
-=======
-};
-
-export default Projects;
->>>>>>> main

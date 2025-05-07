@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client';
 
 import { UserProvider } from '@/components/hooks/use-user';
@@ -18,10 +17,4 @@ export default function Main() {
             </div>
         </UserProvider>
     );
-=======
-import Main from './_components/main';
-
-export default function Home() {
-    return <Main />;
->>>>>>> main
 }
