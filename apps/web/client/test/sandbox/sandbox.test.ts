@@ -31,7 +31,7 @@ describe('SandboxManager', () => {
             removeItem: mockRemoveItem,
         }));
 
-        mock.module('../src/components/store/editor/engine/sandbox/file-sync', () => ({
+        mock.module('../src/components/store/editor/sandbox/file-sync', () => ({
             FileSyncManager: class {
                 readOrFetch = mockReadOrFetch;
                 write = mockWrite;
@@ -234,7 +234,7 @@ describe('SandboxManager', () => {
 
     test('FileSyncManager should use remote file operations through callbacks', async () => {
         // We need to mock the module directly with concrete implementations
-        mock.module('../src/components/store/editor/engine/sandbox/file-sync', () => ({
+        mock.module('../src/components/store/editor/sandbox/file-sync', () => ({
             FileSyncManager: class {
                 constructor(options: any) {
                     // Constructor logic
@@ -260,7 +260,7 @@ describe('SandboxManager', () => {
 
         const {
             FileSyncManager,
-        } = require('../src/components/store/editor/engine/sandbox/file-sync');
+        } = require('../src/components/store/editor/sandbox/file-sync');
 
         const testGetItem = mock<(key: string) => Promise<any>>(async () => null);
         const testSetItem = mock<(key: string, value: any) => Promise<any>>(async () => undefined);
