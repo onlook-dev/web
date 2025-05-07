@@ -1,9 +1,9 @@
 'use client';
 
-import { api } from "@/trpc/react";
-import type { Canvas as DbCanvas, Frame as DbFrame, Project as DbProject } from "@onlook/db";
-import type { Canvas, FrameType, Project, WebFrame } from "@onlook/models";
-import { createContext, useContext, useEffect, useState } from "react";
+import { api } from '@/trpc/react';
+import type { Canvas as DbCanvas, Frame as DbFrame, Project as DbProject } from '@onlook/db';
+import type { Canvas, FrameType, Project, WebFrame } from '@onlook/models';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 type ProjectsContextType = {
     projects: Project[];
@@ -18,17 +18,26 @@ export function useProjectsContext() {
     return context;
 }
 
-export function ProjectsProvider({ userId, children }: { userId: string, children: React.ReactNode }) {
-    const { data: fetchedProjects, isLoading: isLoadingProjects } = api.project.getByUserId.useQuery({ id: userId });
+export function ProjectsProvider({
+    userId,
+    children,
+}: {
+    userId: string;
+    children: React.ReactNode;
+}) {
+    const { data: fetchedProjects, isLoading: isLoadingProjects } =
+        api.project.getByUserId.useQuery({ id: userId });
     const [projects, setProjects] = useState<Project[]>([]);
 
     useEffect(() => {
         if (fetchedProjects) {
-            setProjects(fetchedProjects.map(proj => dbProjectToProject(proj.project)));
+            setProjects(fetchedProjects.map((proj) => dbProjectToProject(proj.project)));
         }
     }, [fetchedProjects]);
 
-    const dbProjectToProject = (dbProject: DbProject & { canvas: DbCanvas & { frames: DbFrame[] } }): Project => {
+    const dbProjectToProject = (
+        dbProject: DbProject & { canvas: DbCanvas & { frames: DbFrame[] } },
+    ): Project => {
         return {
             id: dbProject.id,
             name: dbProject.name,

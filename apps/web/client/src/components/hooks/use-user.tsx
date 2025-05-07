@@ -27,10 +27,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+            const {
+                data: { user: supabaseUser },
+            } = await supabase.auth.getUser();
             if (supabaseUser) {
                 setUser({
-                    name: supabaseUser.user_metadata?.full_name ||
+                    name:
+                        supabaseUser.user_metadata?.full_name ||
                         supabaseUser.user_metadata?.name ||
                         supabaseUser.email ||
                         'Anonymous',
@@ -47,11 +50,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         await supabase.auth.signOut();
         clearUser();
         redirect(redirectRoute || Routes.LOGIN);
-    }
+    };
 
     const clearUser = () => {
         setUser(null);
-    }
+    };
 
     return <UserContext.Provider value={{ user, handleSignOut }}>{children}</UserContext.Provider>;
 }

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { useProjectsContext } from '@/components/hooks/use-projects';
 import type { Project } from '@onlook/models';
@@ -56,9 +56,10 @@ export const SelectProject = observer(() => {
 
     const sortProjects = (unsortedProjects: Project[]) => {
         return unsortedProjects.sort(
-            (a, b) => new Date(b.metadata.updatedAt).getTime() - new Date(a.metadata.updatedAt).getTime(),
+            (a, b) =>
+                new Date(b.metadata.updatedAt).getTime() - new Date(a.metadata.updatedAt).getTime(),
         );
-    }
+    };
 
     const sortedProjects = sortProjects(projects);
 

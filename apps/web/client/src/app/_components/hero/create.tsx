@@ -1,6 +1,6 @@
 import { DraftImagePill } from '@/app/project/[id]/_components/right-panel/chat-tab/context-pills/draft-image-pill';
 import { MessageContextType, type ImageMessageContext } from '@onlook/models/chat';
-import { Button } from "@onlook/ui/button";
+import { Button } from '@onlook/ui/button';
 import { Card, CardContent, CardHeader } from '@onlook/ui/card';
 import { Icons } from '@onlook/ui/icons';
 import { Textarea } from '@onlook/ui/textarea';
@@ -168,7 +168,8 @@ export function Create() {
             <div className="flex flex-col gap-4">
                 <h1 className="text-4xl">Code makes your designs real</h1>
                 <p className="text-lg text-foreground-secondary">
-                    Onlook is an AI-powered visual editor for code that helps you prototype, design, and ideate
+                    Onlook is an AI-powered visual editor for code that helps you prototype, design,
+                    and ideate
                 </p>
             </div>
             <div className="flex flex-col gap-4">
@@ -178,9 +179,7 @@ export function Create() {
                         isDragging && 'bg-background',
                     )}
                 >
-                    <CardHeader className="text-start">
-                        {`Let's design a...`}
-                    </CardHeader>
+                    <CardHeader className="text-start">{`Let's design a...`}</CardHeader>
                     <CardContent>
                         <div
                             className={cn(
@@ -250,9 +249,7 @@ export function Create() {
                                     onDragLeave={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        if (
-                                            !e.currentTarget.contains(e.relatedTarget as Node)
-                                        ) {
+                                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                                             handleDragStateChange(false, e);
                                         }
                                     }}
@@ -280,9 +277,7 @@ export function Create() {
                                                 size="icon"
                                                 className="w-9 h-9 text-foreground-tertiary group hover:bg-transparent"
                                                 onClick={() =>
-                                                    document
-                                                        .getElementById('image-input')
-                                                        ?.click()
+                                                    document.getElementById('image-input')?.click()
                                                 }
                                             >
                                                 <input
@@ -362,4 +357,4 @@ export function Create() {
             </div>
         </div>
     );
-};
+}

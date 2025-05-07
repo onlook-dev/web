@@ -27,8 +27,7 @@ const SystemFont = observer(() => {
                                 name={font.family}
                                 variants={
                                     font.weight?.map(
-                                        (weight) =>
-                                            VARIANTS.find((v) => v.value === weight)?.name,
+                                        (weight) => VARIANTS.find((v) => v.value === weight)?.name,
                                     ) as string[]
                                 }
                                 showDropdown={true}

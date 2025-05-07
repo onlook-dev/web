@@ -1,7 +1,7 @@
-import { projectInsertSchema, projects, userProjects } from "@onlook/db";
-import { eq } from "drizzle-orm";
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { projectInsertSchema, projects, userProjects } from '@onlook/db';
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 export const projectRouter = createTRPCRouter({
     getById: protectedProcedure
@@ -23,41 +23,34 @@ export const projectRouter = createTRPCRouter({
                             canvas: {
                                 with: {
                                     frames: true,
-                                }
+                                },
                             },
-                        }
+                        },
                     },
-                }
-            })
-            return projects
+                },
+            });
+            return projects;
         }),
-    create: protectedProcedure
-        .input(projectInsertSchema)
-        .mutation(async ({ ctx, input }) => {
-            const project = await ctx.db.insert(projects).values(input).returning();
-            return project[0];
-        }),
+    create: protectedProcedure.input(projectInsertSchema).mutation(async ({ ctx, input }) => {
+        const project = await ctx.db.insert(projects).values(input).returning();
+        return project[0];
+    }),
     createUserProject: protectedProcedure
         .input(z.object({ project: projectInsertSchema, userId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             return await ctx.db.transaction(async (tx) => {
                 // 1. Insert the new project
-                const [newProject] = await tx
-                    .insert(projects)
-                    .values(input.project)
-                    .returning();
+                const [newProject] = await tx.insert(projects).values(input.project).returning();
 
                 if (!newProject) {
-                    throw new Error("Failed to create project");
+                    throw new Error('Failed to create project');
                 }
 
                 // 2. Create the association in the junction table
-                await tx
-                    .insert(userProjects)
-                    .values({
-                        userId: input.userId,
-                        projectId: newProject.id,
-                    });
+                await tx.insert(userProjects).values({
+                    userId: input.userId,
+                    projectId: newProject.id,
+                });
 
                 return newProject;
             });

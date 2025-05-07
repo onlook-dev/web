@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import { createTRPCReact } from "@trpc/react-query";
-import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
-import { useState } from "react";
-import { type AppRouter } from "~/server/api/root";
-import { links } from "./helpers";
-import { createQueryClient } from "./query-client";
+import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
+import { createTRPCReact } from '@trpc/react-query';
+import { type inferRouterInputs, type inferRouterOutputs } from '@trpc/server';
+import { useState } from 'react';
+import { type AppRouter } from '~/server/api/root';
+import { links } from './helpers';
+import { createQueryClient } from './query-client';
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
-    if (typeof window === "undefined") {
+    if (typeof window === 'undefined') {
         // Server: always make a new query client
         return createQueryClient();
     }
