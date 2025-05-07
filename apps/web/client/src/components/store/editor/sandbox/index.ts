@@ -1,5 +1,5 @@
 import type { SandboxSession, Watcher, WatchEvent } from '@codesandbox/sdk';
-import { IGNORED_DIRECTORIES, JS_FILE_EXTENSIONS, JSX_FILE_EXTENSIONS } from '@onlook/constants';
+import { IGNORED_DIRECTORIES, JS_FILE_EXTENSIONS, JSX_FILE_EXTENSIONS, type FileNode } from '@onlook/constants';
 import type { TemplateNode } from '@onlook/models';
 import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
@@ -8,11 +8,110 @@ import { FileSyncManager } from './file-sync';
 import { isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 
+export type FileEventType = 'add' | 'change' | 'remove' | '*';
+
+export interface FileEvent {
+    type: FileEventType;
+    paths: string[];
+    timestamp: number;
+}
+
+export class FileEventBus {
+    private static instance: FileEventBus;
+    private subscribers: Map<string, Set<(event: FileEvent) => void>> = new Map();
+    private errorHandler: ((error: Error, event: FileEvent) => void) | null = null;
+
+    private constructor() {}
+
+    static getInstance(): FileEventBus {
+        if (!FileEventBus.instance) {
+            FileEventBus.instance = new FileEventBus();
+        }
+        return FileEventBus.instance;
+    }
+
+    /**
+     * Subscribe to file events
+     * @param eventType The type of event to subscribe to. Use '*' to subscribe to all events
+     * @param callback The callback function to be called when the event occurs
+     * @returns A function to unsubscribe from the event
+     */
+    subscribe(eventType: FileEventType, callback: (event: FileEvent) => void) {
+        if (!this.subscribers.has(eventType)) {
+            this.subscribers.set(eventType, new Set());
+        }
+        this.subscribers.get(eventType)!.add(callback);
+        return () => this.unsubscribe(eventType, callback);
+    }
+
+    /**
+     * Unsubscribe from file events
+     * @param eventType The type of event to unsubscribe from
+     * @param callback The callback function to remove
+     */
+    unsubscribe(eventType: FileEventType, callback: (event: FileEvent) => void) {
+        this.subscribers.get(eventType)?.delete(callback);
+    }
+
+    /**
+     * Set a global error handler for all subscribers
+     * @param handler The error handler function
+     */
+    setErrorHandler(handler: (error: Error, event: FileEvent) => void) {
+        this.errorHandler = handler;
+    }
+
+    /**
+     * Publish a file event to all subscribers
+     * @param event The event to publish
+     */
+    publish(event: FileEvent) {
+        // Notify specific subscribers
+        this.subscribers.get(event.type)?.forEach(callback => {
+            try {
+                callback(event);
+            } catch (error) {
+                this.handleError(error as Error, event);
+            }
+        });
+
+        // Notify wildcard subscribers
+        this.subscribers.get('*')?.forEach(callback => {
+            try {
+                callback(event);
+            } catch (error) {
+                this.handleError(error as Error, event);
+            }
+        });
+    }
+
+    private handleError(error: Error, event: FileEvent) {
+        if (this.errorHandler) {
+            this.errorHandler(error, event);
+        } else {
+            console.error('Error in file event subscriber:', error);
+        }
+    }
+
+    /**
+     * Clear all subscribers for a specific event type
+     * @param eventType The type of event to clear subscribers for
+     */
+    clearSubscribers(eventType?: FileEventType) {
+        if (eventType) {
+            this.subscribers.delete(eventType);
+        } else {
+            this.subscribers.clear();
+        }
+    }
+}
+
 export class SandboxManager {
     private session: SandboxSession | null = null;
     private watcher: Watcher | null = null;
     private fileSync: FileSyncManager = new FileSyncManager();
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
+    private eventBus = FileEventBus.getInstance();
 
     constructor() {
         makeAutoObservable(this);
@@ -27,7 +126,7 @@ export class SandboxManager {
             console.error('No session found');
             return;
         }
-
+        
         const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, [
             ...JSX_FILE_EXTENSIONS,
             ...JS_FILE_EXTENSIONS,
@@ -218,6 +317,14 @@ export class SandboxManager {
     }
 
     async handleFileEvent(event: WatchEvent) {
+        // Publish the event to all subscribers
+        this.eventBus.publish({
+            type: event.type,
+            paths: event.paths,
+            timestamp: Date.now()
+        });
+
+        // Handle internal file sync
         for (const path of event.paths) {
             if (isSubdirectory(path, IGNORED_DIRECTORIES)) {
                 continue;
@@ -227,9 +334,7 @@ export class SandboxManager {
             if (event.type === 'remove') {
                 await this.fileSync.delete(normalizedPath);
             } else if (eventType === 'change' || eventType === 'add') {
-                // Sometimes we delete the content of the file, so we should allow empty content
                 const content = (await this.readRemoteFile(normalizedPath)) ?? '';
-
                 await this.fileSync.updateCache(normalizedPath, content);
                 await this.processFileForMapping(normalizedPath);
             }

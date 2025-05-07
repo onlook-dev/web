@@ -1,7 +1,7 @@
 import { cn } from '@onlook/ui/utils';
 import { forwardRef } from 'react';
 import type { RowRendererProps } from 'react-arborist';
-// import type { FileNode } from '@onlook/models/editor';
+import type { FileNode } from '@onlook/constants';
 
 export const FileTreeRow = forwardRef<
     HTMLDivElement,

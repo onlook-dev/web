@@ -1,5 +1,4 @@
 import { useEditorEngine } from '@/components/store';
-import type { FileNode } from '@onlook/models/editor';
 import { Icons } from '@onlook/ui/icons';
 import { cn } from '@onlook/ui/utils';
 import {
@@ -11,6 +10,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { motion } from 'motion/react';
 import type { NodeApi } from 'react-arborist';
+import type { FileNode } from '@onlook/constants';
 
 interface FileTreeNodeProps {
     node: NodeApi<FileNode>;
@@ -29,7 +29,7 @@ export const FileTreeNode: React.FC<FileTreeNodeProps> = observer(({ node, style
 
         // Load the file into the editor
         try {
-            await editorEngine.code.getFileContent(node.data.path, false).then((content) => {
+            await editorEngine.sandbox.readFile(node.data.path).then((content) => {
                 if (content !== null) {
                     // This will be handled in the parent component
                     node.select();
@@ -43,6 +43,7 @@ export const FileTreeNode: React.FC<FileTreeNodeProps> = observer(({ node, style
     // Get file icon based on extension
     const getFileIcon = () => {
         const extension = node.data.extension?.toLowerCase();
+        console.log(extension);
 
         if (isDirectory) {
             return <Icons.Directory className="w-4 h-4 mr-2" />;

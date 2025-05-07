@@ -9,8 +9,8 @@ import { csbRouter } from './routers/csb';
  */
 export const appRouter = createTRPCRouter({
     csb: csbRouter,
-    user: userRouter,
-    project: projectRouter,
+    // user: userRouter,
+    // project: projectRouter,
 });
 
 // export type definition of API

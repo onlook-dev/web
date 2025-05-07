@@ -27,16 +27,16 @@ import { db } from '~/server/db';
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-    const supabase = await createClient();
-    const {
-        data: { user },
-        error,
-    } = await supabase.auth.getUser();
+    // const supabase = await createClient();
+    // const {
+    //     data: { user },
+    //     error,
+    // } = await supabase.auth.getUser();
 
     return {
-        db,
-        supabase,
-        user,
+        // db,
+        // supabase,
+        // user,
         ...opts,
     };
 };
@@ -122,14 +122,14 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(timingMiddleware).use(({ ctx, next }) => {
-    if (!ctx.user) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-    return next({
-        ctx: {
-            // infers the `session` as non-nullable
-            user: ctx.user,
-        },
-    });
-});
+// export const protectedProcedure = t.procedure.use(timingMiddleware).use(({ ctx, next }) => {
+//     if (!ctx.user) {
+//         throw new TRPCError({ code: 'UNAUTHORIZED' });
+//     }
+//     return next({
+//         ctx: {
+//             // infers the `session` as non-nullable
+//             user: ctx.user,
+//         },
+//     });
+// });

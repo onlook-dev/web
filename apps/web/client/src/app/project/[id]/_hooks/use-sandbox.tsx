@@ -8,8 +8,8 @@ import { useState } from 'react';
 
 export function useSandbox() {
     const [session, setSession] = useState<SandboxSession | null>(null);
-    const { mutateAsync: create, isPending: isCreating } = api.csb.create.useMutation();
-    const { mutateAsync: start, isPending: isStarting } = api.csb.start.useMutation();
+    const { mutateAsync: create, isPending: isCreating, isSuccess: isCreateSuccess } = api.csb.create.useMutation();
+    const { mutateAsync: start, isPending: isStarting, isSuccess: isStartSuccess } = api.csb.start.useMutation();
     const { mutateAsync: hibernate, isPending: isStopping } = api.csb.hibernate.useMutation();
     const { mutateAsync: reconnect, isPending: isReconnecting } = api.csb.reconnect.useMutation();
 
@@ -19,7 +19,11 @@ export function useSandbox() {
     };
 
     const startSession = async (sandboxId: string) => {
-        const startData = await start(sandboxId);
+        const startData = await start(sandboxId).catch((err) => {
+            console.error('startSession error', err);
+            return null;
+        });
+        if (!startData) return null;
         const newSession = await connectToSandbox(startData);
         setSession(newSession);
         return newSession;
