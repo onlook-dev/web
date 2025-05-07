@@ -12,7 +12,7 @@ const mockReadOrFetch = mock(async (path: string) => '<div>Mocked Content</div>'
 const mockWrite = mock(async (path: string, content: string) => true);
 const mockClear = mock(async () => undefined);
 
-import { SandboxManager } from '../../src/components/store/editor/engine/sandbox';
+import { SandboxManager } from '../../src/components/store/editor/sandbox';
 
 describe('SandboxManager', () => {
     let sandboxManager: SandboxManager;
@@ -73,7 +73,7 @@ describe('SandboxManager', () => {
             onEvent: mock((callback: any) => {
                 mockWatcher.callback = callback;
             }),
-            dispose: mock(() => {}),
+            dispose: mock(() => { }),
             callback: null,
         };
 
