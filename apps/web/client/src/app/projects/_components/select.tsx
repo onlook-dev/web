@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { Carousel } from './carousel';
 import { ProjectInfo } from './info';
 
-// TODO: This will use a projects manager, not project manager
 export const SelectProject = observer(() => {
     const { projects, isLoadingProjects } = useProjectsContext();
     const [currentProjectIndex, setCurrentProjectIndex] = useState(0);

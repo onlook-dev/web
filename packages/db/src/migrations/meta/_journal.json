@@ -15,6 +15,13 @@
       "when": 1746553143161,
       "tag": "0001_tense_slipstream",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1746638894781,
+      "tag": "0002_fancy_sheva_callister",
+      "breakpoints": true
     }
   ]
 }

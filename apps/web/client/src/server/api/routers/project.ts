@@ -35,6 +35,10 @@ export const projectRouter = createTRPCRouter({
         const project = await ctx.db.insert(projects).values(input).returning();
         return project[0];
     }),
+    test: protectedProcedure.input(z.object({ name: z.string() })).mutation(async ({ ctx, input }) => {
+        console.log('test', input);
+        return input;
+    }),
     createUserProject: protectedProcedure
         .input(z.object({ project: projectInsertSchema, userId: z.string() }))
         .mutation(async ({ ctx, input }) => {

@@ -1,3 +1,4 @@
+import { api } from '@/trpc/client';
 import type { Project } from '@onlook/models';
 
 export class ProjectsManager {
@@ -5,5 +6,13 @@ export class ProjectsManager {
 
     constructor() {
         this.projects = [];
+    }
+
+    async createProject(prompt: string) {
+        console.log('createProject', prompt);
+        const result = await api.project.test.mutate({
+            name: 'Untitled',
+        });
+        console.log('result', result);
     }
 }

@@ -1,4 +1,7 @@
+'use client';
+
 import { DraftImagePill } from '@/app/project/[id]/_components/right-panel/chat-tab/context-pills/draft-image-pill';
+import { useProjectsManager } from '@/components/store';
 import { MessageContextType, type ImageMessageContext } from '@onlook/models/chat';
 import { Button } from '@onlook/ui/button';
 import { Card, CardContent, CardHeader } from '@onlook/ui/card';
@@ -13,8 +16,9 @@ import { useRef, useState } from 'react';
 
 export function Create() {
     const t = useTranslations();
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const projectsManager = useProjectsManager();
 
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [inputValue, setInputValue] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     const [selectedImages, setSelectedImages] = useState<ImageMessageContext[]>([]);
@@ -33,7 +37,8 @@ export function Create() {
     };
 
     const handleBlankSubmit = async () => {
-        // projectsManager.create.sendPrompt('', [], true);
+        // projectsManager.create.sendPrompt(inputValue, selectedImages, false);
+        projectsManager.createProject(inputValue);
     };
 
     const handleDragOver = (e: React.DragEvent) => {

@@ -8,6 +8,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 type ProjectsContextType = {
     projects: Project[];
     isLoadingProjects: boolean;
+    createProject: (userId: string, prompt: string) => Promise<void>;
 };
 
 const ProjectsContext = createContext<ProjectsContextType | null>(null);
@@ -84,7 +85,7 @@ export function ProjectsProvider({
     };
 
     return (
-        <ProjectsContext.Provider value={{ projects, isLoadingProjects }}>
+        <ProjectsContext.Provider value={{ projects, isLoadingProjects, createProject }}>
             {children}
         </ProjectsContext.Provider>
     );

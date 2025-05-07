@@ -1,6 +1,8 @@
+'use client';
+
 import { UserProvider } from '@/components/hooks/use-user';
-import { Hero } from './_components/hero';
-import { TopBar } from './_components/top-bar';
+import { Hero } from './hero';
+import { TopBar } from './top-bar';
 
 export default function Main() {
     return (
