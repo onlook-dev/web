@@ -1,4 +1,3 @@
-
 import { useEditorEngine } from '@/components/store';
 import { SystemTheme } from '@onlook/models/assets';
 import type { TailwindColor } from '@onlook/models/style';
@@ -16,7 +15,6 @@ import { customAlphabet } from 'nanoid/non-secure';
 import { useState } from 'react';
 import { ColorNameInput } from './color-name-input';
 import { ColorPopover } from './color-popover';
-
 
 interface BrandPalletGroupProps {
     title: string;
@@ -85,7 +83,9 @@ export const BrandPalletGroup = ({
     };
 
     const getColorValue = (color: TailwindColor) => {
-        return theme === SystemTheme.DARK ? color.darkColor ?? color.lightColor : color.lightColor;
+        return theme === SystemTheme.DARK
+            ? (color.darkColor ?? color.lightColor)
+            : color.lightColor;
     };
 
     const handleRenameClick = () => {
@@ -97,7 +97,8 @@ export const BrandPalletGroup = ({
             return;
         }
 
-        const line = theme === SystemTheme.DARK ? color.line.css?.darkMode : color.line.css?.lightMode;
+        const line =
+            theme === SystemTheme.DARK ? color.line.css?.darkMode : color.line.css?.lightMode;
 
         // invokeMainChannel(MainChannels.VIEW_SOURCE_FILE, {
         //     filePath: themeManager.tailwindConfigPath,

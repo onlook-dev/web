@@ -28,7 +28,11 @@ export class SandboxManager {
             return;
         }
 
-        const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS);
+        const files = await this.listFilesRecursively(
+            './',
+            IGNORED_DIRECTORIES,
+            JSX_FILE_EXTENSIONS,
+        );
         for (const file of files) {
             const normalizedPath = normalizePath(file);
             const content = await this.readFile(normalizedPath);
@@ -101,7 +105,11 @@ export class SandboxManager {
         return this.session?.fs.readdir(dir);
     }
 
-    async listFilesRecursively(dir: string, ignore: string[] = [], extensions: string[] = []): Promise<string[]> {
+    async listFilesRecursively(
+        dir: string,
+        ignore: string[] = [],
+        extensions: string[] = [],
+    ): Promise<string[]> {
         if (!this.session) {
             console.error('No session found');
             return [];
@@ -117,10 +125,17 @@ export class SandboxManager {
                 if (ignore.includes(entry.name)) {
                     continue;
                 }
-                const subFiles = await this.listFilesRecursively(normalizedPath, ignore, extensions);
+                const subFiles = await this.listFilesRecursively(
+                    normalizedPath,
+                    ignore,
+                    extensions,
+                );
                 results.push(...subFiles);
             } else {
-                if (extensions.length > 0 && !extensions.includes(entry.name.split('.').pop() || '')) {
+                if (
+                    extensions.length > 0 &&
+                    !extensions.includes(entry.name.split('.').pop() || '')
+                ) {
                     continue;
                 }
                 results.push(normalizedPath);
@@ -135,7 +150,10 @@ export class SandboxManager {
             return;
         }
 
-        const watcher = await this.session.fs.watch("./", { recursive: true, excludes: IGNORED_DIRECTORIES });
+        const watcher = await this.session.fs.watch('./', {
+            recursive: true,
+            excludes: IGNORED_DIRECTORIES,
+        });
 
         watcher.onEvent((event) => {
             for (const path of event.paths) {
@@ -153,7 +171,11 @@ export class SandboxManager {
 
     async processFileForMapping(file: string) {
         const normalizedPath = normalizePath(file);
-        await this.templateNodeMap.processFileForMapping(normalizedPath, this.readFile.bind(this), this.writeFile.bind(this));
+        await this.templateNodeMap.processFileForMapping(
+            normalizedPath,
+            this.readFile.bind(this),
+            this.writeFile.bind(this),
+        );
     }
 
     async getTemplateNode(oid: string): Promise<TemplateNode | null> {
