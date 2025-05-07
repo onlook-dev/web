@@ -27,20 +27,20 @@ import { db } from '@onlook/db/src/client';
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-    const supabase = await createClient();
-    const {
-        data: { user },
-        error,
-    } = await supabase.auth.getUser();
+    // const supabase = await createClient();
+    // const {
+    //     data: { user },
+    //     error,
+    // } = await supabase.auth.getUser();
 
     if (error) {
         throw new TRPCError({ code: 'UNAUTHORIZED', message: error.message });
     }
 
     return {
-        db,
-        supabase,
-        user,
+        // db,
+        // supabase,
+        // user,
         ...opts,
     };
 };

@@ -1,5 +1,14 @@
 import { CUSTOM_OUTPUT_DIR } from './editor';
 
+export interface FileNode {
+    id: string;
+    name: string;
+    path: string;
+    isDirectory: boolean;
+    children?: FileNode[];
+    extension?: string;
+}
+
 export const IGNORED_DIRECTORIES = [
     'node_modules',
     'dist',
