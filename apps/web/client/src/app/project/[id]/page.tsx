@@ -11,7 +11,7 @@ async function getProject(id: string) {
 
     const newFrame: WebFrame = {
         id: '1',
-        url: 'https://3cczd6-8084.csb.app',
+        url: 'https://9nmr6m-8084.csb.app',
         // url: 'http://localhost:8084',
         position: { x: 200, y: 200 },
         dimension: { width: 500, height: 500 },
@@ -21,13 +21,13 @@ async function getProject(id: string) {
     const project: Project = {
         id: id,
         name: 'My Project',
-        previewUrl: '',
         metadata: {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             previewImg: null,
         },
         canvas: {
+            id: '1',
             scale: 1,
             frames: [newFrame],
             position: { x: 0, y: 0 },
@@ -37,7 +37,7 @@ async function getProject(id: string) {
             custom: null,
         },
         sandbox: {
-            id: '3cczd6',
+            id: '9nmr6m',
             url: newFrame.url,
         },
     };
