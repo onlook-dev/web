@@ -1,579 +1,310 @@
-import { parse } from '@babel/parser';
 import * as t from '@babel/types';
-import traverse, { NodePath } from '@babel/traverse';
 import type { Font } from '@onlook/models';
-import {
-    createFontFamilyProperty,
-    isPropertyWithName,
-    isThemeProperty,
-    removeFontsFromClassName,
-} from './helper';
-import { generate } from '@babel/generator';
-import { camelCase } from 'lodash';
-export const extractFontImport = (content: string): Font[] => {
-    const ast = parse(content, {
-        sourceType: 'module',
-        plugins: ['typescript', 'jsx'],
-    });
+import { NodePath } from '@babel/traverse';
 
-    const fontImports: Record<string, string> = {};
-    const fonts: Font[] = [];
+const FONT_WEIGHT_REGEX =
+    /font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)/;
 
-    traverse(ast, {
-        // Extract font imports from 'next/font/google' and 'next/font/local'
-        ImportDeclaration(path) {
-            const source = path.node.source.value;
-            if (source === 'next/font/google') {
-                path.node.specifiers.forEach((specifier) => {
-                    if (t.isImportSpecifier(specifier) && t.isIdentifier(specifier.imported)) {
-                        fontImports[specifier.imported.name] = specifier.imported.name;
-                    }
-                });
-            } else if (source === 'next/font/local') {
-                path.node.specifiers.forEach((specifier) => {
-                    if (t.isImportDefaultSpecifier(specifier) && t.isIdentifier(specifier.local)) {
-                        fontImports[specifier.local.name] = 'localFont';
-                    }
-                });
-            }
-        },
-
-        VariableDeclaration(path) {
-            const parentNode = path.parent;
-            if (!t.isExportNamedDeclaration(parentNode)) {
-                return;
-            }
-
-            path.node.declarations.forEach((declarator) => {
-                if (!t.isIdentifier(declarator.id) || !declarator.init) {
-                    return;
-                }
-
-                const fontId = declarator.id.name;
-
-                if (t.isCallExpression(declarator.init)) {
-                    const callee = declarator.init.callee;
-
-                    let fontType = '';
-                    if (t.isIdentifier(callee) && fontImports[callee.name]) {
-                        fontType = fontImports[callee.name] ?? '';
-                    }
-
-                    const configArg = declarator.init.arguments[0];
-                    if (t.isObjectExpression(configArg)) {
-                        const fontConfig = extractFontConfig(fontId, fontType, configArg);
-                        fonts.push(fontConfig);
-                    }
-                }
-            });
-        },
-    });
-
-    return fonts;
-};
-
-export function extractFontConfig(
-    fontId: string,
-    fontType: string,
-    configArg: t.ObjectExpression,
-): Font {
-    const fontConfig: Record<string, any> = {
-        id: fontId,
-        family: fontType === 'localFont' ? fontId : fontType.replace(/_/g, ' '),
-        type: fontType === 'localFont' ? 'local' : 'google',
-        subsets: [],
-        weight: [],
-        styles: [],
-        variable: '',
-    };
-
-    configArg.properties.forEach((prop) => {
-        if (!t.isObjectProperty(prop) || !t.isIdentifier(prop.key)) {
-            return;
-        }
-
-        const propName = prop.key.name;
-
-        if (propName === 'variable' && t.isStringLiteral(prop.value)) {
-            fontConfig.variable = prop.value.value;
-        }
-
-        if (propName === 'subsets' && t.isArrayExpression(prop.value)) {
-            fontConfig.subsets = prop.value.elements
-                .filter((element): element is t.StringLiteral => t.isStringLiteral(element))
-                .map((element) => element.value);
-        }
-
-        if ((propName === 'weight' || propName === 'weights') && t.isArrayExpression(prop.value)) {
-            fontConfig.weight = prop.value.elements
-                .map((element) => {
-                    if (t.isStringLiteral(element)) {
-                        return element.value;
-                    } else if (t.isNumericLiteral(element)) {
-                        return element.value.toString();
-                    }
-                    return null;
-                })
-                .filter((weight): weight is string => weight !== null && !isNaN(Number(weight)));
-        }
-
-        if ((propName === 'style' || propName === 'styles') && t.isArrayExpression(prop.value)) {
-            fontConfig.styles = prop.value.elements
-                .filter((element): element is t.StringLiteral => t.isStringLiteral(element))
-                .map((element) => element.value);
-        }
-
-        // Handle local font src property
-        if (propName === 'src' && t.isArrayExpression(prop.value) && fontType === 'localFont') {
-            const srcConfigs = prop.value.elements
-                .filter((element): element is t.ObjectExpression => t.isObjectExpression(element))
-                .map((element) => {
-                    const srcConfig: Record<string, string> = {};
-                    element.properties.forEach((srcProp) => {
-                        if (t.isObjectProperty(srcProp) && t.isIdentifier(srcProp.key)) {
-                            const srcPropName = srcProp.key.name;
-                            if (t.isStringLiteral(srcProp.value)) {
-                                srcConfig[srcPropName] = srcProp.value.value;
-                            }
-                        }
-                    });
-                    return srcConfig;
-                });
-
-            fontConfig.weight = [...new Set(srcConfigs.map((config) => config.weight))];
-            fontConfig.styles = [...new Set(srcConfigs.map((config) => config.style))];
-        }
-    });
-
-    return fontConfig as Font;
+/**
+ * Helper function to find font class in a string of class names
+ */
+export function findFontClass(classString: string): string | null {
+    if (!classString) return null;
+    const fontClassMatch = /font-([a-zA-Z0-9_-]+)/.exec(classString);
+    return fontClassMatch?.[1] ?? null;
 }
 
-export function extractExistingFontImport(content: string): { code?: string; fonts: Font[] } {
+/**
+ * Filters out font-related classes from a className string, keeping only font weight classes
+ */
+export function filterFontClasses(className: string): string[] {
+    return className.split(' ').filter((c) => !c.startsWith('font-') || c.match(FONT_WEIGHT_REGEX));
+}
+
+/**
+ * Helper function to create a string literal with a font class
+ */
+export function createStringLiteralWithFont(
+    fontClassName: string,
+    originalClassName: string,
+): t.StringLiteral {
+    // Check if there's already a font class
+    const classes = originalClassName.split(' ');
+    const fontClassIndex = classes.findIndex((cls) => cls.startsWith('font-'));
+
+    if (fontClassIndex >= 0) {
+        classes[fontClassIndex] = fontClassName;
+    } else {
+        classes.unshift(fontClassName);
+    }
+
+    return t.stringLiteral(classes.join(' ').trim());
+}
+
+/**
+ * Helper function to create a template literal that includes a font variable
+ */
+export function createTemplateLiteralWithFont(
+    fontVarExpr: t.Expression,
+    originalExpr: t.Expression,
+): t.TemplateLiteral {
+    const quasis = [
+        t.templateElement({ raw: '', cooked: '' }, false),
+        t.templateElement({ raw: ' ', cooked: ' ' }, false),
+    ];
+
+    if (t.isStringLiteral(originalExpr)) {
+        quasis.push(
+            t.templateElement(
+                {
+                    raw: originalExpr.value,
+                    cooked: originalExpr.value,
+                },
+                true,
+            ),
+        );
+        return t.templateLiteral(quasis, [fontVarExpr]);
+    } else {
+        quasis.push(t.templateElement({ raw: '', cooked: '' }, true));
+        return t.templateLiteral(quasis, [fontVarExpr, originalExpr]);
+    }
+}
+
+/**
+ * Removes font variables and classes from a className attribute
+ * @param classNameAttr The className attribute to modify
+ * @param options Configuration options for font removal
+ * @returns true if the attribute was modified
+ */
+export function removeFontsFromClassName(
+    classNameAttr: t.JSXAttribute,
+    options: {
+        fontIds?: string[];
+        removeAll?: boolean;
+    },
+): boolean {
+    if (!classNameAttr || !classNameAttr.value) {
+        return false;
+    }
+
     try {
-        const ast = parse(content, {
-            sourceType: 'module',
-            plugins: ['typescript', 'jsx'],
-        });
+        if (t.isStringLiteral(classNameAttr.value)) {
+            const value = classNameAttr.value.value;
+            let classes: string[];
 
-        const fontImports: Record<string, string> = {};
-        const fontVariables: string[] = [];
-        const fonts: Font[] = [];
-        let updatedAst = false;
+            if (options.fontIds && options.fontIds.length > 0) {
+                // Remove only specific font classes
+                const fontClassPatterns = options.fontIds.map((id) => `font-${id}\\b`).join('|');
+                const fontClassRegex = new RegExp(fontClassPatterns, 'g');
+                classes = value.split(' ').filter((c) => !fontClassRegex.test(c));
+            } else if (options.removeAll) {
+                // Remove all font classes
+                classes = filterFontClasses(value);
+            } else {
+                // No removal requested
+                return false;
+            }
 
-        traverse(ast, {
-            ImportDeclaration(path) {
-                if (!path.node?.source?.value) {
-                    return;
+            classNameAttr.value = t.stringLiteral(classes.join(' '));
+            return true;
+        }
+
+        if (!t.isJSXExpressionContainer(classNameAttr.value)) {
+            return false;
+        }
+
+        // Make sure expression is not null or undefined
+        if (!classNameAttr.value.expression) {
+            return false;
+        }
+
+        const expr = classNameAttr.value.expression;
+
+        // Handle template literals
+        if (t.isTemplateLiteral(expr)) {
+            try {
+                // Ensure quasis and expressions arrays exist
+                if (!expr.quasis || !expr.expressions) {
+                    return false;
                 }
 
-                const source = path.node.source.value;
-                if (source === 'next/font/google') {
-                    if (!path.node.specifiers) {
-                        return;
+                // Filter out font variable expressions
+                const expressionsToKeep = expr.expressions.filter((e) => {
+                    if (!e) {
+                        return false;
                     }
 
-                    path.node.specifiers.forEach((specifier) => {
-                        if (t.isImportSpecifier(specifier) && t.isIdentifier(specifier.imported)) {
-                            fontImports[specifier.imported.name] = specifier.imported.name;
-                            try {
-                                path.remove();
-                            } catch (removeError) {
-                                console.error('Error removing font import:', removeError);
+                    try {
+                        if (t.isMemberExpression(e)) {
+                            const obj = e.object;
+                            if (!obj) {
+                                return true;
                             }
-                        }
-                    });
-                } else if (source === 'next/font/local') {
-                    if (!path.node.specifiers) {
-                        return;
-                    }
 
-                    path.node.specifiers.forEach((specifier) => {
-                        if (
-                            t.isImportDefaultSpecifier(specifier) &&
-                            t.isIdentifier(specifier.local)
-                        ) {
-                            fontImports[specifier.local.name] = 'localFont';
-                            try {
-                                path.remove();
-                            } catch (removeError) {
-                                console.error('Error removing font import:', removeError);
-                            }
-                        }
-                    });
-                }
-            },
-
-            VariableDeclaration(path) {
-                if (!path.node?.declarations) {
-                    return;
-                }
-
-                path.node.declarations.forEach((declarator) => {
-                    if (!t.isIdentifier(declarator.id) || !declarator.init) {
-                        return;
-                    }
-
-                    if (t.isCallExpression(declarator.init)) {
-                        const callee = declarator.init.callee;
-                        if (t.isIdentifier(callee) && fontImports[callee.name]) {
-                            const fontType = fontImports[callee.name] ?? '';
-                            const configArg = declarator.init.arguments[0];
-                            fontVariables.push(declarator.id.name);
-
-                            if (t.isObjectExpression(configArg)) {
-                                const fontConfig = extractFontConfig(
-                                    declarator.id.name,
-                                    fontType,
-                                    configArg,
-                                );
-
-                                if (!fontConfig.variable) {
-                                    fontConfig.variable = `--font-${declarator.id.name}`;
+                            if (options.fontIds && options.fontIds.length > 0) {
+                                // Remove specific fonts
+                                return !(t.isIdentifier(obj) && options.fontIds.includes(obj.name));
+                            } else if (options.removeAll) {
+                                // Remove all font variables except font-weight classes
+                                const prop = e.property;
+                                if (!prop) {
+                                    return true;
                                 }
 
-                                fonts.push(fontConfig);
-                            }
-                            updatedAst = true;
-                            try {
-                                path.remove();
-                            } catch (removeError) {
-                                console.error('Error removing font variable:', removeError);
+                                return !(
+                                    t.isIdentifier(prop) &&
+                                    (prop.name === 'variable' || prop.name === 'className')
+                                );
                             }
                         }
+                        return true;
+                    } catch (expressionError) {
+                        console.error('Error processing expression:', expressionError);
+                        return true;
                     }
                 });
-            },
 
-            JSXOpeningElement(path) {
-                if (!path.node || !t.isJSXIdentifier(path.node.name) || !path.node.attributes) {
-                    return;
+                // Get the static parts and clean them
+                const staticParts = expr.quasis.map((quasi) => {
+                    if (!quasi || !quasi.value) {
+                        return '';
+                    }
+                    return quasi.value.raw || '';
+                });
+
+                let combinedStatic = staticParts.join('placeholder');
+
+                // Remove font classes if needed
+                try {
+                    if (options.fontIds && options.fontIds.length > 0) {
+                        // Create regex pattern to match any of the specified font IDs
+                        const fontClassPattern = options.fontIds
+                            .map((id) => `font-${id}\\b`)
+                            .join('|');
+                        const fontClassRegex = new RegExp(fontClassPattern, 'g');
+                        combinedStatic = combinedStatic.replace(fontClassRegex, '');
+                    } else if (options.removeAll) {
+                        combinedStatic = combinedStatic.replace(/font-\w+\b/g, (match) =>
+                            FONT_WEIGHT_REGEX.test(match) ? match : '',
+                        );
+                    }
+                } catch (regexError) {
+                    console.error('Error processing font class regex:', regexError);
                 }
 
-                path.node.attributes.forEach((attr) => {
-                    if (
-                        t.isJSXAttribute(attr) &&
-                        t.isJSXIdentifier(attr.name) &&
-                        attr.name.name === 'className'
-                    ) {
-                        try {
-                            if (removeFontsFromClassName(attr, { fontIds: fontVariables })) {
-                                updatedAst = true;
-                            }
-                        } catch (classNameError) {
-                            console.error('Error processing className:', classNameError);
-                        }
-                    }
-                });
-            },
-        });
+                // Split back into parts with placeholders
+                const cleanedParts = combinedStatic.split('placeholder');
 
-        if (updatedAst) {
-            try {
-                const { code } = generate(ast);
-                return { code, fonts };
-            } catch (generateError) {
-                console.error('Error generating code from AST:', generateError);
+                if (expressionsToKeep.length === 0) {
+                    // If no expressions left, convert to string literal
+                    classNameAttr.value = t.stringLiteral(
+                        cleanedParts.join('').replace(/\s+/g, ' ').trim(),
+                    );
+                } else {
+                    // Rebuild template literal with remaining expressions
+                    const newQuasis = [];
+
+                    for (let i = 0; i <= expressionsToKeep.length; i++) {
+                        const raw = i < cleanedParts.length ? cleanedParts[i] : '';
+                        newQuasis.push(
+                            t.templateElement({ raw, cooked: raw }, i === expressionsToKeep.length),
+                        );
+                    }
+
+                    expr.expressions = expressionsToKeep;
+                    expr.quasis = newQuasis;
+                }
+                return true;
+            } catch (templateError) {
+                console.error('Error processing template literal:', templateError);
+                return false;
             }
         }
 
-        return { fonts };
-    } catch (error) {
-        console.error('Error extracting existing font import:', error);
-        return { fonts: [] };
-    }
-}
-
-export function validateFontImportAndExport(
-    content: string,
-    importName: string,
-    fontName: string,
-): { hasGoogleFontImport: boolean; hasImportName: boolean; hasFontExport: boolean } {
-    const ast = parse(content, {
-        sourceType: 'module',
-        plugins: ['typescript', 'jsx'],
-    });
-    let hasGoogleFontImport = false;
-    let hasImportName = false;
-    let hasFontExport = false;
-
-    traverse(ast, {
-        ImportDeclaration(path: NodePath<t.ImportDeclaration>) {
-            if (path.node.source.value === 'next/font/google') {
-                hasGoogleFontImport = true;
-                path.node.specifiers.forEach((specifier) => {
-                    if (
-                        t.isImportSpecifier(specifier) &&
-                        t.isIdentifier(specifier.imported) &&
-                        specifier.imported.name === importName
-                    ) {
-                        hasImportName = true;
-                    }
-                });
-            }
-        },
-        ExportNamedDeclaration(path: NodePath<t.ExportNamedDeclaration>) {
-            if (
-                t.isVariableDeclaration(path.node.declaration) &&
-                path.node.declaration.declarations.some(
-                    (declaration) =>
-                        t.isIdentifier(declaration.id) && declaration.id.name === fontName,
-                )
-            ) {
-                hasFontExport = true;
-            }
-        },
-    });
-
-    return { hasGoogleFontImport, hasImportName, hasFontExport };
-}
-
-export function removeFontFromConfigAST(font: Font, content: string) {
-    const ast = parse(content, {
-        sourceType: 'module',
-        plugins: ['typescript', 'jsx'],
-    });
-
-    const fontIdToRemove = font.id;
-    const importToRemove = font.family.replace(/\s+/g, '_');
-    let removedFont = false;
-    const fontFilesToDelete: string[] = [];
-    // Track if any localFont declarations remain after removal
-    let hasRemainingLocalFonts = false;
-
-    traverse(ast, {
-        ImportDeclaration(path) {
-            if (path.node.source.value === 'next/font/google') {
-                const importSpecifiers = path.node.specifiers.filter((specifier) => {
-                    if (t.isImportSpecifier(specifier) && t.isIdentifier(specifier.imported)) {
-                        return specifier.imported.name !== importToRemove;
-                    }
-                    return true;
-                });
-                if (importSpecifiers.length === 0) {
-                    path.remove();
-                } else if (importSpecifiers.length !== path.node.specifiers.length) {
-                    path.node.specifiers = importSpecifiers;
+        if (t.isMemberExpression(expr)) {
+            try {
+                if (!expr.property || !expr.object) {
+                    return false;
                 }
-            }
-        },
 
-        ExportNamedDeclaration(path) {
-            if (t.isVariableDeclaration(path.node.declaration)) {
-                const declarations = path.node.declaration.declarations;
-
-                for (let i = 0; i < declarations.length; i++) {
-                    const declaration = declarations[i];
-
-                    // Check if this is a localFont declaration (not the one being removed)
-                    if (
-                        declaration &&
-                        t.isIdentifier(declaration.id) &&
-                        declaration.id.name !== fontIdToRemove &&
-                        t.isCallExpression(declaration.init) &&
-                        t.isIdentifier(declaration.init.callee) &&
-                        declaration.init.callee.name === 'localFont'
-                    ) {
-                        hasRemainingLocalFonts = true;
-                    }
-
-                    if (
-                        declaration &&
-                        t.isIdentifier(declaration.id) &&
-                        declaration.id.name === fontIdToRemove
-                    ) {
-                        // Extract font file paths from the local font configuration
-                        if (
-                            t.isCallExpression(declaration.init) &&
-                            t.isIdentifier(declaration.init.callee) &&
-                            declaration.init.callee.name === 'localFont' &&
-                            declaration.init.arguments.length > 0 &&
-                            t.isObjectExpression(declaration.init.arguments[0])
-                        ) {
-                            const fontConfig = declaration.init.arguments[0];
-                            const srcProp = fontConfig.properties.find(
-                                (prop) =>
-                                    t.isObjectProperty(prop) &&
-                                    t.isIdentifier(prop.key) &&
-                                    prop.key.name === 'src',
-                            );
-
-                            if (
-                                srcProp &&
-                                t.isObjectProperty(srcProp) &&
-                                t.isArrayExpression(srcProp.value)
-                            ) {
-                                // Loop through the src array to find font file paths
-                                srcProp.value.elements.forEach((element) => {
-                                    if (t.isObjectExpression(element)) {
-                                        const pathProp = element.properties.find(
-                                            (prop) =>
-                                                t.isObjectProperty(prop) &&
-                                                t.isIdentifier(prop.key) &&
-                                                prop.key.name === 'path',
-                                        );
-
-                                        if (
-                                            pathProp &&
-                                            t.isObjectProperty(pathProp) &&
-                                            t.isStringLiteral(pathProp.value)
-                                        ) {
-                                            // Get the path value
-                                            let fontFilePath = pathProp.value.value;
-                                            if (fontFilePath.startsWith('../')) {
-                                                fontFilePath = fontFilePath.substring(3); // Remove '../' prefix
-                                            }
-                                            fontFilesToDelete.push(fontFilePath);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-
-                        if (declarations.length === 1) {
-                            path.remove();
-                        } else {
-                            declarations.splice(i, 1);
-                        }
-                        removedFont = true;
-                        break;
-                    }
-                }
-            }
-        },
-    });
-
-    return { removedFont, hasRemainingLocalFonts, fontFilesToDelete, ast };
-}
-
-export function removeFontFromThemeAST(fontId: string, content: string) {
-    const ast = parse(content, {
-        sourceType: 'module',
-        plugins: ['typescript', 'jsx'],
-    });
-
-    let themeFound = false;
-    let fontFamilyFound = false;
-
-    // Find the theme.fontFamily property and remove the font
-    traverse(ast, {
-        ObjectProperty(path) {
-            if (isThemeProperty(path)) {
-                themeFound = true;
-
-                // Look for fontFamily within theme
-                if (t.isObjectExpression(path.node.value)) {
-                    path.node.value.properties.forEach((prop, index) => {
-                        if (isPropertyWithName(prop, 'fontFamily')) {
-                            fontFamilyFound = true;
-
-                            // Remove the font from fontFamily
-                            if (t.isObjectProperty(prop) && t.isObjectExpression(prop.value)) {
-                                prop.value.properties = prop.value.properties.filter((fontProp) => {
-                                    if (
-                                        t.isObjectProperty(fontProp) &&
-                                        t.isIdentifier(fontProp.key)
-                                    ) {
-                                        return fontProp.key.name !== camelCase(fontId);
-                                    }
-                                    return true;
-                                });
-                            }
-                        }
-                    });
-                }
-            }
-        },
-    });
-
-    if (themeFound && fontFamilyFound) {
-        return ast;
-    }
-
-    return null;
-}
-
-export function addFontToConfigAST(font: Font, content: string) {
-    const ast = parse(content, {
-        sourceType: 'module',
-        plugins: ['typescript', 'jsx'],
-    });
-
-    let themeFound = false;
-    let fontFamilyFound = false;
-    const fontId = camelCase(font.id);
-    const fontVariable = font.variable;
-    const fontFamilyProperty = createFontFamilyProperty(font);
-
-    // Find or create the theme.fontFamily property
-    traverse(ast, {
-        ObjectProperty(path) {
-            if (isThemeProperty(path)) {
-                themeFound = true;
-
-                // Look for fontFamily within theme
-                if (t.isObjectExpression(path.node.value)) {
-                    let fontFamilyProperty = null;
-
-                    for (const prop of path.node.value.properties) {
-                        if (isPropertyWithName(prop, 'fontFamily')) {
-                            fontFamilyProperty = prop;
-                            fontFamilyFound = true;
-                            break;
-                        }
-                    }
-
-                    // If fontFamily exists, add the new font
-                    if (
-                        fontFamilyFound &&
-                        fontFamilyProperty &&
-                        t.isObjectProperty(fontFamilyProperty) &&
-                        t.isObjectExpression(fontFamilyProperty.value)
-                    ) {
-                        // Check if font already exists
-                        const fontExists = fontFamilyProperty.value.properties.some((prop) =>
-                            isPropertyWithName(prop, fontId),
-                        );
-
-                        if (!fontExists) {
-                            // Add the new font
-                            fontFamilyProperty.value.properties.push(
-                                t.objectProperty(
-                                    t.identifier(fontId),
-                                    t.arrayExpression([
-                                        t.stringLiteral(`var(${fontVariable})`),
-                                        t.stringLiteral('sans-serif'),
-                                    ]),
-                                ),
-                            );
-                        }
-                    }
-                    // If fontFamily doesn't exist, create it
-                    else if (!fontFamilyFound) {
-                        path.node.value.properties.push(fontFamilyProperty as t.ObjectProperty);
-                    }
-                }
-            }
-        },
-    });
-
-    // If theme doesn't exist, create it
-    if (!themeFound) {
-        traverse(ast, {
-            ObjectExpression(path) {
                 if (
-                    path.parent.type === 'VariableDeclarator' ||
-                    path.parent.type === 'ReturnStatement'
+                    t.isIdentifier(expr.property) &&
+                    (expr.property.name === 'className' || expr.property.name === 'variable')
                 ) {
-                    path.node.properties.push(
-                        t.objectProperty(
-                            t.identifier('theme'),
-                            t.objectExpression([fontFamilyProperty]),
-                        ),
-                    );
+                    if (options.fontIds && options.fontIds.length > 0) {
+                        if (
+                            t.isIdentifier(expr.object) &&
+                            options.fontIds.includes(expr.object.name)
+                        ) {
+                            classNameAttr.value = t.stringLiteral('');
+                            return true;
+                        }
+                    } else if (options.removeAll) {
+                        classNameAttr.value = t.stringLiteral('');
+                        return true;
+                    }
                 }
-            },
-        });
-    }
+            } catch (memberExprError) {
+                console.error('Error processing member expression:', memberExprError);
+                return false;
+            }
+        }
 
-    return ast;
+        return false;
+    } catch (error) {
+        console.error('Error in removeFontsFromClassName:', error);
+        return false;
+    }
+}
+
+export function isThemeProperty(path: NodePath<t.ObjectProperty>) {
+    return (
+        t.isIdentifier(path.node.key) &&
+        path.node.key.name === 'theme' &&
+        path.parent.type === 'ObjectExpression'
+    );
+}
+
+export function isPropertyWithName(
+    prop: t.ObjectMethod | t.ObjectProperty | t.SpreadElement,
+    key: string,
+) {
+    return t.isObjectProperty(prop) && t.isIdentifier(prop.key) && prop.key.name === key;
+}
+
+export function createFontFamilyProperty(font: Font) {
+    return t.objectProperty(
+        t.identifier('fontFamily'),
+        t.objectExpression([
+            t.objectProperty(
+                t.identifier(font.id),
+                t.arrayExpression([
+                    t.stringLiteral(`var(${font.variable})`),
+                    t.stringLiteral('sans-serif'),
+                ]),
+            ),
+        ]),
+    );
+}
+
+/**
+ * Checks if a variable declaration is a valid local font declaration
+ * Has a declaration id with the same name as the font name
+ * Has a localFont call expression as the initializer
+ * Has an object expression as the argument of the localFont call
+ * @param declarator The variable declaration to check
+ * @param fontName The name of the font to check for
+ * @returns true if the declaration is a valid local font declaration, false otherwise
+ */
+export function isValidLocalFontDeclaration(declarator: t.VariableDeclarator, fontName: string) {
+    return (
+        t.isIdentifier(declarator.id) &&
+        declarator.id.name === fontName &&
+        declarator.init &&
+        t.isCallExpression(declarator.init) &&
+        t.isIdentifier(declarator.init.callee) &&
+        declarator.init.callee.name === 'localFont' &&
+        declarator.init.arguments.length > 0 &&
+        t.isObjectExpression(declarator.init.arguments[0])
+    );
 }

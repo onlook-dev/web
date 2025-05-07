@@ -15,8 +15,13 @@ import {
     removeFontsFromClassName,
     validateFontImportAndExport,
     removeFontFromThemeAST,
-    createFontFamilyProperty,
     isValidLocalFontDeclaration,
+    createFontExportAst,
+    createGoogleFontImportAst,
+    updateGoogleFontImportAst,
+    addFontToConfigAST,
+    updateFileWithImport,
+    isFontExists,
 } from '@onlook/fonts';
 import type { Font } from '@onlook/models/assets';
 import * as FlexSearch from 'flexsearch';
@@ -181,6 +186,21 @@ export class FontManager {
         };
     }
 
+    private checkingProjectConfig(): boolean {
+        if (!this.projectManager.project) {
+            console.error('No project provided');
+            return false;
+        }
+
+        const sandbox = this.editorEngine.sandbox;
+        if (!sandbox) {
+            console.error('No sandbox session found');
+            return false;
+        }
+
+        return true;
+    }
+
     private async loadInitialFonts() {
         const initialFonts = this._allFontFamilies.slice(0, this._batchSize);
         const convertedFonts = initialFonts.map((font) => this.convertFont(font));
@@ -223,17 +243,7 @@ export class FontManager {
     }
 
     async scanFonts() {
-        if (!this.projectManager.project) {
-            console.error('No project provided');
-            return [];
-        }
-
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
-            console.error('No sandbox session found');
-            return [];
-        }
-
+        this.checkingProjectConfig();
         try {
             let existedFonts: Font[] | undefined = [];
             try {
@@ -266,16 +276,7 @@ export class FontManager {
     }
 
     async scanExistingFonts(): Promise<Font[] | undefined> {
-        if (!this.projectManager.project) {
-            console.error('No project provided');
-            return [];
-        }
-
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
-            console.error('No sandbox session found');
-            return [];
-        }
+        this.checkingProjectConfig();
 
         try {
             const routerConfig = await this.detectRouterType();
@@ -283,17 +284,9 @@ export class FontManager {
                 console.log('Could not detect Next.js router type');
                 return [];
             }
+            const layoutPath = pathModule.join(routerConfig.basePath, 'layout.tsx');
 
-            // Determine the layout file path based on router type
-            let layoutPath: string;
-
-            if (routerConfig.type === 'app') {
-                layoutPath = pathModule.join(routerConfig.basePath, 'layout.tsx');
-            } else {
-                layoutPath = pathModule.join(routerConfig.basePath, '_app.tsx');
-            }
-
-            const content = await sandbox.readFile(normalizePath(layoutPath));
+            const content = await this.editorEngine.sandbox.readFile(normalizePath(layoutPath));
             if (!content) {
                 console.log(`Layout file is empty or doesn't exist: ${layoutPath}`);
                 return [];
@@ -301,7 +294,7 @@ export class FontManager {
 
             const { fonts, code } = extractExistingFontImport(content);
             if (code) {
-                await sandbox.writeFile(normalizePath(layoutPath), code);
+                await this.editorEngine.sandbox.writeFile(normalizePath(layoutPath), code);
             }
             return fonts;
         } catch (error) {
@@ -316,20 +309,13 @@ export class FontManager {
      * 2. Updating Tailwind config with the new font family
      * 3. Adding the font variable to the appropriate layout file
      */
-    async addFont(font: Font) {
-        if (!this.projectManager.project) {
-            console.error('No project provided');
-            return false;
-        }
-
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
-            console.error('No sandbox session found');
+    async addFont(font: Font): Promise<boolean> {
+        if (!this.checkingProjectConfig()) {
             return false;
         }
 
         try {
-            const content = (await sandbox.readFile(this.fontConfigPath)) ?? '';
+            const content = (await this.editorEngine.sandbox.readFile(this.fontConfigPath)) ?? '';
 
             // Convert the font family to the import name format (Pascal case, no spaces)
             const importName = font.family.replace(/\s+/g, '_');
@@ -341,6 +327,8 @@ export class FontManager {
                 plugins: ['typescript', 'jsx'],
             });
 
+            let updatedAst = ast;
+
             const { hasGoogleFontImport, hasImportName, hasFontExport } =
                 validateFontImportAndExport(content, importName, fontName);
 
@@ -349,48 +337,21 @@ export class FontManager {
                 return false;
             }
 
-            // Create the AST nodes for the new font
-            const fontConfigObject = createFontConfigAst(font);
-
-            const fontDeclaration = t.variableDeclaration('const', [
-                t.variableDeclarator(
-                    t.identifier(fontName),
-                    t.callExpression(t.identifier(importName), [fontConfigObject]),
-                ),
-            ]);
-
-            const exportDeclaration = t.exportNamedDeclaration(fontDeclaration, []);
-
             // Add the export declaration to the end of the file
-            ast.program.body.push(exportDeclaration);
+            const exportDeclaration = createFontExportAst(font);
+            updatedAst.program.body.push(exportDeclaration);
 
             // Add or update the import if needed
             if (!hasGoogleFontImport) {
-                const importDeclaration = t.importDeclaration(
-                    [t.importSpecifier(t.identifier(importName), t.identifier(importName))],
-                    t.stringLiteral('next/font/google'),
-                );
-                ast.program.body.unshift(importDeclaration);
+                const importDeclaration = createGoogleFontImportAst(font);
+                updatedAst.program.body.unshift(importDeclaration);
             } else if (!hasImportName) {
-                traverse(ast, {
-                    ImportDeclaration(path: NodePath<t.ImportDeclaration>) {
-                        if (path.node.source.value === 'next/font/google') {
-                            const newSpecifiers = [...path.node.specifiers];
-                            newSpecifiers.push(
-                                t.importSpecifier(
-                                    t.identifier(importName),
-                                    t.identifier(importName),
-                                ),
-                            );
-                            path.node.specifiers = newSpecifiers;
-                        }
-                    },
-                });
+                updatedAst = updateGoogleFontImportAst(font, ast);
             }
 
             const { code } = generate(ast);
 
-            const success = await sandbox.writeFile(this.fontConfigPath, code);
+            const success = await this.editorEngine.sandbox.writeFile(this.fontConfigPath, code);
             if (!success) {
                 throw new Error('Failed to write font configuration');
             }
@@ -416,18 +377,12 @@ export class FontManager {
         }
     }
 
-    async removeFont(font: Font) {
-        if (!this.projectManager.project) {
-            console.error('No project provided');
+    async removeFont(font: Font){
+        if (!this.checkingProjectConfig()) {
             return false;
         }
 
         const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
-            console.error('No sandbox session found');
-            return false;
-        }
-
         try {
             const content = await sandbox.readFile(this.fontConfigPath);
             if (!content) {
@@ -475,8 +430,7 @@ export class FontManager {
     }
 
     async setDefaultFont(font: Font) {
-        if (!this.projectManager.project) {
-            console.error('No project provided');
+        if (!this.checkingProjectConfig()) {
             return false;
         }
 
@@ -547,24 +501,7 @@ export class FontManager {
             const fontName = camelCase(`custom-${baseFontName}`);
 
             // Check if this font name already exists
-            let fontNameExists = false;
-            let existingFontNode: t.ExportNamedDeclaration | null = null;
-
-            traverse(ast, {
-                ExportNamedDeclaration(path) {
-                    if (
-                        path.node.declaration &&
-                        t.isVariableDeclaration(path.node.declaration) &&
-                        path.node.declaration.declarations.some(
-                            (declaration) =>
-                                t.isIdentifier(declaration.id) && declaration.id.name === fontName,
-                        )
-                    ) {
-                        fontNameExists = true;
-                        existingFontNode = path.node;
-                    }
-                },
-            });
+            const { existingFontNode } = isFontExists(fontName, content);
 
             // Make sure the fonts directory exists (this is handled by sandbox in our case)
             const fontsDir = 'fonts';
@@ -601,7 +538,7 @@ export class FontManager {
                 ]),
             );
 
-            if (fontNameExists && existingFontNode) {
+            if (existingFontNode) {
                 // Merge new font configurations with existing ones
                 traverse(ast, {
                     ExportNamedDeclaration(path) {
@@ -817,46 +754,6 @@ export class FontManager {
     }
 
     /**
-     * Updates a file with a font import if needed
-     */
-    private async updateFileWithImport(
-        filePath: string,
-        content: string,
-        ast: ParseResult<t.File>,
-        fontName: string,
-    ): Promise<void> {
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
-            return;
-        }
-
-        const { code } = generate(ast);
-        const importRegex = new RegExp(
-            `import\\s*{([^}]*)}\\s*from\\s*['"]${this.fontImportPath}['"]`,
-        );
-
-        const importMatch = content.match(importRegex);
-
-        let newContent = code;
-
-        if (importMatch?.[1]) {
-            const currentImports = importMatch[1];
-            if (!currentImports.includes(fontName)) {
-                const newImports = currentImports.trim() + `, ${fontName}`;
-                newContent = newContent.replace(
-                    importRegex,
-                    `import { ${newImports} } from '${this.fontImportPath}'`,
-                );
-            }
-        } else {
-            const fontImport = `import { ${fontName} } from '${this.fontImportPath}';`;
-            newContent = fontImport + '\n' + newContent;
-        }
-
-        await sandbox.writeFile(filePath, newContent);
-    }
-
-    /**
      * Adds a font variable to specified target elements in a file
      */
     private async addFontVariableToElement(
@@ -945,7 +842,13 @@ export class FontManager {
                     }
 
                     if (updatedAst) {
-                        await this.updateFileWithImport(normalizedFilePath, content, ast, fontName);
+                        const newContent = updateFileWithImport(
+                            this.fontImportPath,
+                            content,
+                            ast,
+                            fontName,
+                        );
+                        await sandbox.writeFile(normalizedFilePath, newContent);
                     }
                 },
             );
@@ -1216,7 +1119,6 @@ export class FontManager {
 
             if (routerConfig.type === 'app') {
                 const layoutPath = pathModule.join(routerConfig.basePath, 'layout.tsx');
-
                 return await this.updateFontInLayout(layoutPath, font, ['html']);
             } else {
                 const appPath = pathModule.join(routerConfig.basePath, '_app.tsx');
@@ -1238,14 +1140,7 @@ export class FontManager {
      * Uses more sophisticated font handling for layout files.
      */
     private async syncFontsWithConfigs() {
-        if (!this.projectManager.project) {
-            console.error('No project provided');
-            return;
-        }
-
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
-            console.error('No sandbox session found');
+        if (!this.checkingProjectConfig()) {
             return;
         }
 
@@ -1323,9 +1218,8 @@ export class FontManager {
     /**
      * Removes a font from the Tailwind config
      */
-    private async removeFontFromTailwindConfig(font: Font) {
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
+    private async removeFontFromTailwindConfig(font: Font): Promise<boolean> {
+        if (!this.checkingProjectConfig()) {
             return false;
         }
 
@@ -1334,19 +1228,18 @@ export class FontManager {
                 return false;
             }
 
-            const content = await sandbox.readFile(this.tailwindConfigPath);
+            const content = await this.editorEngine.sandbox.readFile(this.tailwindConfigPath);
             if (!content) {
                 return false;
             }
 
             const ast = removeFontFromThemeAST(font.id, content);
-
             if (!ast) {
                 return false;
             }
 
             const { code } = generate(ast);
-            return await sandbox.writeFile(this.tailwindConfigPath, code);
+            return await this.editorEngine.sandbox.writeFile(this.tailwindConfigPath, code);
         } catch (error) {
             console.error('Error removing font from Tailwind config:', error);
             return false;
@@ -1356,9 +1249,8 @@ export class FontManager {
     /**
      * Updates Tailwind config with a new font
      */
-    private async updateTailwindFontConfig(font: Font) {
-        const sandbox = this.editorEngine.sandbox;
-        if (!sandbox) {
+    private async updateTailwindFontConfig(font: Font): Promise<boolean> {
+        if (!this.checkingProjectConfig()) {
             return false;
         }
 
@@ -1367,96 +1259,14 @@ export class FontManager {
                 return false;
             }
 
-            const content = await sandbox.readFile(this.tailwindConfigPath);
+            const content = await this.editorEngine.sandbox.readFile(this.tailwindConfigPath);
             if (!content) {
                 return false;
             }
 
-            // Parse the Tailwind config
-            const ast = parse(content, {
-                sourceType: 'module',
-                plugins: ['typescript', 'jsx'],
-            });
-
-            let themeFound = false;
-            let fontFamilyFound = false;
-            const fontId = camelCase(font.id);
-            const fontVariable = font.variable;
-            const fontFamily = createFontFamilyProperty(font);
-
-            // Find or create the theme.fontFamily property
-            traverse(ast, {
-                ObjectProperty(path) {
-                    if (isThemeProperty(path)) {
-                        themeFound = true;
-
-                        // Look for fontFamily within theme
-                        if (t.isObjectExpression(path.node.value)) {
-                            let fontFamilyProperty = null;
-
-                            for (const prop of path.node.value.properties) {
-                                if (isPropertyWithName(prop, 'fontFamily')) {
-                                    fontFamilyProperty = prop;
-                                    fontFamilyFound = true;
-                                    break;
-                                }
-                            }
-
-                            // If fontFamily exists, add the new font
-                            if (
-                                fontFamilyFound &&
-                                fontFamilyProperty &&
-                                t.isObjectProperty(fontFamilyProperty) &&
-                                t.isObjectExpression(fontFamilyProperty.value)
-                            ) {
-                                // Check if font already exists
-                                const fontExists = fontFamilyProperty.value.properties.some(
-                                    (prop) => isPropertyWithName(prop, fontId),
-                                );
-
-                                if (!fontExists) {
-                                    // Add the new font
-                                    fontFamilyProperty.value.properties.push(
-                                        t.objectProperty(
-                                            t.identifier(fontId),
-                                            t.arrayExpression([
-                                                t.stringLiteral(`var(${fontVariable})`),
-                                                t.stringLiteral('sans-serif'),
-                                            ]),
-                                        ),
-                                    );
-                                }
-                            }
-                            // If fontFamily doesn't exist, create it
-                            else if (!fontFamilyFound) {
-                                path.node.value.properties.push(fontFamily);
-                            }
-                        }
-                    }
-                },
-            });
-
-            // If theme doesn't exist, create it
-            if (!themeFound) {
-                traverse(ast, {
-                    ObjectExpression(path) {
-                        if (
-                            path.parent.type === 'VariableDeclarator' ||
-                            path.parent.type === 'ReturnStatement'
-                        ) {
-                            path.node.properties.push(
-                                t.objectProperty(
-                                    t.identifier('theme'),
-                                    t.objectExpression([fontFamily]),
-                                ),
-                            );
-                        }
-                    },
-                });
-            }
-
+            const ast = addFontToConfigAST(font, content);
             const { code } = generate(ast);
-            return await sandbox.writeFile(this.tailwindConfigPath, code);
+            return await this.editorEngine.sandbox.writeFile(this.tailwindConfigPath, code);
         } catch (error) {
             console.error('Error updating Tailwind font config:', error);
             return false;
