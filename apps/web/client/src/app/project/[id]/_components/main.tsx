@@ -1,5 +1,6 @@
 'use client';
 
+<<<<<<< HEAD
 import { ChatProvider } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store/editor';
 import { useProjectManager } from '@/components/store/project';
@@ -13,6 +14,19 @@ import { useTabActive } from '../_hooks/use-tab-active';
 import { BottomBar } from './bottom-bar';
 import { Canvas } from './canvas';
 import { EditorBar } from './editor-bar';
+=======
+import { ChatProvider } from "@/app/project/[id]/_hooks/use-chat";
+import { useEditorEngine, useProjectManager } from "@/components/store";
+import type { Project } from "@onlook/models";
+import { Icons } from "@onlook/ui/icons/index";
+import { TooltipProvider } from "@onlook/ui/tooltip";
+import { useEffect, useRef, useState } from "react";
+import { useSandbox } from "../_hooks/use-sandbox";
+import { useTabActive } from "../_hooks/use-tab-active";
+import { BottomBar } from "./bottom-bar";
+import { Canvas } from "./canvas";
+import { EditorBar } from "./editor-bar";
+>>>>>>> 60e8953b (Pre-group / more menu toolbar)
 import { LeftPanel } from './left-panel';
 import { RightPanel } from './right-panel';
 import { TopBar } from './top-bar';
@@ -21,7 +35,13 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectManager();
     const { tabState } = useTabActive();
+<<<<<<< HEAD
     const { data: result, isLoading } = api.project.getFullProject.useQuery({ projectId });
+=======
+    const leftPanelRef = useRef<HTMLDivElement>(null);
+    const rightPanelRef = useRef<HTMLDivElement>(null);
+    const [center, setCenter] = useState<number | null>(null);
+>>>>>>> 60e8953b (Pre-group / more menu toolbar)
 
     useEffect(() => {
         if (!result) {
@@ -99,17 +119,20 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
                     </div>
 
                     {/* Left Panel */}
-                    <div className="absolute top-10 left-0 animate-layer-panel-in h-[calc(100%-80px)] z-1">
+                    <div ref={leftPanelRef} className="absolute top-10 left-0 animate-layer-panel-in h-[calc(100%-80px)] z-1">
                         <LeftPanel />
                     </div>
 
                     {/* Centered EditorBar */}
-                    <div className="absolute top-12 left-1/2 -translate-x-1/2 w-hug z-50">
+                    <div
+                        className="absolute top-12 z-50"
+                        style={center ? { left: center, transform: 'translateX(-50%)' } : {}}
+                    >
                         <EditorBar />
                     </div>
 
                     {/* Right Panel */}
-                    <div className="absolute top-10 right-0 animate-edit-panel-in h-[calc(100%-40px)] z-1">
+                    <div ref={rightPanelRef} className="absolute top-10 right-0 animate-edit-panel-in h-[calc(100%-40px)] z-1">
                         <RightPanel />
                     </div>
 
