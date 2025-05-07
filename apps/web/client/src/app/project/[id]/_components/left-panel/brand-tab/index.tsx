@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite';
 import ColorPanel from './color-panel';
 import FontPanel from './font-panel';
 import SystemFont from './font-panel/system-font';
+import { useEffect } from 'react';
 
 interface ColorSquareProps {
     color: string;
@@ -19,6 +20,10 @@ const ColorSquare = ({ color }: ColorSquareProps) => (
 
 export const BrandTab = observer(() => {
     const editorEngine = useEditorEngine();
+
+    useEffect(() => {
+        editorEngine.font.scanFonts();
+    }, []);
 
     // Sample colors for the brand palette
     const brandColors = [

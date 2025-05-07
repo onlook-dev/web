@@ -1,5 +1,5 @@
-import type { SandboxSession, Watcher } from '@codesandbox/sdk';
-import { IGNORED_DIRECTORIES, JSX_FILE_EXTENSIONS } from '@onlook/constants';
+import type { SandboxSession, Watcher, WatchEvent } from '@codesandbox/sdk';
+import { IGNORED_DIRECTORIES, JS_FILE_EXTENSIONS, JSX_FILE_EXTENSIONS } from '@onlook/constants';
 import type { TemplateNode } from '@onlook/models';
 import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
@@ -28,11 +28,11 @@ export class SandboxManager {
             return;
         }
 
-        const files = await this.listFilesRecursively(
-            './',
-            IGNORED_DIRECTORIES,
-            JSX_FILE_EXTENSIONS,
-        );
+        const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, [
+            ...JSX_FILE_EXTENSIONS,
+            ...JS_FILE_EXTENSIONS,
+            'css',
+        ]);
         for (const file of files) {
             const normalizedPath = normalizePath(file);
             const content = await this.readFile(normalizedPath);
@@ -43,6 +43,8 @@ export class SandboxManager {
 
             await this.processFileForMapping(normalizedPath);
         }
+
+        await this.watchFiles();
     }
 
     private async readRemoteFile(filePath: string): Promise<string | null> {
@@ -59,6 +61,20 @@ export class SandboxManager {
         }
     }
 
+    private async readRemoteBinaryFile(filePath: string): Promise<Uint8Array | null> {
+        if (!this.session) {
+            console.error('No session found for remote binary read');
+            return null;
+        }
+
+        try {
+            return await this.session.fs.readFile(filePath);
+        } catch (error) {
+            console.error(`Error reading remote binary file ${filePath}:`, error);
+            return null;
+        }
+    }
+
     private async writeRemoteFile(filePath: string, fileContent: string): Promise<boolean> {
         if (!this.session) {
             console.error('No session found for remote write');
@@ -70,6 +86,24 @@ export class SandboxManager {
             return true;
         } catch (error) {
             console.error(`Error writing remote file ${filePath}:`, error);
+            return false;
+        }
+    }
+
+    private async writeRemoteBinaryFile(
+        filePath: string,
+        fileContent: Buffer | Uint8Array,
+    ): Promise<boolean> {
+        if (!this.session) {
+            console.error('No session found for remote binary write');
+            return false;
+        }
+
+        try {
+            await this.session.fs.writeFile(filePath, fileContent);
+            return true;
+        } catch (error) {
+            console.error(`Error writing remote binary file ${filePath}:`, error);
             return false;
         }
     }
@@ -91,18 +125,38 @@ export class SandboxManager {
         }
         return results;
     }
+    async readBinaryFile(path: string): Promise<Uint8Array | null> {
+        const normalizedPath = normalizePath(path);
+        try {
+            return await this.readRemoteBinaryFile(normalizedPath);
+        } catch (error) {
+            console.error(`Error reading binary file ${normalizedPath}:`, error);
+            return null;
+        }
+    }
 
     async writeFile(path: string, content: string): Promise<boolean> {
         const normalizedPath = normalizePath(path);
         return this.fileSync.write(normalizedPath, content, this.writeRemoteFile.bind(this));
     }
 
-    async listAllFiles() {
+    listAllFiles() {
         return this.fileSync.listAllFiles();
     }
 
     async listFiles(dir: string) {
         return this.session?.fs.readdir(dir);
+    }
+
+    async writeBinaryFile(path: string, content: Buffer | Uint8Array): Promise<boolean> {
+        const normalizedPath = normalizePath(path);
+        try {
+            // TODO: Implement binary file sync
+            return await this.writeRemoteBinaryFile(normalizedPath, content);
+        } catch (error) {
+            console.error(`Error writing binary file ${normalizedPath}:`, error);
+            return false;
+        }
     }
 
     async listFilesRecursively(
@@ -134,7 +188,7 @@ export class SandboxManager {
             } else {
                 if (
                     extensions.length > 0 &&
-                    !extensions.includes(entry.name.split('.').pop() || '')
+                    !extensions.includes(entry.name.split('.').pop() ?? '')
                 ) {
                     continue;
                 }
@@ -150,23 +204,36 @@ export class SandboxManager {
             return;
         }
 
+        // Convert ignored directories to glob patterns with ** wildcard
+        const excludePatterns = IGNORED_DIRECTORIES.map((dir) => `${dir}/**`);
+
         const watcher = await this.session.fs.watch('./', {
             recursive: true,
-            excludes: IGNORED_DIRECTORIES,
+            excludes: excludePatterns,
         });
 
-        watcher.onEvent((event) => {
-            for (const path of event.paths) {
-                if (isSubdirectory(path, IGNORED_DIRECTORIES)) {
-                    continue;
-                }
-                const normalizedPath = normalizePath(path);
-                this.fileSync.updateCache(normalizedPath, event.type);
-                this.processFileForMapping(normalizedPath);
-            }
-        });
+        watcher.onEvent((event) => this.handleFileEvent(event));
 
         this.watcher = watcher;
+    }
+
+    async handleFileEvent(event: WatchEvent) {
+        for (const path of event.paths) {
+            if (isSubdirectory(path, IGNORED_DIRECTORIES)) {
+                continue;
+            }
+            const normalizedPath = normalizePath(path);
+            const eventType = event.type;
+            if (event.type === 'remove') {
+                await this.fileSync.delete(normalizedPath);
+            } else if (eventType === 'change' || eventType === 'add') {
+                // Sometimes we delete the content of the file, so we should allow empty content
+                const content = (await this.readRemoteFile(normalizedPath)) ?? '';
+
+                await this.fileSync.updateCache(normalizedPath, content);
+                await this.processFileForMapping(normalizedPath);
+            }
+        }
     }
 
     async processFileForMapping(file: string) {

@@ -13,47 +13,6 @@ export const SelectProject = observer(() => {
     const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
     const [direction, setDirection] = useState(0);
 
-    // TODO: remove this
-    // const mockProjects: Project[] = [{
-    //     id: '1',
-    //     name: 'Project 1',
-    //     previewUrl: 'http://localhost:8084',
-    //     canvas: null,
-    //     domains: null,
-    //     sandbox: null,
-    //     metadata: {
-    //         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12).toISOString(),
-    //         updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12).toISOString(),
-    //         previewImg: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
-    //     },
-    // },
-    // {
-    //     id: '2',
-    //     name: 'Project 2',
-    //     previewUrl: 'http://localhost:8084',
-    //     canvas: null,
-    //     domains: null,
-    //     sandbox: null,
-    //     metadata: {
-    //         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    //         updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    //         previewImg: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80',
-    //     },
-    // },
-    // {
-    //     id: '3',
-    //     name: 'Project 3',
-    //     previewUrl: 'http://localhost:8084',
-    //     canvas: null,
-    //     domains: null,
-    //     sandbox: null,
-    //     metadata: {
-    //         createdAt: new Date(Date.now() - 1000 * 60).toISOString(),
-    //         updatedAt: new Date(Date.now() - 1000 * 60).toISOString(),
-    //         previewImg: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80',
-    //     },
-    // }];
-
     const sortProjects = (unsortedProjects: Project[]) => {
         return unsortedProjects.sort(
             (a, b) =>
@@ -88,3 +47,56 @@ export const SelectProject = observer(() => {
         </div>
     );
 });
+
+const mockProjects: Project[] = [{
+    id: '1',
+    name: 'Project 1',
+    canvas: {
+        id: '1',
+        scale: 1,
+        frames: [],
+        position: {
+            x: 0,
+            y: 0,
+        },
+    },
+    domains: {
+        base: null,
+        custom: null,
+    },
+    sandbox: {
+        id: '1',
+        url: 'http://localhost:8084',
+    },
+    metadata: {
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12).toISOString(),
+        previewImg: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
+    },
+},
+{
+    id: '2',
+    name: 'Project 2',
+    canvas: {
+        id: '2',
+        scale: 1,
+        frames: [],
+        position: {
+            x: 0,
+            y: 0,
+        },
+    },
+    domains: {
+        base: null,
+        custom: null,
+    },
+    sandbox: {
+        id: '2',
+        url: 'http://localhost:8084',
+    },
+    metadata: {
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        previewImg: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80',
+    },
+}];

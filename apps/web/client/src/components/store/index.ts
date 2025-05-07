@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { EditorEngine } from './editor/engine';
+import { EditorEngine } from './editor';
 import { ProjectManager } from './project';
 import { UserManager } from './user';
 
