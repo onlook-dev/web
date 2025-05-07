@@ -98,25 +98,18 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
                         <TopBar />
                     </div>
 
-                    <div className="absolute top-10 w-full z-50">
-                        <EditorBar />
-                    </div>
-
-                    {/* TODO: Remove these */}
-                    {/* 
-                    <div className="absolute w-screen h-screen flex items-center justify-center z-30">
-                        <StagingToggle selectedElement={selectedElement} onElementSelect={setSelectedElement} />
-                    </div> 
-                    <div className="absolute top-20 left-[80px] z-50 h-[calc(100%-80px)]">
-                        <Panels selectedElement={selectedElement} />
-                    </div> 
-                     */}
-
-                    <div className="absolute top-20 left-0 animate-layer-panel-in h-[calc(100%-80px)] z-1">
+                    {/* Left Panel */}
+                    <div className="absolute top-10 left-0 animate-layer-panel-in h-[calc(100%-80px)] z-1">
                         <LeftPanel />
                     </div>
 
-                    <div className="absolute top-20 right-0 animate-edit-panel-in h-[calc(100%-80px)] z-1">
+                    {/* Centered EditorBar */}
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 w-hug z-50">
+                        <EditorBar />
+                    </div>
+
+                    {/* Right Panel */}
+                    <div className="absolute top-10 right-0 animate-edit-panel-in h-[calc(100%-40px)] z-1">
                         <RightPanel />
                     </div>
 
@@ -124,7 +117,7 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
                         <BottomBar />
                     </div>
                 </div>
-            </TooltipProvider>
-        </ChatProvider>
+            </TooltipProvider >
+        </ChatProvider >
     );
 });
