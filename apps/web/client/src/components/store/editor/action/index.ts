@@ -16,10 +16,10 @@ import {
 import { StyleChangeType } from '@onlook/models/style';
 import { assertNever } from '@onlook/utility';
 import { debounce } from 'lodash';
-import type { EditorEngine } from '..';
+import type { EditorEngine } from '../engine';
 import type { FrameData } from '../frames';
 export class ActionManager {
-    constructor(private editorEngine: EditorEngine) {}
+    constructor(private editorEngine: EditorEngine) { }
 
     async run(action: Action) {
         await this.editorEngine.history.push(action);

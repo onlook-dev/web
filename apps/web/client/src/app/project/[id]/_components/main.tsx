@@ -1,7 +1,7 @@
 'use client';
 
 import { ChatProvider } from '@/app/project/[id]/_hooks/use-chat';
-import { useEditorEngine, useProjectManager } from '@/components/store';
+import { useEditorEngine, useProjectManager } from '@/components/store/editor';
 import type { Project } from '@onlook/models';
 import { Icons } from '@onlook/ui/icons/index';
 import { TooltipProvider } from '@onlook/ui/tooltip';

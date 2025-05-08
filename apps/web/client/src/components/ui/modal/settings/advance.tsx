@@ -1,4 +1,4 @@
-import { useUserManager } from '@/components/store';
+import { useUserManager } from '@/components/store/editor';
 import { DefaultSettings } from '@onlook/constants';
 import { Button } from '@onlook/ui/button';
 import {

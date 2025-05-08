@@ -1,6 +1,6 @@
 // import type { FileNode } from '@/lib/editor/engine/files';
 // import { MainChannels, Theme } from '@onlook/models/constants';
-import { useEditorEngine } from '@/components/store';
+import { useEditorEngine } from '@/components/store/editor';
 import { type EditorView } from '@codemirror/view';
 import { EditorTabValue, SystemTheme } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
@@ -499,10 +499,10 @@ export const DevTab = observer(() => {
         const updatedFiles = openedFiles.map((file) =>
             file.id === fileId
                 ? {
-                      ...file,
-                      content: content,
-                      isDirty: hasChanged,
-                  }
+                    ...file,
+                    content: content,
+                    isDirty: hasChanged,
+                }
                 : file,
         );
 

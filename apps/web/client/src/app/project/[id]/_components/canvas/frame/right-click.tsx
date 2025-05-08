@@ -1,6 +1,6 @@
 import { Hotkey } from '@/components/hotkey';
 import { IDE } from '@/components/ide';
-import { useEditorEngine, useUserManager } from '@/components/store';
+import { useEditorEngine, useUserManager } from '@/components/store/editor';
 import { DEFAULT_IDE, EditorTabValue, type DomElement } from '@onlook/models';
 import {
     ContextMenu,
@@ -141,7 +141,7 @@ export const RightClickMenu = observer(({ children }: RightClickMenuProps) => {
         {
             label: 'Delete',
             // action: () => editorEngine.deleteWindow(editorEngine.frames.selected[0].id),
-            action: () => {},
+            action: () => { },
             icon: <Icons.Trash className="mr-2 h-4 w-4" />,
             hotkey: Hotkey.DELETE,
             destructive: true,

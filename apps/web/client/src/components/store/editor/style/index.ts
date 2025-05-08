@@ -7,7 +7,7 @@ import {
 import { StyleChangeType, type StyleChange } from '@onlook/models/style';
 import { makeAutoObservable, reaction } from 'mobx';
 import type { CSSProperties } from 'react';
-import type { EditorEngine } from '..';
+import type { EditorEngine } from '../engine';
 
 export interface SelectedStyle {
     styles: DomElementStyles;
@@ -65,23 +65,23 @@ export class StyleManager {
                 updated:
                     type === StyleChangeType.Custom
                         ? Object.fromEntries(
-                              Object.keys(styles).map((style) => [
-                                  style,
-                                  {
-                                      value: styles[style as keyof CSSProperties]?.toString() ?? '',
-                                      type: StyleChangeType.Custom,
-                                  },
-                              ]),
-                          )
+                            Object.keys(styles).map((style) => [
+                                style,
+                                {
+                                    value: styles[style as keyof CSSProperties]?.toString() ?? '',
+                                    type: StyleChangeType.Custom,
+                                },
+                            ]),
+                        )
                         : Object.fromEntries(
-                              Object.keys(styles).map((style) => [
-                                  style,
-                                  {
-                                      value: styles[style as keyof CSSProperties]?.toString() ?? '',
-                                      type: StyleChangeType.Value,
-                                  },
-                              ]),
-                          ),
+                            Object.keys(styles).map((style) => [
+                                style,
+                                {
+                                    value: styles[style as keyof CSSProperties]?.toString() ?? '',
+                                    type: StyleChangeType.Value,
+                                },
+                            ]),
+                        ),
                 original: Object.fromEntries(
                     Object.keys(styles).map((style) => [
                         style,

@@ -18,7 +18,7 @@ import { StyleChangeType } from '@onlook/models/style';
 import { colors } from '@onlook/ui/tokens';
 import { createDomId, createOid } from '@onlook/utility';
 import type React from 'react';
-import type { EditorEngine } from '..';
+import type { EditorEngine } from '../engine';
 import type { FrameData } from '../frames';
 import { getRelativeMousePositionToWebview } from '../overlay/utils';
 
@@ -26,7 +26,7 @@ export class InsertManager {
     isDrawing = false;
     private drawOrigin: ElementPosition | undefined;
 
-    constructor(private editorEngine: EditorEngine) {}
+    constructor(private editorEngine: EditorEngine) { }
 
     getDefaultProperties(mode: EditorMode): DropElementProperties {
         switch (mode) {
@@ -170,14 +170,14 @@ export class InsertManager {
         const styles: Record<string, string> =
             mode === EditorMode.INSERT_TEXT
                 ? {
-                      width: `${width}px`,
-                      height: `${height}px`,
-                  }
+                    width: `${width}px`,
+                    height: `${height}px`,
+                }
                 : {
-                      width: `${width}px`,
-                      height: `${height}px`,
-                      backgroundColor: colors.blue[100],
-                  };
+                    width: `${width}px`,
+                    height: `${height}px`,
+                    backgroundColor: colors.blue[100],
+                };
 
         const actionElement: ActionElement = {
             domId,

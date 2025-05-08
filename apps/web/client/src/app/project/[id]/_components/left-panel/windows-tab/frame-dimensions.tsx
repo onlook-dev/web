@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store';
+import { useEditorEngine } from '@/components/store/editor';
 import { DefaultSettings } from '@onlook/constants';
 import type { Frame } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
@@ -255,23 +255,23 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
             if (aspectRatioLocked) {
                 if (
                     parseInt(value) / aspectRatio <
-                        parseInt(DefaultSettings.MIN_DIMENSIONS.height) ||
+                    parseInt(DefaultSettings.MIN_DIMENSIONS.height) ||
                     parseInt(value) < parseInt(DefaultSettings.MIN_DIMENSIONS.width)
                 ) {
                     const dimensionsAspectRatio =
                         aspectRatio >= 1
                             ? {
-                                  height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
-                                  width: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
-                                  ),
-                              }
+                                height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
+                                width: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
+                                ),
+                            }
                             : {
-                                  height: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
-                                  ),
-                                  width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
-                              };
+                                height: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
+                                ),
+                                width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
+                            };
                     setHeight(dimensionsAspectRatio.height);
                     setWidth(dimensionsAspectRatio.width);
                 }
@@ -283,23 +283,23 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
             if (aspectRatioLocked) {
                 if (
                     parseInt(value) * aspectRatio <
-                        parseInt(DefaultSettings.MIN_DIMENSIONS.width) ||
+                    parseInt(DefaultSettings.MIN_DIMENSIONS.width) ||
                     parseInt(value) < parseInt(DefaultSettings.MIN_DIMENSIONS.height)
                 ) {
                     const dimensionsAspectRatio =
                         aspectRatio >= 1
                             ? {
-                                  height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
-                                  width: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
-                                  ),
-                              }
+                                height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
+                                width: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
+                                ),
+                            }
                             : {
-                                  height: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
-                                  ),
-                                  width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
-                              };
+                                height: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
+                                ),
+                                width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
+                            };
                     setHeight(dimensionsAspectRatio.height);
                     setWidth(dimensionsAspectRatio.width);
                 }

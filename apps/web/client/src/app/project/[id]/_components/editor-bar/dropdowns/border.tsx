@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorEngine } from '@/components/store';
+import { useEditorEngine } from '@/components/store/editor';
 import { Button } from '@onlook/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@onlook/ui/dropdown-menu';
 import { Icons } from '@onlook/ui/icons';
@@ -57,21 +57,19 @@ export const Border = () => {
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={() => setActiveTab('all')}
-                        className={`flex-1 text-sm px-4 py-1.5 rounded-md transition-colors cursor-pointer ${
-                            activeTab === 'all'
+                        className={`flex-1 text-sm px-4 py-1.5 rounded-md transition-colors cursor-pointer ${activeTab === 'all'
                                 ? 'text-white bg-background-tertiary/20'
                                 : 'text-muted-foreground hover:bg-background-tertiary/10'
-                        }`}
+                            }`}
                     >
                         All sides
                     </button>
                     <button
                         onClick={() => setActiveTab('individual')}
-                        className={`flex-1 text-sm px-4 py-1.5 rounded-md transition-colors cursor-pointer ${
-                            activeTab === 'individual'
+                        className={`flex-1 text-sm px-4 py-1.5 rounded-md transition-colors cursor-pointer ${activeTab === 'individual'
                                 ? 'text-white bg-background-tertiary/20'
                                 : 'text-muted-foreground hover:bg-background-tertiary/10'
-                        }`}
+                            }`}
                     >
                         Individual
                     </button>

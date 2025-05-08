@@ -1,7 +1,6 @@
 import '@/styles/globals.css';
 import '@onlook/ui/globals.css';
 
-import { Modals } from '@/components/ui/modal';
 import { TRPCReactProvider } from '@/trpc/react';
 import { type Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
@@ -34,7 +33,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 >
                     <TRPCReactProvider>
                         <NextIntlClientProvider>
-                            <Modals />
                             {children}
                         </NextIntlClientProvider>
                     </TRPCReactProvider>

@@ -18,7 +18,7 @@ import { getValidUrl, isApexDomain } from '@onlook/utility';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 
-import { useEditorEngine, useProjectManager } from '@/components/store';
+import { useEditorEngine, useProjectManager } from '@/components/store/editor';
 import { FREESTYLE_IP_ADDRESS, FRESTYLE_CUSTOM_HOSTNAME } from '@onlook/constants';
 import { RecordField } from './record-field';
 
@@ -270,11 +270,10 @@ export const Verification = observer(() => {
                     <div className="w-1/3">
                         <p className="text-regularPlus text-muted-foreground">Custom URL</p>
                         <p className="text-small text-muted-foreground">
-                            {`Input your domain  ${
-                                status === VerificationStatus.NO_DOMAIN && ownedDomains.length > 0
+                            {`Input your domain  ${status === VerificationStatus.NO_DOMAIN && ownedDomains.length > 0
                                     ? 'or use previous'
                                     : ''
-                            }`}
+                                }`}
                         </p>
                     </div>
                     <div className="flex flex-col gap-4 flex-1">

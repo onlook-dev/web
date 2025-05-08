@@ -1,5 +1,5 @@
 import { Hotkey } from '@/components/hotkey';
-import { useEditorEngine } from '@/components/store';
+import { useEditorEngine } from '@/components/store/editor';
 import { EditorMode } from '@onlook/models';
 import { HotkeyLabel } from '@onlook/ui/hotkey-label';
 import { ToggleGroup, ToggleGroupItem } from '@onlook/ui/toggle-group';
@@ -12,15 +12,15 @@ const MODE_TOGGLE_ITEMS: {
     mode: EditorMode;
     hotkey: Hotkey;
 }[] = [
-    {
-        mode: EditorMode.DESIGN,
-        hotkey: Hotkey.SELECT,
-    },
-    {
-        mode: EditorMode.PREVIEW,
-        hotkey: Hotkey.PREVIEW,
-    },
-];
+        {
+            mode: EditorMode.DESIGN,
+            hotkey: Hotkey.SELECT,
+        },
+        {
+            mode: EditorMode.PREVIEW,
+            hotkey: Hotkey.PREVIEW,
+        },
+    ];
 
 export const ModeToggle = observer(() => {
     const t = useTranslations();
@@ -52,11 +52,10 @@ export const ModeToggle = observer(() => {
                                 variant={'custom-overline'}
                                 value={item.mode}
                                 aria-label={item.hotkey.description}
-                                className={`transition-all duration-150 ease-in-out px-4 py-2 whitespace-nowrap ${
-                                    mode === item.mode
+                                className={`transition-all duration-150 ease-in-out px-4 py-2 whitespace-nowrap ${mode === item.mode
                                         ? 'text-active font-medium hover:text-active'
                                         : 'font-normal hover:text-foreground-hover'
-                                }`}
+                                    }`}
                             >
                                 {t(`editor.modes.${item.mode.toLowerCase()}.name`)}
                             </ToggleGroupItem>

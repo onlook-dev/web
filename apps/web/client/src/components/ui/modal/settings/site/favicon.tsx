@@ -1,12 +1,11 @@
-import { useEditorEngine } from '@/components/store';
+import { useEditorEngine } from '@/components/store/editor';
 import { Button } from '@onlook/ui/button';
 import React, {
     forwardRef,
     useCallback,
-    useEffect,
     useImperativeHandle,
     useRef,
-    useState,
+    useState
 } from 'react';
 
 export interface FaviconRef {
