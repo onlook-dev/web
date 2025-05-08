@@ -1,7 +1,7 @@
 'use client';
 
 import { Hotkey } from '@/components/hotkey';
-import { useEditorEngine } from '@/components/store';
+import { useEditorEngine } from '@/components/store/editor';
 import { Button } from '@onlook/ui/button';
 import { HotkeyLabel } from '@onlook/ui/hotkey-label';
 import { Icons } from '@onlook/ui/icons';
@@ -76,10 +76,10 @@ export const TopBar = observer(() => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8"
-                                // onClick={() => {
-                                //     editorEngine.settingsTab = SettingsTabValue.VERSIONS;
-                                //     editorEngine.isSettingsOpen = true;
-                                // }}
+                            // onClick={() => {
+                            //     editorEngine.settingsTab = SettingsTabValue.VERSIONS;
+                            //     editorEngine.isSettingsOpen = true;
+                            // }}
                             >
                                 <Icons.CounterClockwiseClock className="h-4 w-4" />
                             </Button>
