@@ -1,4 +1,4 @@
-import { useProjectManager } from '@/components/store/editor';
+import { useProjectManager } from '@/components/store';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
 import { observer } from 'mobx-react-lite';

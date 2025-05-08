@@ -1,4 +1,4 @@
-import { useProjectManager } from '@/components/store/editor';
+import { useProjectManager } from '@/components/store';
 import type { DomainType } from '@onlook/models';
 import { PublishStatus } from '@onlook/models/hosting';
 

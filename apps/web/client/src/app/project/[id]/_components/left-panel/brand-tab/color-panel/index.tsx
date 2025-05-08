@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { SystemTheme } from '@onlook/models/assets';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons';

@@ -1,4 +1,4 @@
-import { useProjectManager } from '@/components/store/editor';
+import { useProjectManager } from '@/components/store';
 import { DefaultSettings } from '@onlook/constants';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons';

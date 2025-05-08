@@ -1,4 +1,4 @@
-import { useProjectManager } from '@/components/store/editor';
+import { useProjectManager } from '@/components/store';
 import { Separator } from '@onlook/ui/separator';
 import { observer } from 'mobx-react-lite';
 import { NoSavedVersions } from './EmptyState/Saved';

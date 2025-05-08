@@ -1,5 +1,5 @@
-import { useEditorEngine } from '@/components/store/editor';
-import type { FileNode } from '@onlook/models/editor';
+import { useEditorEngine } from '@/components/store';
+import type { FileNode } from '@onlook/models';
 import {
     ContextMenu,
     ContextMenuContent,

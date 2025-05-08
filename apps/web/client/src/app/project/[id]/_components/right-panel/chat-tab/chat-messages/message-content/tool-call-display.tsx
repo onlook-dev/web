@@ -1,4 +1,4 @@
-import { useUserManager } from '@/components/store/editor';
+import { useUserManager } from '@/components/store';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@onlook/ui/collapsible';
 import { Icons } from '@onlook/ui/icons';
 import { cn } from '@onlook/ui/utils';

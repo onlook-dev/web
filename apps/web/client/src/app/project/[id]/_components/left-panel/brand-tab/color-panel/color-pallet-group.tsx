@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { SystemTheme } from '@onlook/models/assets';
 import type { TailwindColor } from '@onlook/models/style';
 import { Button } from '@onlook/ui/button';

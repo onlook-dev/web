@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import type { Frame } from '@onlook/models';
 import { observer } from 'mobx-react-lite';
 

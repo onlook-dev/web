@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { VARIANTS } from '@onlook/fonts';
 import { observer } from 'mobx-react-lite';
 import { FontFamily } from './font-family';

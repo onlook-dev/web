@@ -1,4 +1,4 @@
-import { useEditorEngine, useProjectManager, useUserManager } from '@/components/store/editor';
+import { useEditorEngine, useProjectManager, useUserManager } from '@/components/store';
 import { UsagePlanType } from '@onlook/models/usage';
 import { Icons } from '@onlook/ui/icons/index';
 import { observer } from 'mobx-react-lite';

@@ -1,5 +1,5 @@
 import { Hotkey } from '@/components/hotkey';
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { EditorMode } from '@onlook/models';
 import { HotkeyLabel } from '@onlook/ui/hotkey-label';
 import { ToggleGroup, ToggleGroupItem } from '@onlook/ui/toggle-group';
@@ -53,8 +53,8 @@ export const ModeToggle = observer(() => {
                                 value={item.mode}
                                 aria-label={item.hotkey.description}
                                 className={`transition-all duration-150 ease-in-out px-4 py-2 whitespace-nowrap ${mode === item.mode
-                                        ? 'text-active font-medium hover:text-active'
-                                        : 'font-normal hover:text-foreground-hover'
+                                    ? 'text-active font-medium hover:text-active'
+                                    : 'font-normal hover:text-foreground-hover'
                                     }`}
                             >
                                 {t(`editor.modes.${item.mode.toLowerCase()}.name`)}

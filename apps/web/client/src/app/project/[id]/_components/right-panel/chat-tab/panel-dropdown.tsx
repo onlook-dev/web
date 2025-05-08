@@ -1,4 +1,4 @@
-import { useEditorEngine, useUserManager } from '@/components/store/editor';
+import { useEditorEngine, useUserManager } from '@/components/store';
 import { DefaultSettings } from '@onlook/constants';
 import type { ChatSettings } from '@onlook/models';
 import { EditorTabValue } from '@onlook/models';

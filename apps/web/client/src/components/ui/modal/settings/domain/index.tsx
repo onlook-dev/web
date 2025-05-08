@@ -1,4 +1,4 @@
-import { useEditorEngine, useUserManager } from '@/components/store/editor';
+import { useEditorEngine, useUserManager } from '@/components/store';
 import { Separator } from '@onlook/ui/separator';
 import { observer } from 'mobx-react-lite';
 import { BaseDomain } from './base';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { EditorMode, EditorTabValue } from '@onlook/models';
 import { Icons } from '@onlook/ui/icons';
 import { ResizablePanel } from '@onlook/ui/resizable';

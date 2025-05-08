@@ -1,4 +1,4 @@
-import { useEditorEngine, useProjectManager } from '@/components/store/editor';
+import { useEditorEngine, useProjectManager } from '@/components/store';
 import type { GitCommit } from '@onlook/git';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { Button } from '@onlook/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@onlook/ui/dropdown-menu';
 import { Icons } from '@onlook/ui/icons';
@@ -58,8 +58,8 @@ export const Border = () => {
                     <button
                         onClick={() => setActiveTab('all')}
                         className={`flex-1 text-sm px-4 py-1.5 rounded-md transition-colors cursor-pointer ${activeTab === 'all'
-                                ? 'text-white bg-background-tertiary/20'
-                                : 'text-muted-foreground hover:bg-background-tertiary/10'
+                            ? 'text-white bg-background-tertiary/20'
+                            : 'text-muted-foreground hover:bg-background-tertiary/10'
                             }`}
                     >
                         All sides
@@ -67,8 +67,8 @@ export const Border = () => {
                     <button
                         onClick={() => setActiveTab('individual')}
                         className={`flex-1 text-sm px-4 py-1.5 rounded-md transition-colors cursor-pointer ${activeTab === 'individual'
-                                ? 'text-white bg-background-tertiary/20'
-                                : 'text-muted-foreground hover:bg-background-tertiary/10'
+                            ? 'text-white bg-background-tertiary/20'
+                            : 'text-muted-foreground hover:bg-background-tertiary/10'
                             }`}
                     >
                         Individual

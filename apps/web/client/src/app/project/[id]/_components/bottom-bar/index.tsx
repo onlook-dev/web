@@ -1,5 +1,5 @@
 import { Hotkey } from '@/components/hotkey';
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import type { DropElementProperties } from '@onlook/models';
 import { EditorMode } from '@onlook/models';
 import { HotkeyLabel } from '@onlook/ui/hotkey-label';

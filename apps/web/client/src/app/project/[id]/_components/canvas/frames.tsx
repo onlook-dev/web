@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { observer } from 'mobx-react-lite';
 import { FrameView } from './frame';
 

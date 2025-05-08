@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { Button } from '@onlook/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@onlook/ui/dropdown-menu';
 import { Icons } from '@onlook/ui/icons';
@@ -51,8 +51,8 @@ export const ImgFit = () => {
                             <button
                                 onClick={() => handleFitChange('cover')}
                                 className={`flex-1 text-sm px-3 py-1 rounded-md ${objectFit === 'cover'
-                                        ? 'bg-background-tertiary/20 text-white'
-                                        : 'text-muted-foreground hover:bg-background-tertiary/10'
+                                    ? 'bg-background-tertiary/20 text-white'
+                                    : 'text-muted-foreground hover:bg-background-tertiary/10'
                                     }`}
                             >
                                 Cover
@@ -60,8 +60,8 @@ export const ImgFit = () => {
                             <button
                                 onClick={() => handleFitChange('contain')}
                                 className={`flex-1 text-sm px-3 py-1 rounded-md ${objectFit === 'contain'
-                                        ? 'bg-background-tertiary/20 text-white'
-                                        : 'text-muted-foreground hover:bg-background-tertiary/10'
+                                    ? 'bg-background-tertiary/20 text-white'
+                                    : 'text-muted-foreground hover:bg-background-tertiary/10'
                                     }`}
                             >
                                 Contain
@@ -69,8 +69,8 @@ export const ImgFit = () => {
                             <button
                                 onClick={() => handleFitChange('fill')}
                                 className={`flex-1 text-sm px-3 py-1 rounded-md ${objectFit === 'fill'
-                                        ? 'bg-background-tertiary/20 text-white'
-                                        : 'text-muted-foreground hover:bg-background-tertiary/10'
+                                    ? 'bg-background-tertiary/20 text-white'
+                                    : 'text-muted-foreground hover:bg-background-tertiary/10'
                                     }`}
                             >
                                 Fill

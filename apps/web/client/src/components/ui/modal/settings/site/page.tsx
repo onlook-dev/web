@@ -1,4 +1,4 @@
-import { useEditorEngine, useProjectManager } from '@/components/store/editor';
+import { useEditorEngine, useProjectManager } from '@/components/store';
 import { DefaultSettings } from '@onlook/constants';
 import type { PageMetadata } from '@onlook/models';
 import { toast } from '@onlook/ui/use-toast';

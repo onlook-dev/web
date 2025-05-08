@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { convertFontString } from '@onlook/utility';
 import { useEffect, useState } from 'react';
 

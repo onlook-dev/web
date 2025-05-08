@@ -1,4 +1,4 @@
-import { useEditorEngine } from '@/components/store/editor';
+import { useEditorEngine } from '@/components/store';
 import { Button } from '@onlook/ui/button';
 import React, {
     forwardRef,
