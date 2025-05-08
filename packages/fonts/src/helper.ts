@@ -1,6 +1,6 @@
 import * as t from '@babel/types';
 import type { Font } from '@onlook/models';
-import traverse, { NodePath } from '@babel/traverse';
+import type { NodePath } from '@babel/traverse';
 
 const FONT_WEIGHT_REGEX =
     /font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)/;

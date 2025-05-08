@@ -9,6 +9,7 @@ import {
     removeFontsFromClassName,
 } from './helper';
 import { camelCase } from 'lodash';
+
 export const extractFontImport = (content: string): Font[] => {
     const ast = parse(content, {
         sourceType: 'module',

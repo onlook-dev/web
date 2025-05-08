@@ -5,7 +5,6 @@ import {
     createStringLiteralWithFont,
     createTemplateLiteralWithFont,
     extractExistingFontImport,
-    extractFontConfig,
     extractFontImport,
     FAMILIES,
     findFontClass,

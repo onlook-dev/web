@@ -28,7 +28,7 @@ import {
 import { parse, traverse, generate } from '@onlook/parser';
 import type { CodeDiffRequest } from '@onlook/models/code';
 import {
-    getNodeClasses,
+    // getNodeClasses,
     isObjectExpression,
     isColorsObjectProperty,
     transformAst,
