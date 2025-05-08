@@ -98,8 +98,9 @@ export const ColorNameInput = ({
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     onBlur={() => onBlur?.(inputValue)}
-                    className={`text-sm font-normal w-full rounded-md border ${error ? 'border-red-500' : 'border-white/10'
-                        } bg-background-secondary px-2 py-1 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`text-sm font-normal w-full rounded-md border ${
+                        error ? 'border-red-500' : 'border-white/10'
+                    } bg-background-secondary px-2 py-1 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Enter color name"
                     autoFocus={autoFocus}
                     disabled={disabled}

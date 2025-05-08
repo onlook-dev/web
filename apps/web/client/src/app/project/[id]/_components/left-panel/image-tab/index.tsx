@@ -363,10 +363,11 @@ export const ImagesTab = observer(() => {
                                     )}
                                 </span>
                                 <div
-                                    className={`absolute right-2 top-2 ${activeDropdown === image.fileName
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                        } group-hover:opacity-100 transition-opacity duration-300`}
+                                    className={`absolute right-2 top-2 ${
+                                        activeDropdown === image.fileName
+                                            ? 'opacity-100'
+                                            : 'opacity-0'
+                                    } group-hover:opacity-100 transition-opacity duration-300`}
                                 >
                                     <DropdownMenu
                                         onOpenChange={(isOpen) =>

@@ -47,10 +47,11 @@ export const DeviceSettings = ({ frame }: { frame: Frame }) => {
                 <div className="flex flex-row p-0.5 w-3/5 bg-background-secondary rounded">
                     <Button
                         size={'icon'}
-                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${deviceTheme === SystemTheme.SYSTEM
+                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${
+                            deviceTheme === SystemTheme.SYSTEM
                                 ? 'bg-background-tertiary hover:bg-background-tertiary'
                                 : 'hover:bg-background-tertiary/50 text-foreground-onlook'
-                            }`}
+                        }`}
                         variant={'ghost'}
                         onClick={() => changeTheme(SystemTheme.SYSTEM)}
                     >
@@ -58,10 +59,11 @@ export const DeviceSettings = ({ frame }: { frame: Frame }) => {
                     </Button>
                     <Button
                         size={'icon'}
-                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${deviceTheme === SystemTheme.DARK
+                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${
+                            deviceTheme === SystemTheme.DARK
                                 ? 'bg-background-tertiary hover:bg-background-tertiary'
                                 : 'hover:bg-background-tertiary/50 text-foreground-onlook'
-                            }`}
+                        }`}
                         variant={'ghost'}
                         onClick={() => changeTheme(SystemTheme.DARK)}
                     >
@@ -69,10 +71,11 @@ export const DeviceSettings = ({ frame }: { frame: Frame }) => {
                     </Button>
                     <Button
                         size={'icon'}
-                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${deviceTheme === SystemTheme.LIGHT
+                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${
+                            deviceTheme === SystemTheme.LIGHT
                                 ? 'bg-background-tertiary hover:bg-background-tertiary'
                                 : 'hover:bg-background-tertiary/50 text-foreground-onlook'
-                            }`}
+                        }`}
                         variant={'ghost'}
                         onClick={() => changeTheme(SystemTheme.LIGHT)}
                     >
