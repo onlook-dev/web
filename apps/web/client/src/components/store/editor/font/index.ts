@@ -36,12 +36,6 @@ type TraverseCallback = (
     ast: ParseResult<t.File>,
 ) => void | Promise<void>;
 
-interface FontFile {
-    name: string;
-    path: string;
-    content: string;
-}
-
 interface RawFont {
     id: string;
     family: string;
@@ -53,15 +47,6 @@ interface RawFont {
     lastModified: string;
     category: string;
     type: string;
-}
-
-interface SearchDocument {
-    id: string;
-    family: string;
-    subsets: string[];
-    variable: boolean;
-    weights: string[];
-    styles: string[];
 }
 
 type DocumentData = {
