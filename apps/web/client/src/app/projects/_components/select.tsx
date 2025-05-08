@@ -14,10 +14,13 @@ export const SelectProject = observer(() => {
     const projects = projectsManager.projects;
 
     const sortProjects = (unsortedProjects: Project[]) => {
-        return unsortedProjects.slice().sort(
-            (a, b) =>
-                new Date(b.metadata.updatedAt).getTime() - new Date(a.metadata.updatedAt).getTime(),
-        );
+        return unsortedProjects
+            .slice()
+            .sort(
+                (a, b) =>
+                    new Date(b.metadata.updatedAt).getTime() -
+                    new Date(a.metadata.updatedAt).getTime(),
+            );
     };
 
     const sortedProjects = sortProjects(projects);

@@ -59,9 +59,9 @@ export class ProjectsManager {
         return newProject;
     }
 
-    saveProjects() { }
+    saveProjects() {}
 
-    deleteProject(project: Project) { }
+    deleteProject(project: Project) {}
 
     get projects() {
         return this._projects;
