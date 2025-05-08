@@ -12,7 +12,7 @@ export class MoveManager {
     isDraggingAbsolute = false;
     isDragInProgress = false;
 
-    constructor(private editorEngine: EditorEngine) { }
+    constructor(private editorEngine: EditorEngine) {}
 
     get isDragging() {
         return !!this.dragOrigin;

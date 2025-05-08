@@ -87,5 +87,5 @@ export class CodeManager {
         return requestByFile;
     }
 
-    clear() { }
+    clear() {}
 }

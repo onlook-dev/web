@@ -32,9 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     disableTransitionOnChange
                 >
                     <TRPCReactProvider>
-                        <NextIntlClientProvider>
-                            {children}
-                        </NextIntlClientProvider>
+                        <NextIntlClientProvider>{children}</NextIntlClientProvider>
                     </TRPCReactProvider>
                 </ThemeProvider>
             </body>

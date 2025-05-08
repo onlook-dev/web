@@ -30,7 +30,8 @@ export class UserManager {
             throw new Error(error.message);
         }
         this._user = {
-            name: data.user.user_metadata?.full_name ||
+            name:
+                data.user.user_metadata?.full_name ||
                 data.user.user_metadata?.name ||
                 data.user.email ||
                 'Anonymous',

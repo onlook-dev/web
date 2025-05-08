@@ -11,7 +11,15 @@ import type {
 import { SystemTheme } from '@onlook/models/assets';
 import type { CodeDiffRequest } from '@onlook/models/code';
 import type { TailwindColor } from '@onlook/models/style';
-import { generate, getNodeClasses, isColorsObjectProperty, isObjectExpression, parse, transformAst, traverse } from '@onlook/parser';
+import {
+    generate,
+    getNodeClasses,
+    isColorsObjectProperty,
+    isObjectExpression,
+    parse,
+    transformAst,
+    traverse,
+} from '@onlook/parser';
 import { getOidFromJsxElement } from '@onlook/parser/src/code-edit/helpers';
 import { Color } from '@onlook/utility';
 import { camelCase } from 'lodash';

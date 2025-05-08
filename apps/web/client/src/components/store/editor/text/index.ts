@@ -9,7 +9,7 @@ export class TextEditingManager {
     private originalContent: string | null = null;
     private shouldNotStartEditing = false;
 
-    constructor(private editorEngine: EditorEngine) { }
+    constructor(private editorEngine: EditorEngine) {}
 
     get isEditing(): boolean {
         return this.targetDomEl !== null;

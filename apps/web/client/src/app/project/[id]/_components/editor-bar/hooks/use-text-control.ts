@@ -27,11 +27,11 @@ export const useTextControl = () => {
         return {
             fontFamily: convertFontString(
                 editorEngine.style.selectedStyle?.styles.computed.fontFamily ??
-                DefaultState.fontFamily,
+                    DefaultState.fontFamily,
             ),
             fontSize: parseInt(
                 editorEngine.style.selectedStyle?.styles.computed.fontSize?.toString() ??
-                DefaultState.fontSize.toString(),
+                    DefaultState.fontSize.toString(),
             ),
             fontWeight:
                 editorEngine.style.selectedStyle?.styles.computed.fontWeight?.toString() ??

@@ -10,7 +10,7 @@ import { createDomId, createOid } from '@onlook/utility';
 import type { EditorEngine } from '../engine';
 
 export class GroupManager {
-    constructor(private editorEngine: EditorEngine) { }
+    constructor(private editorEngine: EditorEngine) {}
 
     async groupSelectedElements() {
         const selectedEls = this.editorEngine.elements.selected;
@@ -197,5 +197,5 @@ export class GroupManager {
         };
     }
 
-    clear() { }
+    clear() {}
 }

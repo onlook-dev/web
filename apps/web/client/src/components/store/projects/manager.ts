@@ -32,15 +32,16 @@ export class ProjectsManager {
             metadata: {
                 createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12).toISOString(),
                 updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30 * 12).toISOString(),
-                previewImg: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
+                previewImg:
+                    'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
             },
-        }
+        };
         return newProject;
     }
 
-    saveProjects() { }
+    saveProjects() {}
 
-    deleteProject(project: Project) { }
+    deleteProject(project: Project) {}
 
     get projects() {
         return this._projects;
