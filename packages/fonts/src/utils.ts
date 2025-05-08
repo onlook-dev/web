@@ -1,14 +1,13 @@
-import { parse } from '@babel/parser';
+import { parse, traverse, generate } from '@onlook/parser';
 import * as t from '@babel/types';
-import traverse, { NodePath } from '@babel/traverse';
 import type { Font } from '@onlook/models';
+import type { NodePath } from '@babel/traverse';
 import {
     createFontFamilyProperty,
     isPropertyWithName,
     isThemeProperty,
     removeFontsFromClassName,
 } from './helper';
-import { generate } from '@babel/generator';
 import { camelCase } from 'lodash';
 export const extractFontImport = (content: string): Font[] => {
     const ast = parse(content, {
