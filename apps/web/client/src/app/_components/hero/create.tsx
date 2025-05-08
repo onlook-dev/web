@@ -33,7 +33,7 @@ export function Create() {
             console.warn('Input is too short');
             return;
         }
-        // projectsManager.create.sendPrompt(inputValue, selectedImages, false);
+        projectsManager.createProject(inputValue, selectedImages);
     };
 
     const handleBlankSubmit = async () => {
