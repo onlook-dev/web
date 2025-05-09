@@ -1,5 +1,5 @@
 import { DefaultSettings } from '@onlook/constants';
-import type { Frame, Project, RectPosition, WebFrame } from '@onlook/models';
+import type { Canvas, Frame, RectPosition, WebFrame } from '@onlook/models';
 import { FrameType } from '@onlook/models';
 import { debounce } from 'lodash';
 import { makeAutoObservable } from 'mobx';
@@ -16,10 +16,9 @@ export class CanvasManager {
         makeAutoObservable(this);
     }
 
-    applyProject(project: Project) {
-        this.scale = project.canvas?.scale ?? DefaultSettings.SCALE;
-        this.position = project.canvas?.position ?? this.getDefaultPanPosition();
-        this.applyFrames(project.canvas?.frames ?? []);
+    applyCanvas(canvas: Canvas) {
+        this.scale = canvas.scale ?? DefaultSettings.SCALE;
+        this.position = canvas.position ?? this.getDefaultPanPosition();
     }
 
     applyFrames(frames: Frame[]) {

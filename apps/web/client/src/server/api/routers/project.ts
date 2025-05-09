@@ -1,35 +1,45 @@
-import { projectInsertSchema, projects, userProjects } from '@onlook/db';
+import { projectInsertSchema, projects, toCanvas, toFrame, toProject, userProjects } from '@onlook/db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 export const projectRouter = createTRPCRouter({
-    getById: protectedProcedure
+    listAll: protectedProcedure.query(async ({ ctx }) => {
+        const projects = await ctx.db.query.projects.findMany();
+        return projects.map(toProject);
+    }),
+    getFullProjectById: protectedProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {
             const project = await ctx.db.query.projects.findFirst({
                 where: eq(projects.id, input.id),
+                with: {
+                    canvas: {
+                        with: {
+                            frames: true,
+                        },
+                    },
+                },
             });
-            return project;
+            if (!project) {
+                return null;
+            }
+            return {
+                project: toProject(project),
+                canvas: toCanvas(project.canvas),
+                frames: project.canvas.frames.map(toFrame),
+            }
         }),
-    getByUserId: protectedProcedure
+    getPreviewProjectsByUserId: protectedProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {
             const projects = await ctx.db.query.userProjects.findMany({
                 where: eq(userProjects.userId, input.id),
                 with: {
-                    project: {
-                        with: {
-                            canvas: {
-                                with: {
-                                    frames: true,
-                                },
-                            },
-                        },
-                    },
+                    project: true,
                 },
             });
-            return projects;
+            return projects.map((project) => toProject(project.project));
         }),
     create: protectedProcedure.input(projectInsertSchema).mutation(async ({ ctx, input }) => {
         const project = await ctx.db.insert(projects).values(input).returning();
