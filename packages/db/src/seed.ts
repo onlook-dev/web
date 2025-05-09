@@ -1,12 +1,13 @@
+import { FrameType } from '../../models/src/project/frame';
 import { db } from './client';
-import { projects, userProjects, users, type Project, type User } from './schema';
+import { canvas, frames, projects, userProjects, users, type Canvas, type Frame, type Project, type User } from './schema';
 
-const user = {
+const user0 = {
     id: '5c62ba72-1f4a-4293-aa89-07b99b164353'
 } satisfies User;
 
-const project = {
-    id: '11111111-2222-3333-4444-555555555555',
+const project0 = {
+    id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
     name: 'Test Project',
     sandboxId: '123',
     sandboxUrl: 'http://localhost:8084',
@@ -16,7 +17,7 @@ const project = {
 } satisfies Project;
 
 const project1 = {
-    id: '22222222-3333-4444-5555-666666666666',
+    id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
     name: 'Test Project 1',
     sandboxId: '3f5rf6',
     sandboxUrl: 'https://3f5rf6-8084.csb.app',
@@ -25,32 +26,83 @@ const project1 = {
     updatedAt: new Date(),
 } satisfies Project;
 
+const canvas0 = {
+    id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33',
+    scale: '0.6',
+    x: '0',
+    y: '0',
+    projectId: project0.id,
+} satisfies Canvas;
+
+const canvas1 = {
+    id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44',
+    scale: '0.6',
+    x: '0',
+    y: '0',
+    projectId: project1.id,
+} satisfies Canvas;
+
+const frame0 = {
+    id: 'e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55',
+    canvasId: canvas0.id,
+    type: FrameType.WEB,
+    url: project0.sandboxUrl,
+    x: '0',
+    y: '0',
+    width: '100',
+    height: '100',
+} satisfies Frame;
+
+const frame1 = {
+    id: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66',
+    canvasId: canvas1.id,
+    type: FrameType.WEB,
+    url: project1.sandboxUrl,
+    x: '200',
+    y: '200',
+    width: '500',
+    height: '500',
+} satisfies Frame;
+
 export const seedDb = async () => {
     console.log('Seeding the database..');
 
-    await db.insert(users).values(user);
-
-    await db.insert(projects).values([
-        project,
-        project1,
-    ]);
-
-    await db.insert(userProjects).values([{
-        userId: user.id,
-        projectId: project.id,
-    }, {
-        userId: user.id,
-        projectId: project1.id,
-    }]);
+    await db.transaction(async (tx) => {
+        await tx.insert(users).values(user0);
+        await tx.insert(projects).values([
+            project0,
+            project1,
+        ]);
+        await tx.insert(userProjects).values([{
+            userId: user0.id,
+            projectId: project0.id,
+        }, {
+            userId: user0.id,
+            projectId: project1.id,
+        }]);
+        await tx.insert(canvas).values([
+            canvas0,
+            canvas1,
+        ]);
+        await tx.insert(frames).values([
+            frame0,
+            frame1,
+        ]);
+    });
 
     console.log('Database seeded!');
 };
 
 const resetDb = async () => {
     console.log('Resetting the database..');
-    await db.delete(users);
-    await db.delete(projects);
-    await db.delete(userProjects);
+    await db.transaction(async (tx) => {
+        await tx.delete(frames);
+        await tx.delete(canvas);
+        await tx.delete(userProjects);
+        await tx.delete(projects);
+        await tx.delete(users);
+    });
+
     console.log('Database reset!');
 };
 

@@ -1,4 +1,4 @@
-import { projectInsertSchema, projects, toCanvas, toFrame, toProject, userProjects } from '@onlook/db';
+import { createDefaultCanvas, projectInsertSchema, projects, toCanvas, toFrame, toProject, userProjects, type Canvas } from '@onlook/db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
@@ -18,12 +18,14 @@ export const projectRouter = createTRPCRouter({
                 },
             });
             if (!project) {
+                console.error('project not found');
                 return null;
             }
+            const canvas: Canvas = project.canvas ? project.canvas : createDefaultCanvas(project.id);
             return {
                 project: toProject(project),
-                canvas: toCanvas(project.canvas),
-                frames: project.canvas.frames.map(toFrame),
+                canvas: toCanvas(canvas),
+                frames: project.canvas?.frames.map(toFrame) ?? [],
             }
         }),
     getPreviewProjectsByUserId: protectedProcedure
