@@ -3,6 +3,7 @@ import { ChatMessageRole, FrameType } from '@onlook/models';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './client';
 import { canvas, conversations, frames, messages, projects, userProjects, users, type Canvas, type Conversation, type Frame, type Message, type Project, type User } from './schema';
+
 const user0 = {
     id: '5c62ba72-1f4a-4293-aa89-07b99b164353'
 } satisfies User;
@@ -177,6 +178,9 @@ const resetDb = async () => {
 
 (async () => {
     try {
+        if (process.env.NODE_ENV === 'production') {
+            throw new Error('Resetting the database in production is not allowed');
+        }
         await resetDb();
         await seedDb();
         process.exit(0);
