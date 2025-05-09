@@ -1,8 +1,9 @@
 'use client';
 
 import { ChatProvider } from '@/app/project/[id]/_hooks/use-chat';
+import { useEditorEngine } from '@/components/store/editor';
+import { useProjectManager } from '@/components/store/project';
 import type { Project } from '@onlook/models';
-import { Icons } from '@onlook/ui/icons/index';
 import { TooltipProvider } from '@onlook/ui/tooltip';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
@@ -13,8 +14,6 @@ import { EditorBar } from './editor-bar';
 import { LeftPanel } from './left-panel';
 import { RightPanel } from './right-panel';
 import { TopBar } from './top-bar';
-import { useEditorEngine } from '@/components/store/editor';
-import { useProjectManager } from '@/components/store/project';
 
 export const Main = observer(({ project }: { project: Project }) => {
     const editorEngine = useEditorEngine();
@@ -39,15 +38,6 @@ export const Main = observer(({ project }: { project: Project }) => {
             editorEngine.sandbox.session.reconnect();
         }
     }, [tabState]);
-
-    if (editorEngine.sandbox.session.isConnecting) {
-        return (
-            <div className="h-screen w-screen flex items-center justify-center gap-2">
-                <Icons.Shadow className="h-6 w-6 animate-spin" />
-                <div className="text-xl">Connecting to sandbox...</div>
-            </div>
-        );
-    }
 
     return (
         <ChatProvider>
