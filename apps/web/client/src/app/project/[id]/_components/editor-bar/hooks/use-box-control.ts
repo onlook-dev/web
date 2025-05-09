@@ -1,7 +1,7 @@
 import { useEditorEngine } from '@/components/store/editor';
 import { capitalizeFirstLetter, stringToParsedValue } from '@onlook/utility';
 import type { CSSProperties } from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 
 export type BoxType = 'margin' | 'padding' | 'border' | 'radius';
 export type BoxSide = 'Top' | 'Right' | 'Bottom' | 'Left';
@@ -97,7 +97,7 @@ const createDefaultState = (type: BoxType): BoxStateMap => {
 export const useBoxControl = (type: BoxType) => {
     const editorEngine = useEditorEngine();
 
-    const getInitialState = useCallback((): BoxStateMap => {
+    const getInitialState = useMemo(() => {
         const defaultState = createDefaultState(type);
         const computedStyles = editorEngine.style.selectedStyle?.styles.computed;
 
@@ -111,20 +111,21 @@ export const useBoxControl = (type: BoxType) => {
             CORNERS_RADIUS.forEach((corner) => {
                 const cssProperty = `border${corner}` as CSSBoxProperty;
                 const { num, unit } = stringToParsedValue(
-                    computedStyles[cssProperty]?.toString() ?? '--'
+                    computedStyles[cssProperty]?.toString() ?? radiusValue
                 );
                 defaultState[cssProperty] = createBoxState(num, unit);
             });
         } else if (type === 'border') {
+            const borderValue = computedStyles.borderWidth?.toString() ?? '--';
             const { num, unit } = stringToParsedValue(
-                computedStyles.borderWidth?.toString() ?? '--'
+                borderValue
             );
             defaultState.borderWidth = createBoxState(num, unit);
 
             SIDES.forEach((side) => {
                 const widthProperty = `border${side}Width` as CSSBoxProperty;
                 const { num, unit } = stringToParsedValue(
-                    computedStyles[widthProperty]?.toString() ?? '--'
+                    computedStyles[widthProperty]?.toString() ?? borderValue
                 );
                 defaultState[widthProperty] = createBoxState(num, unit);
 
@@ -136,10 +137,13 @@ export const useBoxControl = (type: BoxType) => {
                 };
             });
         } else {
+            const value = computedStyles[type]?.toString() ?? '--';
+            const { num, unit } = stringToParsedValue(value);
+            defaultState[type] = createBoxState(num, unit);
             SIDES.forEach((side) => {
                 const cssProperty = `${type}${side}` as CSSBoxProperty;
                 const { num, unit } = stringToParsedValue(
-                    computedStyles[cssProperty]?.toString() ?? '--'
+                    computedStyles[cssProperty]?.toString() ?? value
                 );
                 defaultState[cssProperty] = createBoxState(num, unit);
             });
@@ -151,7 +155,7 @@ export const useBoxControl = (type: BoxType) => {
     const [boxState, setBoxState] = useState<BoxStateMap>(getInitialState);
 
     useEffect(() => {
-        setBoxState(getInitialState());
+        setBoxState(getInitialState);
     }, [getInitialState]);
 
     const handleBoxChange = useCallback((property: CSSBoxProperty, value: string) => {
@@ -160,74 +164,33 @@ export const useBoxControl = (type: BoxType) => {
 
         if (!currentState) return;
 
-        setBoxState((prev) => ({
-            ...prev,
-            [property]: {
-                ...currentState,
-                num: parsedValue,
-                value: parsedValue ? `${parsedValue}${currentState.unit}` : '--',
-            },
-        }));
-
         const cssValue = parsedValue ? `${parsedValue}${currentState.unit}` : '';
+        const updates = new Map<CSSBoxProperty, string>();
 
+        updates.set(property, cssValue);
+    
         if (type === 'radius' && property === 'borderRadius') {
             CORNERS_RADIUS.forEach((corner) => {
-                const cornerProperty = `border${corner}` as CSSBoxProperty;
-                setBoxState((prev) => ({
-                    ...prev,
-                    [cornerProperty]: {
-                        ...prev[cornerProperty],
-                        num: parsedValue,
-                        value: cssValue,
-                    },
-                }));
-                editorEngine.style.update(cornerProperty, cssValue);
+                updates.set(`border${corner}` as CSSBoxProperty, cssValue);
             });
         } else if (type === 'border' && property === 'borderWidth') {
             SIDES.forEach((side) => {
-                const widthProperty = `border${side}Width` as CSSBoxProperty;
-                setBoxState((prev) => ({
-                    ...prev,
-                    [widthProperty]: {
-                        ...prev[widthProperty],
-                        num: parsedValue,
-                        value: cssValue,
-                    },
-                }));
-                editorEngine.style.update(widthProperty, cssValue);
+                updates.set(`border${side}Width` as CSSBoxProperty, cssValue);
             });
         } else if ((type === 'margin' || type === 'padding') && property === type) {
             SIDES.forEach((side) => {
-                const sideProperty = `${type}${side}` as CSSBoxProperty;
-                setBoxState((prev) => ({
-                    ...prev,
-                    [sideProperty]: {
-                        ...prev[sideProperty],
-                        num: parsedValue,
-                        value: cssValue,
-                    },
-                }));
-                editorEngine.style.update(sideProperty, cssValue);
+                updates.set(`${type}${side}` as CSSBoxProperty, cssValue);
             });
         }
 
-        editorEngine.style.update(property, cssValue);
+        editorEngine.style.updateMultiple(Object.fromEntries(updates));
+        
     }, [boxState, editorEngine.style, type]);
 
     const handleUnitChange = useCallback((property: CSSBoxProperty, unit: string) => {
         const currentState = boxState[property];
 
         if (!currentState) return;
-
-        setBoxState((prev) => ({
-            ...prev,
-            [property]: {
-                ...currentState,
-                unit,
-                value: currentState.num ? `${currentState.num}${unit}` : '--',
-            },
-        }));
 
         if (currentState.num !== undefined) {
             editorEngine.style.update(property, `${currentState.num}${unit}`);
@@ -246,40 +209,9 @@ export const useBoxControl = (type: BoxType) => {
 
         const newValue = `${value}${currentState.unit}`;
         
-        // Update individual property
-        setBoxState((prev) => {
-            const newState = {
-                ...prev,
-                [property]: {
-                    ...currentState,
-                    num: value,
-                    value: newValue,
-                },
-            };
-
-            // Clear the main box value
-            if (type === 'radius') {
-                newState.borderRadius = createBoxState();
-            } else if (type === 'border') {
-                newState.borderWidth = createBoxState();
-            } else {
-                newState[type] = createBoxState();
-            }
-
-            return newState;
-        });
-
         // Update CSS
         editorEngine.style.update(property, newValue);
         
-        // Clear the main box value in CSS
-        if (type === 'radius') {
-            editorEngine.style.update('borderRadius', '');
-        } else if (type === 'border') {
-            editorEngine.style.update('borderWidth', '');
-        } else {
-            editorEngine.style.update(type, '');
-        }
     }, [boxState, editorEngine.style, type]);
 
     return {
