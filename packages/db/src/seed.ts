@@ -1,13 +1,14 @@
 import { DefaultSettings } from '@onlook/constants';
-import { FrameType } from '@onlook/models';
+import { ChatMessageRole, FrameType } from '@onlook/models';
+import { v4 as uuidv4 } from 'uuid';
 import { db } from './client';
-import { canvas, frames, projects, userProjects, users, type Canvas, type Frame, type Project, type User } from './schema';
+import { canvas, conversations, frames, messages, projects, userProjects, users, type Canvas, type Conversation, type Frame, type Message, type Project, type User } from './schema';
 const user0 = {
     id: '5c62ba72-1f4a-4293-aa89-07b99b164353'
 } satisfies User;
 
 const project0 = {
-    id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    id: uuidv4(),
     name: 'Test Project',
     sandboxId: '123',
     sandboxUrl: 'http://localhost:8084',
@@ -17,7 +18,7 @@ const project0 = {
 } satisfies Project;
 
 const project1 = {
-    id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
+    id: uuidv4(),
     name: 'Test Project 1',
     sandboxId: '3f5rf6',
     sandboxUrl: 'https://3f5rf6-8084.csb.app',
@@ -27,7 +28,7 @@ const project1 = {
 } satisfies Project;
 
 const canvas0 = {
-    id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33',
+    id: uuidv4(),
     scale: DefaultSettings.SCALE.toString(),
     x: DefaultSettings.PAN_POSITION.x.toString(),
     y: DefaultSettings.PAN_POSITION.y.toString(),
@@ -35,7 +36,7 @@ const canvas0 = {
 } satisfies Canvas;
 
 const canvas1 = {
-    id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44',
+    id: uuidv4(),
     scale: DefaultSettings.SCALE.toString(),
     x: DefaultSettings.PAN_POSITION.x.toString(),
     y: DefaultSettings.PAN_POSITION.y.toString(),
@@ -43,7 +44,7 @@ const canvas1 = {
 } satisfies Canvas;
 
 const frame0 = {
-    id: 'e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55',
+    id: uuidv4(),
     canvasId: canvas0.id,
     type: FrameType.WEB,
     url: project0.sandboxUrl,
@@ -54,15 +55,71 @@ const frame0 = {
 } satisfies Frame;
 
 const frame1 = {
-    id: 'f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66',
+    id: uuidv4(),
     canvasId: canvas1.id,
     type: FrameType.WEB,
     url: project1.sandboxUrl,
-    x: '200',
-    y: '200',
-    width: '500',
-    height: '500',
+    x: DefaultSettings.FRAME_POSITION.x.toString(),
+    y: DefaultSettings.FRAME_POSITION.y.toString(),
+    width: DefaultSettings.FRAME_DIMENSION.width.toString(),
+    height: DefaultSettings.FRAME_DIMENSION.height.toString(),
 } satisfies Frame;
+
+const conversation0 = {
+    id: uuidv4(),
+    projectId: project0.id,
+    displayName: 'Test Conversation',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+} satisfies Conversation;
+
+const conversation1 = {
+    id: uuidv4(),
+    projectId: project1.id,
+    displayName: 'Test Conversation 1',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+} satisfies Conversation;
+
+const message0 = {
+    id: uuidv4(),
+    conversationId: conversation0.id,
+    role: ChatMessageRole.USER,
+    content: 'Test message 0',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    applied: false,
+} satisfies Message;
+
+const message1 = {
+    id: uuidv4(),
+    conversationId: conversation0.id,
+    role: ChatMessageRole.ASSISTANT,
+    content: 'Test message 1',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    applied: false,
+} satisfies Message;
+
+const message2 = {
+    id: uuidv4(),
+    conversationId: conversation0.id,
+    role: ChatMessageRole.ASSISTANT,
+    content: 'Test message 2',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    applied: false,
+} satisfies Message;
+
+const message3 = {
+    id: uuidv4(),
+    conversationId: conversation1.id,
+    role: ChatMessageRole.USER,
+    content: 'Test message 3',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    applied: false,
+} satisfies Message;
 
 export const seedDb = async () => {
     console.log('Seeding the database..');
@@ -88,6 +145,16 @@ export const seedDb = async () => {
             frame0,
             frame1,
         ]);
+        await tx.insert(conversations).values([
+            conversation0,
+            conversation1,
+        ]);
+        await tx.insert(messages).values([
+            message0,
+            message1,
+            message2,
+            message3,
+        ]);
     });
 
     console.log('Database seeded!');
@@ -96,6 +163,8 @@ export const seedDb = async () => {
 const resetDb = async () => {
     console.log('Resetting the database..');
     await db.transaction(async (tx) => {
+        await tx.delete(messages);
+        await tx.delete(conversations);
         await tx.delete(frames);
         await tx.delete(canvas);
         await tx.delete(userProjects);
