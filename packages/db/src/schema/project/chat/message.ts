@@ -2,7 +2,7 @@ import { ChatMessageRole } from "@onlook/models";
 import { boolean, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { conversations } from "./conversation";
 
-const messageRole = pgEnum("message_role", ChatMessageRole);
+export const messageRole = pgEnum("role", ChatMessageRole);
 
 export const messages = pgTable("messages", {
     id: uuid("id").primaryKey().defaultRandom(),

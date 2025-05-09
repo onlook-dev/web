@@ -13,9 +13,9 @@ export const frames = pgTable("frames", {
 
     x: numeric("x").notNull(),
     y: numeric("y").notNull(),
+
     width: numeric("width").notNull(),
     height: numeric("height").notNull(),
-
 }).enableRLS();
 
 export type Frame = typeof frames.$inferSelect;
