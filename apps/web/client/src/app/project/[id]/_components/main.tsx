@@ -24,9 +24,9 @@ export const Main = observer(({ project }: { project: Project }) => {
         projectManager.project = project;
         editorEngine.canvas.applyProject(project);
         if (project.sandbox?.id) {
-            editorEngine.sandbox.session.start(project.sandbox.id).then(() => {
-                editorEngine.sandbox.index();
-            });
+            editorEngine.sandbox.session.start(project.sandbox.id)
+        } else {
+            console.error('No sandbox id');
         }
         return () => {
             editorEngine.sandbox.clear();
