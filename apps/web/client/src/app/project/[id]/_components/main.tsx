@@ -39,6 +39,16 @@ export const Main = observer(({ project }: { project: Project }) => {
         }
     }, [tabState]);
 
+    // TODO: Add better loading state
+    // if (editorEngine.sandbox.session.isConnecting) {
+    //     return (
+    //         <div className="h-screen w-screen flex items-center justify-center gap-2">
+    //             <Icons.Shadow className="h-6 w-6 animate-spin" />
+    //             <div className="text-xl">Connecting to sandbox...</div>
+    //         </div>
+    //     );
+    // }
+
     return (
         <ChatProvider>
             <TooltipProvider>
