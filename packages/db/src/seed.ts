@@ -1,7 +1,7 @@
-import { FrameType } from '../../models/src/project/frame';
+import { DefaultSettings } from '@onlook/constants';
+import { FrameType } from '@onlook/models';
 import { db } from './client';
 import { canvas, frames, projects, userProjects, users, type Canvas, type Frame, type Project, type User } from './schema';
-
 const user0 = {
     id: '5c62ba72-1f4a-4293-aa89-07b99b164353'
 } satisfies User;
@@ -28,17 +28,17 @@ const project1 = {
 
 const canvas0 = {
     id: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33',
-    scale: '0.6',
-    x: '0',
-    y: '0',
+    scale: DefaultSettings.SCALE.toString(),
+    x: DefaultSettings.PAN_POSITION.x.toString(),
+    y: DefaultSettings.PAN_POSITION.y.toString(),
     projectId: project0.id,
 } satisfies Canvas;
 
 const canvas1 = {
     id: 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44',
-    scale: '0.6',
-    x: '0',
-    y: '0',
+    scale: DefaultSettings.SCALE.toString(),
+    x: DefaultSettings.PAN_POSITION.x.toString(),
+    y: DefaultSettings.PAN_POSITION.y.toString(),
     projectId: project1.id,
 } satisfies Canvas;
 
@@ -47,10 +47,10 @@ const frame0 = {
     canvasId: canvas0.id,
     type: FrameType.WEB,
     url: project0.sandboxUrl,
-    x: '0',
-    y: '0',
-    width: '100',
-    height: '100',
+    x: DefaultSettings.FRAME_POSITION.x.toString(),
+    y: DefaultSettings.FRAME_POSITION.y.toString(),
+    width: DefaultSettings.FRAME_DIMENSION.width.toString(),
+    height: DefaultSettings.FRAME_DIMENSION.height.toString(),
 } satisfies Frame;
 
 const frame1 = {

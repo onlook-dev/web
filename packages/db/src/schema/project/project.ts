@@ -3,6 +3,7 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { userProjects } from '../user';
 import { canvas } from './canvas';
+import { conversations } from './chat/conversation';
 
 export const projects = pgTable("projects", {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -22,6 +23,7 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
         references: [canvas.projectId],
     }),
     userProjects: many(userProjects),
+    conversations: many(conversations),
 }));
 
 export type Project = typeof projects.$inferSelect;

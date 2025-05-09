@@ -5,7 +5,7 @@ import type { UserManager } from '../user/manager';
 
 export class ProjectsManager {
     private _projects: Project[] = [];
-    isFetchingProjects = false;
+    isFetching = false;
 
     constructor(private userManager: UserManager) {
         makeAutoObservable(this);
@@ -21,9 +21,9 @@ export class ProjectsManager {
             console.error('No user ID found');
             return;
         }
-        this.isFetchingProjects = true;
+        this.isFetching = true;
         this._projects = await api.project.getPreviewProjectsByUserId.query({ id: this.userManager.user.id });
-        this.isFetchingProjects = false;
+        this.isFetching = false;
     }
 
     saveProjects() { }

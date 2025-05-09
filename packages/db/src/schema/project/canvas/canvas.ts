@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { numeric, pgTable, uuid } from "drizzle-orm/pg-core";
+import { projects } from "../project";
 import { frames } from "./frame";
-import { projects } from "./project";
 
 export const canvas = pgTable("canvas", {
     id: uuid("id").primaryKey().defaultRandom(),
