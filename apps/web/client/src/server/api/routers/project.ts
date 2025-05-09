@@ -4,10 +4,6 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 
 export const projectRouter = createTRPCRouter({
-    listAll: protectedProcedure.query(async ({ ctx }) => {
-        const projects = await ctx.db.query.projects.findMany();
-        return projects.map(toProject);
-    }),
     getFullProjectById: protectedProcedure
         .input(z.object({ id: z.string() }))
         .query(async ({ ctx, input }) => {

@@ -12,8 +12,8 @@ export const toProject = (
             url: dbProject.sandboxUrl,
         },
         metadata: {
-            createdAt: dbProject.createdAt?.toISOString() ?? '',
-            updatedAt: dbProject.updatedAt?.toISOString() ?? '',
+            createdAt: dbProject.createdAt.toISOString(),
+            updatedAt: dbProject.updatedAt.toISOString(),
             previewImg: dbProject.previewImg,
         },
         domains: {
@@ -27,7 +27,6 @@ export const fromProject = (project: Project): DbProject => {
     return {
         id: project.id,
         name: project.name,
-        previewUrl: project.sandbox.url,
         sandboxId: project.sandbox.id,
         sandboxUrl: project.sandbox.url,
         createdAt: new Date(project.metadata.createdAt),

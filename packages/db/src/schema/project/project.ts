@@ -7,11 +7,10 @@ import { canvas } from './canvas';
 export const projects = pgTable("projects", {
     id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name").notNull(),
-    previewUrl: varchar("preview_url").notNull(),
     sandboxId: varchar("sandbox_id").notNull(),
     sandboxUrl: varchar("sandbox_url").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     previewImg: varchar("preview_img"),
 }).enableRLS();
 
