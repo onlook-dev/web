@@ -1,4 +1,5 @@
-import { ChatMessageRole } from "@onlook/models";
+import { ChatMessageRole, type ChatMessageContext, type ChatSnapshot } from "@onlook/models";
+import type { Message as AiMessage } from "ai";
 import { relations } from "drizzle-orm";
 import { boolean, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { conversations } from "./conversation";
@@ -12,10 +13,10 @@ export const messages = pgTable("messages", {
     content: text("content").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     role: messageRole("role").notNull(),
-    applied: boolean("applied").default(false),
-    snapshots: jsonb("snapshots"),
-    context: jsonb("context").default([]),
-    parts: jsonb("parts").default([]),
+    applied: boolean("applied").default(false).notNull(),
+    snapshots: jsonb("snapshots").$type<ChatSnapshot>().default({}).notNull(),
+    context: jsonb("context").$type<ChatMessageContext[]>().default([]).notNull(),
+    parts: jsonb("parts").$type<AiMessage['parts']>().default([]).notNull(),
 });
 
 export const messageRelations = relations(messages, ({ one }) => ({

@@ -1,4 +1,4 @@
-import { ChatMessageRole, type ChatConversation, type ChatMessage, type ChatMessageContext, type CodeDiff } from "@onlook/models";
+import { ChatMessageRole, type ChatConversation, type ChatMessage, type ChatMessageContext, type ChatSnapshot } from "@onlook/models";
 import type { Message as AiMessage, TextPart } from "ai";
 import type { Conversation as DbConversation, Message as DbMessage } from "../schema";
 
@@ -30,8 +30,8 @@ export const toMessage = (dbMessage: DbMessage): ChatMessage => {
             content: dbMessage.content,
             role: dbMessage.role as ChatMessageRole.ASSISTANT,
             createdAt: dbMessage.createdAt,
-            applied: dbMessage.applied ?? false,
-            snapshots: null,
+            applied: dbMessage.applied,
+            snapshots: dbMessage.snapshots,
             parts: dbMessage.parts as AiMessage['parts'],
         }
     } else if (dbMessage.role === ChatMessageRole.USER) {
@@ -40,7 +40,7 @@ export const toMessage = (dbMessage: DbMessage): ChatMessage => {
             content: dbMessage.content,
             role: dbMessage.role as ChatMessageRole.USER,
             createdAt: dbMessage.createdAt,
-            context: [],
+            context: dbMessage.context,
             parts: dbMessage.parts as TextPart[],
         }
     } else {
@@ -54,11 +54,11 @@ export const toMessage = (dbMessage: DbMessage): ChatMessage => {
 }
 
 export const fromMessage = (conversationId: string, message: ChatMessage): DbMessage => {
-    let snapshots: Record<string, CodeDiff> | null = null;
+    let snapshots: ChatSnapshot = {};
     let context: ChatMessageContext[] = [];
 
     if (message.role === ChatMessageRole.ASSISTANT) {
-        snapshots = message.snapshots ?? null;
+        snapshots = message.snapshots ?? {};
     }
 
     if (message.role === ChatMessageRole.USER) {
