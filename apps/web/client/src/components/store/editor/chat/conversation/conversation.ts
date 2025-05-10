@@ -83,6 +83,9 @@ export class ChatConversationImpl implements ChatConversation {
         const index = this.messages.findIndex((m) => m.id === message.id);
         this.messages = this.messages.slice(0, index + 1);
         this.updatedAt = new Date().toISOString();
+
+        const removedMessages = this.messages.slice(index + 1);
+        this.removeMessagesFromStorage(removedMessages);
     }
 
     updateName(name: string, override = false) {
@@ -106,6 +109,12 @@ export class ChatConversationImpl implements ChatConversation {
     saveMessageToStorage(message: ChatMessageImpl) {
         api.chat.saveMessage.mutate({
             message: fromMessage(this.id, message),
+        });
+    }
+
+    removeMessagesFromStorage(messages: ChatMessageImpl[]) {
+        api.chat.deleteMessages.mutate({
+            messageIds: messages.map((m) => m.id),
         });
     }
 }

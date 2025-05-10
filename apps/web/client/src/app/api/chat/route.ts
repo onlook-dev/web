@@ -18,7 +18,6 @@ export async function POST(req: Request) {
         maxTokens: 64000,
         experimental_repairToolCall: async ({ toolCall, tools, parameterSchema, error }) => {
             if (NoSuchToolError.isInstance(error)) {
-                console.error('Invalid tool name', toolCall.toolName);
                 throw new Error(`Tool "${toolCall.toolName}" not found. Available tools: ${Object.keys(tools).join(', ')}`);
             }
             const tool = tools[toolCall.toolName as keyof typeof tools];
