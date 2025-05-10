@@ -27,7 +27,7 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
         if (!result) {
             return;
         }
-        const { project, canvas, frames, } = result;
+        const { project, canvas, frames } = result;
         projectManager.project = project;
 
         if (project.sandbox?.id) {
@@ -71,7 +71,9 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
         return (
             <div className="h-screen w-screen flex flex-col items-center justify-center gap-4">
                 <div className="text-xl">Project not found</div>
-                <Link href={Routes.PROJECTS} className="text-sm text-foreground-secondary">Go to projects</Link>
+                <Link href={Routes.PROJECTS} className="text-sm text-foreground-secondary">
+                    Go to projects
+                </Link>
             </div>
         );
     }

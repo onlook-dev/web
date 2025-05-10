@@ -26,7 +26,9 @@ export class ProjectsManager {
             return;
         }
         this.isFetching = true;
-        this._projects = await api.project.getPreviewProjects.query({ userId: this.userManager.user.id });
+        this._projects = await api.project.getPreviewProjects.query({
+            userId: this.userManager.user.id,
+        });
         this.isFetching = false;
     }
 

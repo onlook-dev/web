@@ -1,4 +1,11 @@
-import { conversationInsertSchema, conversations, messageInsertSchema, messages, toConversation, type Message } from '@onlook/db';
+import {
+    conversationInsertSchema,
+    conversations,
+    messageInsertSchema,
+    messages,
+    toConversation,
+    type Message,
+} from '@onlook/db';
 import type { ChatMessageRole } from '@onlook/models';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -14,18 +21,23 @@ export const chatRouter = createTRPCRouter({
                     messages: true,
                 },
             });
-            return dbConversations.map((conversation) => toConversation(conversation, conversation.messages));
+            return dbConversations.map((conversation) =>
+                toConversation(conversation, conversation.messages),
+            );
         }),
     saveConversation: protectedProcedure
         .input(z.object({ conversation: conversationInsertSchema }))
         .mutation(async ({ ctx, input }) => {
             try {
-                await ctx.db.insert(conversations).values(input.conversation).onConflictDoUpdate({
-                    target: [conversations.id],
-                    set: {
-                        ...input.conversation,
-                    },
-                });
+                await ctx.db
+                    .insert(conversations)
+                    .values(input.conversation)
+                    .onConflictDoUpdate({
+                        target: [conversations.id],
+                        set: {
+                            ...input.conversation,
+                        },
+                    });
                 return true;
             } catch (error) {
                 console.error('Error saving conversation', error);
@@ -36,7 +48,9 @@ export const chatRouter = createTRPCRouter({
         .input(z.object({ conversationId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             try {
-                await ctx.db.delete(conversations).where(eq(conversations.id, input.conversationId));
+                await ctx.db
+                    .delete(conversations)
+                    .where(eq(conversations.id, input.conversationId));
                 return true;
             } catch (error) {
                 console.error('Error deleting conversation', error);
@@ -52,12 +66,15 @@ export const chatRouter = createTRPCRouter({
                     role: input.message.role as ChatMessageRole,
                     parts: input.message.parts as Message['parts'],
                 };
-                await ctx.db.insert(messages).values(normalizedMessage).onConflictDoUpdate({
-                    target: [messages.id],
-                    set: {
-                        ...normalizedMessage,
-                    },
-                });
+                await ctx.db
+                    .insert(messages)
+                    .values(normalizedMessage)
+                    .onConflictDoUpdate({
+                        target: [messages.id],
+                        set: {
+                            ...normalizedMessage,
+                        },
+                    });
                 return true;
             } catch (error) {
                 console.error('Error saving message', error);
@@ -65,4 +82,3 @@ export const chatRouter = createTRPCRouter({
             }
         }),
 });
-

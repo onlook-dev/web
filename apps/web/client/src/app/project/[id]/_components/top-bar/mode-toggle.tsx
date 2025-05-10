@@ -13,15 +13,15 @@ const MODE_TOGGLE_ITEMS: {
     mode: EditorMode;
     hotkey: Hotkey;
 }[] = [
-        {
-            mode: EditorMode.DESIGN,
-            hotkey: Hotkey.SELECT,
-        },
-        {
-            mode: EditorMode.PREVIEW,
-            hotkey: Hotkey.PREVIEW,
-        },
-    ];
+    {
+        mode: EditorMode.DESIGN,
+        hotkey: Hotkey.SELECT,
+    },
+    {
+        mode: EditorMode.PREVIEW,
+        hotkey: Hotkey.PREVIEW,
+    },
+];
 
 export const ModeToggle = observer(() => {
     const t = useTranslations();
