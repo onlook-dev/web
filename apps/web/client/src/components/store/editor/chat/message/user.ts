@@ -50,6 +50,7 @@ export class UserChatMessageImpl implements UserChatMessage {
 
     updateContent(content: string) {
         this.content = content;
+        this.parts = [{ type: 'text', text: content }];
     }
 
     getStringContent(): string {

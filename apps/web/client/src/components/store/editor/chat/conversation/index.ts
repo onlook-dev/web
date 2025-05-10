@@ -113,36 +113,35 @@ export class ConversationManager {
         }
     }
 
-    addUserMessage(
+    async addUserMessage(
         content: string,
         context: ChatMessageContext[],
-    ): UserChatMessageImpl | undefined {
+    ): Promise<UserChatMessageImpl | undefined> {
         if (!this.current) {
             console.error('No conversation found');
             return;
         }
         const newMessage = UserChatMessageImpl.fromStringContent(content, context);
-        this.addMessage(newMessage);
+        await this.addMessage(newMessage);
         return newMessage;
     }
 
-    addAssistantMessage(message: Message): AssistantChatMessageImpl | undefined {
+    async addAssistantMessage(message: Message): Promise<AssistantChatMessageImpl | undefined> {
         if (!this.current) {
             console.error('No conversation found');
             return;
         }
         const newMessage = AssistantChatMessageImpl.fromMessage(message);
-        this.addMessage(newMessage);
+        await this.addMessage(newMessage);
         return newMessage;
     }
 
-    private addMessage(message: ChatMessageImpl) {
+    private async addMessage(message: ChatMessageImpl) {
         if (!this.current) {
             console.error('No conversation found');
             return;
         }
-        this.current.appendMessage(message);
-        this.saveConversationToStorage();
+        await this.current.appendMessage(message);
     }
 
     async getConversationFromStorage(id: string): Promise<ChatConversation[] | null> {
