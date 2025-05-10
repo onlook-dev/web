@@ -76,6 +76,7 @@ export class ChatConversationImpl implements ChatConversation {
     appendMessage(message: ChatMessageImpl) {
         this.messages = [...this.messages, message];
         this.updatedAt = new Date().toISOString();
+        this.saveMessageToStorage(message);
     }
 
     removeAllMessagesAfter(message: ChatMessageImpl) {

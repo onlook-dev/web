@@ -1,7 +1,7 @@
 import { type ProjectManager } from '@/components/store/project/manager';
 import { api } from '@/trpc/client';
 import { sendAnalytics } from '@/utils/analytics';
-import { fromConversation, fromMessage } from '@onlook/db';
+import { fromConversation } from '@onlook/db';
 import { type ChatConversation, type ChatMessageContext } from '@onlook/models';
 import type { Project } from '@onlook/models/project';
 import type { Message } from 'ai';
@@ -169,19 +169,6 @@ export class ConversationManager {
         });
         if (!res) {
             console.error('Failed to save conversation to storage', this.current);
-        }
-    }
-
-    async saveMessageToStorage(message: ChatMessageImpl) {
-        if (!this.current) {
-            console.error('No conversation found');
-            return;
-        }
-        const res = await api.chat.saveMessage.mutate({
-            message: fromMessage(this.current.id, message),
-        });
-        if (!res) {
-            console.error('Failed to save message to storage', message);
         }
     }
 }

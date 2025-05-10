@@ -255,7 +255,7 @@ export const DevTab = observer(() => {
     async function loadFile(filePath: string): Promise<EditorFile | null> {
         try {
             setIsLoading(true);
-            const content = await editorEngine.files.getFileContent(filePath);
+            const content = await editorEngine.sandbox.readFile(filePath);
             const fileName = filePath.split('/').pop() || '';
             const fileLanguage = getLanguageFromFileName(fileName);
 
@@ -499,10 +499,10 @@ export const DevTab = observer(() => {
         const updatedFiles = openedFiles.map((file) =>
             file.id === fileId
                 ? {
-                      ...file,
-                      content: content,
-                      isDirty: hasChanged,
-                  }
+                    ...file,
+                    content: content,
+                    isDirty: hasChanged,
+                }
                 : file,
         );
 
