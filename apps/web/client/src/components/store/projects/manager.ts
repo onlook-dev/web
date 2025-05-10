@@ -26,9 +26,6 @@ export class ProjectsManager {
         this.isFetching = false;
     }
 
-    saveProjects() { }
-
-    deleteProject(project: Project) { }
 
     get projects() {
         return this._projects;
@@ -36,6 +33,9 @@ export class ProjectsManager {
 
     set projects(newProjects: Project[]) {
         this._projects = newProjects;
-        this.saveProjects();
+    }
+
+    deleteProject(project: Project) {
+        api.project.deleteProject.mutate({ id: project.id });
     }
 }
