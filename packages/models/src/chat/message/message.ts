@@ -9,16 +9,18 @@ export enum ChatMessageRole {
 }
 
 export interface UserChatMessage extends Message {
+    role: ChatMessageRole.USER;
     context: ChatMessageContext[];
 }
 
 export interface AssistantChatMessage extends Message {
+    role: ChatMessageRole.ASSISTANT;
     applied: boolean;
     snapshots: Record<string, CodeDiff> | null;
 }
 
 export interface SystemChatMessage extends Message {
-    id: string;
+    role: ChatMessageRole.SYSTEM;
 }
 
 export type ChatMessage =
