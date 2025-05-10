@@ -1,6 +1,5 @@
 import { type ProjectManager } from '@/components/store/project/manager';
 import { api } from '@/trpc/client';
-import { sendAnalytics } from '@/utils/analytics';
 import { fromConversation } from '@onlook/db';
 import { type ChatConversation, type ChatMessageContext } from '@onlook/models';
 import type { Project } from '@onlook/models/project';
@@ -75,7 +74,7 @@ export class ConversationManager {
         }
         this.current = new ChatConversationImpl(this.projectId, []);
         this.conversations.push(this.current);
-        sendAnalytics('start new conversation');
+        this.saveConversationToStorage();
     }
 
     selectConversation(id: string) {
@@ -85,7 +84,6 @@ export class ConversationManager {
             return;
         }
         this.current = match;
-        sendAnalytics('select conversation');
     }
 
     deleteConversation(id: string) {
@@ -113,7 +111,6 @@ export class ConversationManager {
                 this.conversations.push(this.current);
             }
         }
-        sendAnalytics('delete conversation');
     }
 
     addUserMessage(
@@ -139,12 +136,13 @@ export class ConversationManager {
         return newMessage;
     }
 
-    addMessage(message: ChatMessageImpl) {
+    private addMessage(message: ChatMessageImpl) {
         if (!this.current) {
             console.error('No conversation found');
             return;
         }
         this.current.appendMessage(message);
+        this.saveConversationToStorage();
     }
 
     async getConversationFromStorage(id: string): Promise<ChatConversation[] | null> {

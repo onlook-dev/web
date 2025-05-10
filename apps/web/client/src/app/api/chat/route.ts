@@ -12,14 +12,14 @@ export async function POST(req: Request) {
         model,
         system: promptProvider.getSystemPrompt(),
         messages,
-        maxSteps,
+        maxSteps: 10,
         tools: chatToolSet,
         toolCallStreaming: true,
         maxTokens: 64000,
         experimental_repairToolCall: async ({ toolCall, tools, parameterSchema, error }) => {
             if (NoSuchToolError.isInstance(error)) {
                 console.error('Invalid tool name', toolCall.toolName);
-                return null;
+                throw new Error(`Tool "${toolCall.toolName}" not found. Available tools: ${Object.keys(tools).join(', ')}`);
             }
             const tool = tools[toolCall.toolName as keyof typeof tools];
 
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
                 schema: tool?.parameters,
                 prompt: [
                     `The model tried to call the tool "${toolCall.toolName}"` +
-                        ` with the following arguments:`,
+                    ` with the following arguments:`,
                     JSON.stringify(toolCall.args),
                     `The tool accepts the following schema:`,
                     JSON.stringify(parameterSchema(toolCall)),
@@ -41,6 +41,9 @@ export async function POST(req: Request) {
             });
 
             return { ...toolCall, args: JSON.stringify(repairedArgs) };
+        },
+        onError: (error) => {
+            console.error('Error in chat', error);
         },
     });
 
