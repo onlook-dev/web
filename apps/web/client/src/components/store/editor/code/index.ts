@@ -21,6 +21,14 @@ export class CodeManager {
         makeAutoObservable(this);
     }
 
+    viewSourceFile(fileName: string) {
+        console.log('viewSourceFile', fileName);
+    }
+
+    viewCodeBlock(oid: string) {
+        console.log('viewCodeBlock', oid);
+    }
+
     async write(action: Action) {
         const requests = await this.collectRequests(action);
         await this.writeRequest(requests);
@@ -87,5 +95,5 @@ export class CodeManager {
         return requestByFile;
     }
 
-    clear() {}
+    clear() { }
 }

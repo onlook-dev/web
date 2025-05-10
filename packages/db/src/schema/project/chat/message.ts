@@ -2,6 +2,7 @@ import { ChatMessageRole, type ChatMessageContext, type ChatSnapshot } from "@on
 import type { Message as AiMessage } from "ai";
 import { relations } from "drizzle-orm";
 import { boolean, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 import { conversations } from "./conversation";
 
 export const CONVERSATION_MESSAGe_RELATION_NAME = 'conversation_messages';
@@ -20,6 +21,8 @@ export const messages = pgTable("messages", {
     context: jsonb("context").$type<ChatMessageContext[]>().default([]).notNull(),
     parts: jsonb("parts").$type<AiMessage['parts']>().default([]).notNull(),
 });
+
+export const messageInsertSchema = createInsertSchema(messages);
 
 export const messageRelations = relations(messages, ({ one }) => ({
     conversation: one(conversations, {

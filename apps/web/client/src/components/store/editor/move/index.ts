@@ -12,16 +12,13 @@ export class MoveManager {
     isDraggingAbsolute = false;
     isDragInProgress = false;
 
-    constructor(private editorEngine: EditorEngine) {}
+    constructor(private editorEngine: EditorEngine) { }
 
     get isDragging() {
         return !!this.dragOrigin;
     }
 
     async start(el: DomElement, position: ElementPosition, frameView: FrameData) {
-        if (this.editorEngine.chat.isWaiting) {
-            return;
-        }
         if (!this.editorEngine.elements.selected.some((selected) => selected.domId === el.domId)) {
             console.warn('Element not selected, cannot start drag');
             return;

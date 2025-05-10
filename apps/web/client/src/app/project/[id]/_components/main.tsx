@@ -21,7 +21,7 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectManager();
     const { tabState } = useTabActive();
-    const { data: result, isLoading } = api.project.getFullProjectById.useQuery({ id: projectId });
+    const { data: result, isLoading } = api.project.getFullProject.useQuery({ projectId });
 
     useEffect(() => {
         if (!result) {
