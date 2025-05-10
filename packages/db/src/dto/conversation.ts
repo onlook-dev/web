@@ -58,11 +58,11 @@ export const fromMessage = (conversationId: string, message: ChatMessage): DbMes
     let context: ChatMessageContext[] = [];
 
     if (message.role === ChatMessageRole.ASSISTANT) {
-        snapshots = message.snapshots ?? {};
+        snapshots = message.snapshots;
     }
 
     if (message.role === ChatMessageRole.USER) {
-        context = message.context ?? [];
+        context = message.context;
     }
 
     return {
