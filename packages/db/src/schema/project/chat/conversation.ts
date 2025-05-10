@@ -7,7 +7,7 @@ export const PROJECT_CONVERSATION_RELATION_NAME = "project_conversations";
 
 export const conversations = pgTable("conversations", {
     id: uuid("id").primaryKey().defaultRandom(),
-    projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id").references(() => projects.id, { onDelete: "cascade" }).notNull(),
     displayName: varchar("display_name"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

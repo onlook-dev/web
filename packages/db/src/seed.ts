@@ -88,8 +88,10 @@ const message0 = {
     role: ChatMessageRole.USER,
     content: 'Test message 0',
     createdAt: new Date(),
-    updatedAt: new Date(),
     applied: false,
+    context: [],
+    snapshots: null,
+    parts: [{ type: 'text', text: 'Test message 0' }],
 } satisfies Message;
 
 const message1 = {
@@ -98,8 +100,10 @@ const message1 = {
     role: ChatMessageRole.ASSISTANT,
     content: 'Test message 1',
     createdAt: new Date(),
-    updatedAt: new Date(),
     applied: false,
+    context: [],
+    parts: [{ type: 'text', text: 'Test message 1' }],
+    snapshots: null,
 } satisfies Message;
 
 const message2 = {
@@ -108,8 +112,10 @@ const message2 = {
     role: ChatMessageRole.ASSISTANT,
     content: 'Test message 2',
     createdAt: new Date(),
-    updatedAt: new Date(),
     applied: false,
+    context: [],
+    parts: [{ type: 'text', text: 'Test message 2' }],
+    snapshots: null,
 } satisfies Message;
 
 const message3 = {
@@ -118,8 +124,22 @@ const message3 = {
     role: ChatMessageRole.USER,
     content: 'Test message 3',
     createdAt: new Date(),
-    updatedAt: new Date(),
     applied: false,
+    context: [],
+    parts: [{ type: 'text', text: 'Test message 3' }],
+    snapshots: null,
+} satisfies Message;
+
+const message4 = {
+    id: uuidv4(),
+    conversationId: conversation1.id,
+    role: ChatMessageRole.ASSISTANT,
+    content: 'Test message 4',
+    createdAt: new Date(),
+    applied: false,
+    context: [],
+    parts: [{ type: 'text', text: 'Test message 4' }],
+    snapshots: null,
 } satisfies Message;
 
 export const seedDb = async () => {
@@ -155,6 +175,7 @@ export const seedDb = async () => {
             message1,
             message2,
             message3,
+            message4,
         ]);
     });
 

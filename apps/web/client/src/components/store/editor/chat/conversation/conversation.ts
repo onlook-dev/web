@@ -42,10 +42,7 @@ export class ChatConversationImpl implements ChatConversation {
     }
 
     static fromJSON(data: ChatConversation) {
-        const conversation = new ChatConversationImpl(data.projectId, []);
-        conversation.id = data.id;
-        conversation.displayName = data.displayName;
-        conversation.messages = data.messages
+        const messages = data.messages
             .map((m) => {
                 if (m.role === ChatMessageRole.USER) {
                     return UserChatMessageImpl.fromJSON(m as UserChatMessage);
@@ -57,9 +54,12 @@ export class ChatConversationImpl implements ChatConversation {
                 }
             })
             .filter((m) => m !== null) as ChatMessageImpl[];
+
+        const conversation = new ChatConversationImpl(data.projectId, messages);
+        conversation.id = data.id;
+        conversation.displayName = data.displayName;
         conversation.createdAt = data.createdAt;
         conversation.updatedAt = data.updatedAt;
-
         return conversation;
     }
 

@@ -1,4 +1,5 @@
 import { ChatMessageRole, type ChatConversation, type ChatMessage, type ChatMessageContext, type CodeDiff } from "@onlook/models";
+import type { Message as AiMessage, TextPart } from "ai";
 import type { Conversation as DbConversation, Message as DbMessage } from "../schema";
 
 export const toConversation = (dbConversation: DbConversation, messages: DbMessage[]): ChatConversation => {
@@ -7,17 +8,18 @@ export const toConversation = (dbConversation: DbConversation, messages: DbMessa
         displayName: dbConversation.displayName,
         createdAt: dbConversation.createdAt.toISOString(),
         updatedAt: dbConversation.updatedAt.toISOString(),
-        messages: messages.map(toMessage),
+        messages: sortMessages(messages.map(toMessage)),
+        projectId: dbConversation.projectId,
     }
 }
 
-export const fromConversation = (projectId: string, conversation: ChatConversation): DbConversation => {
+export const fromConversation = (conversation: ChatConversation): DbConversation => {
     return {
         id: conversation.id,
         displayName: conversation.displayName,
         createdAt: new Date(conversation.createdAt),
         updatedAt: new Date(conversation.updatedAt),
-        projectId: projectId,
+        projectId: conversation.projectId,
     }
 }
 
@@ -30,6 +32,7 @@ export const toMessage = (dbMessage: DbMessage): ChatMessage => {
             createdAt: dbMessage.createdAt,
             applied: dbMessage.applied ?? false,
             snapshots: null,
+            parts: dbMessage.parts as AiMessage['parts'],
         }
     } else if (dbMessage.role === ChatMessageRole.USER) {
         return {
@@ -38,6 +41,7 @@ export const toMessage = (dbMessage: DbMessage): ChatMessage => {
             role: dbMessage.role as ChatMessageRole.USER,
             createdAt: dbMessage.createdAt,
             context: [],
+            parts: dbMessage.parts as TextPart[],
         }
     } else {
         return {
@@ -70,5 +74,10 @@ export const fromMessage = (conversationId: string, message: ChatMessage): DbMes
         applied: message.role === ChatMessageRole.ASSISTANT ? message.applied ?? false : false,
         snapshots,
         context,
+        parts: message.parts
     }
+}
+
+export const sortMessages = (messages: ChatMessage[]): ChatMessage[] => {
+    return messages.toSorted((a, b) => (a.createdAt ?? new Date()).getTime() - (b.createdAt ?? new Date()).getTime());
 }

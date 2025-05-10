@@ -1,4 +1,5 @@
 import type { Message } from '@ai-sdk/react';
+import type { TextPart } from 'ai';
 import type { CodeDiff } from '../../code/index.ts';
 import { type ChatMessageContext } from './context.ts';
 
@@ -11,12 +12,16 @@ export enum ChatMessageRole {
 export interface UserChatMessage extends Message {
     role: ChatMessageRole.USER;
     context: ChatMessageContext[];
+    parts: TextPart[];
+    content: string;
 }
 
 export interface AssistantChatMessage extends Message {
     role: ChatMessageRole.ASSISTANT;
     applied: boolean;
     snapshots: Record<string, CodeDiff> | null;
+    parts: Message['parts'];
+    content: string;
 }
 
 export interface SystemChatMessage extends Message {

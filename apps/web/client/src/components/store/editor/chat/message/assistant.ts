@@ -44,6 +44,7 @@ export class AssistantChatMessageImpl implements AssistantChatMessage {
             content: message.content,
             applied: message.applied,
             snapshots: message.snapshots,
+            parts: message.parts,
         };
     }
 }

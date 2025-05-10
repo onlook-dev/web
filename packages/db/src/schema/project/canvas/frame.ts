@@ -7,7 +7,7 @@ export const frameType = pgEnum("frame_type", FrameType);
 
 export const frames = pgTable("frames", {
     id: uuid("id").primaryKey().defaultRandom(),
-    canvasId: uuid("canvas_id").references(() => canvas.id, { onDelete: "cascade" }),
+    canvasId: uuid("canvas_id").references(() => canvas.id, { onDelete: "cascade" }).notNull(),
     type: frameType("type").notNull(),
     url: varchar("url").notNull(),
 

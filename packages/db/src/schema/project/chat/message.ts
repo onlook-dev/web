@@ -8,13 +8,14 @@ export const messageRole = pgEnum("role", ChatMessageRole);
 
 export const messages = pgTable("messages", {
     id: uuid("id").primaryKey().defaultRandom(),
-    conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
+    conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "cascade" }).notNull(),
     content: text("content").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     role: messageRole("role").notNull(),
     applied: boolean("applied").default(false),
     snapshots: jsonb("snapshots"),
     context: jsonb("context").default([]),
+    parts: jsonb("parts").default([]),
 });
 
 export const messageRelations = relations(messages, ({ one }) => ({

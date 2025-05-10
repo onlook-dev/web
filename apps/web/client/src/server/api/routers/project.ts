@@ -1,4 +1,4 @@
-import { createDefaultCanvas, projectInsertSchema, projects, toCanvas, toConversation, toFrame, toProject, userProjects, type Canvas } from '@onlook/db';
+import { conversations, createDefaultCanvas, projectInsertSchema, projects, toCanvas, toConversation, toFrame, toProject, userProjects, type Canvas } from '@onlook/db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
@@ -15,11 +15,6 @@ export const projectRouter = createTRPCRouter({
                             frames: true,
                         },
                     },
-                    conversations: {
-                        with: {
-                            messages: true,
-                        },
-                    },
                 },
             });
             if (!project) {
@@ -31,8 +26,18 @@ export const projectRouter = createTRPCRouter({
                 project: toProject(project),
                 canvas: toCanvas(canvas),
                 frames: project.canvas?.frames.map(toFrame) ?? [],
-                conversations: project.conversations.map(conversation => toConversation(conversation, conversation.messages)),
             }
+        }),
+    getConversationsByProjectId: protectedProcedure
+        .input(z.object({ id: z.string() }))
+        .query(async ({ ctx, input }) => {
+            const dbConversations = await ctx.db.query.conversations.findMany({
+                where: eq(conversations.projectId, input.id),
+                with: {
+                    messages: true,
+                },
+            });
+            return dbConversations.map((conversation) => toConversation(conversation, conversation.messages));
         }),
     getPreviewProjectsByUserId: protectedProcedure
         .input(z.object({ id: z.string() }))
