@@ -1,4 +1,6 @@
 import type { ProjectDomain } from './domain';
+import type { Frame } from './frame';
+import type { RectPosition } from './rect';
 
 export interface Project {
     id: string;
@@ -13,4 +15,11 @@ export interface Project {
         url: string;
     };
     domains: ProjectDomain;
+    settings: ProjectSettings;
+}
+
+export interface ProjectSettings {
+    scale: number | null;
+    frames: Frame[] | null;
+    position: RectPosition | null;
 }

@@ -1,5 +1,6 @@
 import { useEditorEngine } from '@/components/store/editor';
-import { DefaultSettings } from '@onlook/constants';
+import type { FrameImpl } from '@/components/store/editor/canvas/frame';
+import { DefaultSettings, Orientation } from '@onlook/constants';
 import type { Frame } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
@@ -67,7 +68,7 @@ const deviceOptions: DeviceOptions = {
     },
 };
 
-export const FrameDimensions = ({ frame }: { frame: Frame }) => {
+export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
     const editorEngine = useEditorEngine();
     const [device, setDevice] = useState(frame.device ?? DefaultSettings.DEVICE);
     const [orientation, setOrientation] = useState(
@@ -91,7 +92,7 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
     });
 
     useEffect(() => {
-        const observer = (newSettings: FrameSettings) => {
+        const observer = (newSettings: Frame) => {
             if (newSettings.dimension.width !== width) {
                 setWidth(newSettings.dimension.width);
             }
@@ -115,6 +116,9 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
 
     useEffect(() => {
         const [deviceCategory, deviceName] = device.split(':');
+        if(deviceCategory && deviceName){
+
+        
         if (deviceName === 'Custom') {
             editorEngine.canvas.saveFrame(frame.id, {
                 device: device,
@@ -128,47 +132,57 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
         }
 
         const [deviceWidth, deviceHeight] = deviceOptions[deviceCategory][deviceName].split('x');
-        if (width === parseInt(deviceHeight) && height === parseInt(deviceWidth)) {
-            return;
-        } else {
-            setWidth(parseInt(deviceWidth));
-            setHeight(parseInt(deviceHeight));
-            editorEngine.canvas.saveFrame(settings.id, {
-                dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
-                device: device,
-            });
-            if (aspectRatioLocked) {
-                setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
+        if(deviceWidth && deviceHeight){
+            if (width === parseInt(deviceHeight) && height === parseInt(deviceWidth)) {
+                return;
+            } else {
+                setWidth(parseInt(deviceWidth));
+                setHeight(parseInt(deviceHeight));
+                editorEngine.canvas.saveFrame(frame.id, {
+                    dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
+                    device: device,
+                });
+                if (aspectRatioLocked) {
+                    setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
+                }
             }
         }
+    }
     }, [device]);
 
     useEffect(() => {
         const [deviceCategory, deviceName] = device.split(':');
 
-        if (!deviceOptions[deviceCategory]?.[deviceName]) {
-            setDevice('Custom:Custom');
-            return;
-        }
+        if (deviceCategory && deviceName) {
+            if (!deviceOptions[deviceCategory]?.[deviceName]) {
+                setDevice('Custom:Custom');
+                return;
+            }
 
-        const [deviceWidth, deviceHeight] = deviceOptions[deviceCategory][deviceName].split('x');
-        if (
-            deviceName !== 'Custom' &&
-            ((width !== parseInt(deviceWidth) && width !== parseInt(deviceHeight)) ||
-                (height !== parseInt(deviceHeight) && height !== parseInt(deviceWidth)))
-        ) {
-            setDevice('Custom:Custom');
-        }
-        if (height > width && orientation !== Orientation.Portrait && !aspectRatioLocked) {
-            setOrientation(Orientation.Portrait);
-        }
-        if (width > height && orientation !== Orientation.Landscape && !aspectRatioLocked) {
-            setOrientation(Orientation.Landscape);
-        }
+            const [deviceWidth, deviceHeight] =
+                deviceOptions[deviceCategory][deviceName].split('x');
 
-        editorEngine.canvas.saveFrame(settings.id, {
-            dimension: { width: width, height: height },
-        });
+            if (deviceWidth && deviceHeight) {
+                if (
+                    deviceName !== 'Custom' &&
+                    ((width !== parseInt(deviceWidth) && width !== parseInt(deviceHeight)) ||
+                        (height !== parseInt(deviceHeight) && height !== parseInt(deviceWidth)))
+                ) {
+                    setDevice('Custom:Custom');
+                }
+            }
+
+            if (height > width && orientation !== Orientation.Portrait && !aspectRatioLocked) {
+                setOrientation(Orientation.Portrait);
+            }
+            if (width > height && orientation !== Orientation.Landscape && !aspectRatioLocked) {
+                setOrientation(Orientation.Landscape);
+            }
+
+            editorEngine.canvas.saveFrame(frame.id, {
+                dimension: { width: width, height: height },
+            });
+        }
     }, [height, width]);
 
     useEffect(() => {
@@ -190,13 +204,13 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
                 width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
             });
         }
-        editorEngine.canvas.saveFrame(settings.id, {
+        editorEngine.canvas.saveFrame(frame.id, {
             aspectRatioLocked: aspectRatioLocked,
         });
     }, [aspectRatioLocked]);
 
     useEffect(() => {
-        editorEngine.canvas.saveFrame(settings.id, {
+        editorEngine.canvas.saveFrame(frame.id, {
             orientation: orientation,
         });
     }, [orientation]);
@@ -312,7 +326,7 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
 
     const handleAspectRatioLock = () => {
         setAspectRatioLocked((prev) => !prev);
-        editorEngine.canvas.saveFrame(settings.id, {
+        editorEngine.canvas.saveFrame(frame.id, {
             aspectRatioLocked: !aspectRatioLocked,
         });
     };
@@ -364,7 +378,7 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
                 <div className="flex flex-row p-0.5 w-3/5 bg-background-secondary rounded">
                     <Button
                         size={'icon'}
-                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${orientation === Orientation.Portrait ? 'bg-background-tertiary hover:bg-background-tertiary' : 'hover:bg-background-tertiary/50'}`}
+                        className={`flex-1 h-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${orientation === Orientation.Portrait ? 'bg-background-tertiary hover:bg-background-tertiary' : 'hover:bg-background-tertiary/50'}`}
                         variant={'ghost'}
                         onClick={handleOrientationChange}
                     >
@@ -374,7 +388,7 @@ export const FrameDimensions = ({ frame }: { frame: Frame }) => {
                     </Button>
                     <Button
                         size={'icon'}
-                        className={`h-full w-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${orientation === 'Landscape' ? 'bg-background-tertiary hover:bg-background-tertiary' : 'hover:bg-background-tertiary/50'}`}
+                        className={`flex-1 h-full px-0.5 py-1.5 bg-background-secondary rounded-sm ${orientation === 'Landscape' ? 'bg-background-tertiary hover:bg-background-tertiary' : 'hover:bg-background-tertiary/50'}`}
                         variant={'ghost'}
                         onClick={handleOrientationChange}
                     >

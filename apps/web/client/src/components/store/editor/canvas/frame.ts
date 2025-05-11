@@ -1,17 +1,26 @@
 import type { Frame, FrameType, RectDimension, RectPosition, WebFrame } from '@onlook/models';
 import { makeObservable, observable } from 'mobx';
+import type { Orientation, Theme } from '../../../../../../../../packages/constants/src/frame';
 
 export class FrameImpl implements Frame {
     id: string;
     position: RectPosition;
     dimension: RectDimension;
     type: FrameType;
+    device: string | null;
+    orientation: Orientation | null;
+    aspectRatioLocked: boolean | null;
+    theme: Theme | null;
 
-    constructor({ id, position, dimension, type }: Frame) {
+    constructor({ id, position, dimension, type, device, orientation, aspectRatioLocked, theme }: Frame) {
         this.id = id;
         this.position = position;
         this.dimension = dimension;
         this.type = type;
+        this.device = device;
+        this.orientation = orientation;
+        this.aspectRatioLocked = aspectRatioLocked;
+        this.theme = theme;
 
         makeObservable(this, {
             id: observable,
