@@ -45,7 +45,6 @@ export const FileTreeNode: React.FC<FileTreeNodeProps> = observer(({ node, style
     // Get file icon based on extension
     const getFileIcon = () => {
         const extension = node.data.extension?.toLowerCase();
-        console.log(extension);
 
         if (isDirectory) {
             return <Icons.Directory className="w-4 h-4 mr-2" />;
