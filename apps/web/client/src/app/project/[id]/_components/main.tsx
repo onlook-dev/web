@@ -1,6 +1,5 @@
 'use client';
 
-<<<<<<< HEAD
 import { ChatProvider } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store/editor';
 import { useProjectManager } from '@/components/store/project';
@@ -9,24 +8,11 @@ import { Routes } from '@/utils/constants';
 import { TooltipProvider } from '@onlook/ui/tooltip';
 import { observer } from 'mobx-react-lite';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTabActive } from '../_hooks/use-tab-active';
 import { BottomBar } from './bottom-bar';
 import { Canvas } from './canvas';
 import { EditorBar } from './editor-bar';
-=======
-import { ChatProvider } from "@/app/project/[id]/_hooks/use-chat";
-import { useEditorEngine, useProjectManager } from "@/components/store";
-import type { Project } from "@onlook/models";
-import { Icons } from "@onlook/ui/icons/index";
-import { TooltipProvider } from "@onlook/ui/tooltip";
-import { useEffect, useRef, useState } from "react";
-import { useSandbox } from "../_hooks/use-sandbox";
-import { useTabActive } from "../_hooks/use-tab-active";
-import { BottomBar } from "./bottom-bar";
-import { Canvas } from "./canvas";
-import { EditorBar } from "./editor-bar";
->>>>>>> 60e8953b (Pre-group / more menu toolbar)
 import { LeftPanel } from './left-panel';
 import { RightPanel } from './right-panel';
 import { TopBar } from './top-bar';
@@ -35,13 +21,10 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectManager();
     const { tabState } = useTabActive();
-<<<<<<< HEAD
     const { data: result, isLoading } = api.project.getFullProject.useQuery({ projectId });
-=======
     const leftPanelRef = useRef<HTMLDivElement>(null);
     const rightPanelRef = useRef<HTMLDivElement>(null);
     const [center, setCenter] = useState<number | null>(null);
->>>>>>> 60e8953b (Pre-group / more menu toolbar)
 
     useEffect(() => {
         if (!result) {
