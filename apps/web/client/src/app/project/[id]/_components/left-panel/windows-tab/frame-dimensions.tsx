@@ -116,38 +116,38 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
 
     useEffect(() => {
         const [deviceCategory, deviceName] = device.split(':');
-        if(deviceCategory && deviceName){
+        if (deviceCategory && deviceName) {
 
-        
-        if (deviceName === 'Custom') {
-            editorEngine.canvas.saveFrame(frame.id, {
-                device: device,
-            });
-            return;
-        }
 
-        if (!deviceOptions[deviceCategory]?.[deviceName]) {
-            setDevice('Custom:Custom');
-            return;
-        }
-
-        const [deviceWidth, deviceHeight] = deviceOptions[deviceCategory][deviceName].split('x');
-        if(deviceWidth && deviceHeight){
-            if (width === parseInt(deviceHeight) && height === parseInt(deviceWidth)) {
-                return;
-            } else {
-                setWidth(parseInt(deviceWidth));
-                setHeight(parseInt(deviceHeight));
+            if (deviceName === 'Custom') {
                 editorEngine.canvas.saveFrame(frame.id, {
-                    dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
                     device: device,
                 });
-                if (aspectRatioLocked) {
-                    setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
+                return;
+            }
+
+            if (!deviceOptions[deviceCategory]?.[deviceName]) {
+                setDevice('Custom:Custom');
+                return;
+            }
+
+            const [deviceWidth, deviceHeight] = deviceOptions[deviceCategory][deviceName].split('x');
+            if (deviceWidth && deviceHeight) {
+                if (width === parseInt(deviceHeight) && height === parseInt(deviceWidth)) {
+                    return;
+                } else {
+                    setWidth(parseInt(deviceWidth));
+                    setHeight(parseInt(deviceHeight));
+                    editorEngine.canvas.saveFrame(frame.id, {
+                        dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
+                        device: device,
+                    });
+                    if (aspectRatioLocked) {
+                        setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
+                    }
                 }
             }
         }
-    }
     }, [device]);
 
     useEffect(() => {
@@ -269,23 +269,23 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
             if (aspectRatioLocked) {
                 if (
                     parseInt(value) / aspectRatio <
-                        parseInt(DefaultSettings.MIN_DIMENSIONS.height) ||
+                    parseInt(DefaultSettings.MIN_DIMENSIONS.height) ||
                     parseInt(value) < parseInt(DefaultSettings.MIN_DIMENSIONS.width)
                 ) {
                     const dimensionsAspectRatio =
                         aspectRatio >= 1
                             ? {
-                                  height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
-                                  width: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
-                                  ),
-                              }
+                                height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
+                                width: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
+                                ),
+                            }
                             : {
-                                  height: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
-                                  ),
-                                  width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
-                              };
+                                height: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
+                                ),
+                                width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
+                            };
                     setHeight(dimensionsAspectRatio.height);
                     setWidth(dimensionsAspectRatio.width);
                 }
@@ -297,23 +297,23 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
             if (aspectRatioLocked) {
                 if (
                     parseInt(value) * aspectRatio <
-                        parseInt(DefaultSettings.MIN_DIMENSIONS.width) ||
+                    parseInt(DefaultSettings.MIN_DIMENSIONS.width) ||
                     parseInt(value) < parseInt(DefaultSettings.MIN_DIMENSIONS.height)
                 ) {
                     const dimensionsAspectRatio =
                         aspectRatio >= 1
                             ? {
-                                  height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
-                                  width: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
-                                  ),
-                              }
+                                height: parseInt(DefaultSettings.MIN_DIMENSIONS.height),
+                                width: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.height) * aspectRatio,
+                                ),
+                            }
                             : {
-                                  height: Math.floor(
-                                      parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
-                                  ),
-                                  width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
-                              };
+                                height: Math.floor(
+                                    parseInt(DefaultSettings.MIN_DIMENSIONS.width) / aspectRatio,
+                                ),
+                                width: parseInt(DefaultSettings.MIN_DIMENSIONS.width),
+                            };
                     setHeight(dimensionsAspectRatio.height);
                     setWidth(dimensionsAspectRatio.width);
                 }
@@ -333,7 +333,7 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
 
     return (
         <div className="flex flex-col gap-2">
-            <p className="text-smallPlus text-foreground-primary">Frame Dimensions</p>
+            <p className="text-sm text-foreground-primary">Frame Dimensions</p>
             <div className="flex flex-row justify-between items-center">
                 <span className="text-xs text-foreground-secondary">Device</span>
                 <Select value={device} onValueChange={setDevice}>
