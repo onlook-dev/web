@@ -1,6 +1,6 @@
+import type { Orientation, Theme } from '@onlook/constants';
 import type { Frame, FrameType, RectDimension, RectPosition, WebFrame } from '@onlook/models';
 import { makeObservable, observable } from 'mobx';
-import type { Orientation, Theme } from '../../../../../../../../packages/constants/src/frame';
 
 export class FrameImpl implements Frame {
     id: string;
