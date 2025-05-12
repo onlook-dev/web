@@ -1,4 +1,3 @@
-import { useEditorEngine } from '@/components/store';
 import { EditorView } from '@codemirror/view';
 import { EditorTabValue, SystemTheme } from '@onlook/models';
 import {
@@ -20,6 +19,7 @@ import { getBasicSetup, getExtensions, getLanguageFromFileName } from './code-mi
 import { FileTab } from './file-tab';
 import type { FileNode } from '@onlook/constants';
 import { FileTree } from './file-tree';
+import { useEditorEngine } from '@/components/store/editor';
 
 enum TabValue {
     CONSOLE = 'console',

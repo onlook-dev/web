@@ -1,4 +1,3 @@
-import { useEditorEngine } from '@/components/store';
 import { FileEventBus, type FileEvent } from '@/components/store/editor/sandbox';
 import { type FileNode } from '@onlook/constants';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -12,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipPortal, TooltipTrigger } from '@onlook/
 import useResizeObserver from 'use-resize-observer';
 import { nanoid } from 'nanoid';
 import path from 'path';
+import { useEditorEngine } from '@/components/store/editor';
 
 interface FileTreeProps {
     onFileSelect: (filePath: string) => void;

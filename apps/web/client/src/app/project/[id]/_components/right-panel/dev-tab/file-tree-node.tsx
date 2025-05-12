@@ -1,4 +1,3 @@
-import { useEditorEngine } from '@/components/store';
 import { Icons } from '@onlook/ui/icons';
 import { cn } from '@onlook/ui/utils';
 import {
@@ -7,12 +6,11 @@ import {
     ContextMenuItem,
     ContextMenuTrigger,
 } from '@onlook/ui/context-menu';
-import { Icons } from '@onlook/ui/icons';
-import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'motion/react';
 import type { NodeApi } from 'react-arborist';
 import type { FileNode } from '@onlook/constants';
+import { useEditorEngine } from '@/components/store/editor';
 
 interface FileTreeNodeProps {
     node: NodeApi<FileNode>;
