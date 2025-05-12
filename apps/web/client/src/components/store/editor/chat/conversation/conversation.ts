@@ -1,4 +1,6 @@
+import { api } from '@/trpc/client';
 import { MAX_NAME_LENGTH } from '@onlook/constants';
+import { fromMessage } from '@onlook/db';
 import {
     ChatMessageRole,
     type AssistantChatMessage,
@@ -8,11 +10,11 @@ import {
 } from '@onlook/models/chat';
 import type { Message } from 'ai';
 import { makeAutoObservable } from 'mobx';
-import { nanoid } from 'nanoid/non-secure';
+import { v4 as uuidv4 } from 'uuid';
 import { AssistantChatMessageImpl } from '../message/assistant';
 import { UserChatMessageImpl } from '../message/user';
 
-type ChatMessageImpl = UserChatMessageImpl | AssistantChatMessageImpl;
+export type ChatMessageImpl = UserChatMessageImpl | AssistantChatMessageImpl;
 
 export class ChatConversationImpl implements ChatConversation {
     id: string;
@@ -30,7 +32,7 @@ export class ChatConversationImpl implements ChatConversation {
 
     constructor(projectId: string, messages: ChatMessageImpl[]) {
         makeAutoObservable(this);
-        this.id = nanoid();
+        this.id = uuidv4();
         this.projectId = projectId;
         this.messages = messages;
         this.createdAt = new Date().toISOString();
@@ -42,10 +44,7 @@ export class ChatConversationImpl implements ChatConversation {
     }
 
     static fromJSON(data: ChatConversation) {
-        const conversation = new ChatConversationImpl(data.projectId, []);
-        conversation.id = data.id;
-        conversation.displayName = data.displayName;
-        conversation.messages = data.messages
+        const messages = data.messages
             .map((m) => {
                 if (m.role === ChatMessageRole.USER) {
                     return UserChatMessageImpl.fromJSON(m as UserChatMessage);
@@ -57,9 +56,12 @@ export class ChatConversationImpl implements ChatConversation {
                 }
             })
             .filter((m) => m !== null) as ChatMessageImpl[];
+
+        const conversation = new ChatConversationImpl(data.projectId, messages);
+        conversation.id = data.id;
+        conversation.displayName = data.displayName;
         conversation.createdAt = data.createdAt;
         conversation.updatedAt = data.updatedAt;
-
         return conversation;
     }
 
@@ -97,9 +99,12 @@ export class ChatConversationImpl implements ChatConversation {
         this.messages[index] = message;
         this.updatedAt = new Date().toISOString();
         this.messages = [...this.messages];
+        this.saveMessageToStorage(message);
     }
 
-    updateCodeReverted(id: string) {
-        this.messages = [...this.messages];
+    saveMessageToStorage(message: ChatMessageImpl) {
+        api.chat.saveMessage.mutate({
+            message: fromMessage(this.id, message),
+        });
     }
 }
