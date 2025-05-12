@@ -9,14 +9,61 @@ import { isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 import { SessionManager } from './session';
 
+interface FileWatcherOptions {
+    session: SandboxSession;
+    onFileChange: (event: WatchEvent) => Promise<void>;
+    excludePatterns?: string[];
+}
+
+class FileWatcher {
+    private watcher: Watcher | null = null;
+    private readonly session: SandboxSession;
+    private readonly onFileChange: (event: WatchEvent) => Promise<void>;
+    private readonly excludePatterns: string[];
+    private readonly eventBus = fileEventBus;
+
+    constructor({ session, onFileChange, excludePatterns = [] }: FileWatcherOptions) {
+        this.session = session;
+        this.onFileChange = onFileChange;
+        this.excludePatterns = excludePatterns;
+    }
+
+    async start(): Promise<void> {
+        try {
+            this.watcher = await this.session.fs.watch('./', {
+                recursive: true,
+                excludes: this.excludePatterns,
+            });
+
+            this.watcher.onEvent(async (event) => {
+                // Publish the event to all subscribers
+                this.eventBus.publish({
+                    type: event.type,
+                    paths: event.paths,
+                    timestamp: Date.now()
+                });
+
+                // Notify about file changes
+                await this.onFileChange(event);
+            });
+        } catch (error) {
+            console.error('Failed to start file watcher:', error);
+            throw error;
+        }
+    }
+
+    dispose(): void {
+        this.watcher?.dispose();
+        this.watcher = null;
+    }
+}
 
 export class SandboxManager {
     readonly session: SessionManager = new SessionManager();
 
-    private watcher: Watcher | null = null;
+    private fileWatcher: FileWatcher | null = null;
     private fileSync: FileSyncManager = new FileSyncManager();
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
-    private eventBus = fileEventBus;
 
     constructor() {
         makeAutoObservable(this);
@@ -147,7 +194,6 @@ export class SandboxManager {
 
     async writeFile(path: string, content: string): Promise<boolean> {
         const normalizedPath = normalizePath(path);
-        console.log('writeFile', normalizedPath, content);
         return this.fileSync.write(normalizedPath, content, this.writeRemoteFile.bind(this));
     }
 
@@ -218,24 +264,16 @@ export class SandboxManager {
         // Convert ignored directories to glob patterns with ** wildcard
         const excludePatterns = IGNORED_DIRECTORIES.map((dir) => `${dir}/**`);
 
-        const watcher = await this.session.session.fs.watch('./', {
-            recursive: true,
-            excludes: excludePatterns,
+        this.fileWatcher = new FileWatcher({
+            session: this.session.session,
+            onFileChange: this.handleFileChange.bind(this),
+            excludePatterns,
         });
 
-        watcher.onEvent((event) => this.handleFileEvent(event));
-
-        this.watcher = watcher;
+        await this.fileWatcher.start();
     }
 
-    async handleFileEvent(event: WatchEvent) {
-        // Publish the event to all subscribers
-        this.eventBus.publish({
-            type: event.type,
-            paths: event.paths,
-            timestamp: Date.now()
-        });
-
+    async handleFileChange(event: WatchEvent) {
         // Handle internal file sync
         for (const path of event.paths) {
             if (isSubdirectory(path, IGNORED_DIRECTORIES)) {
@@ -290,7 +328,8 @@ export class SandboxManager {
     }
 
     clear() {
-        this.watcher?.dispose();
+        this.fileWatcher?.dispose();
+        this.fileWatcher = null;
         this.fileSync.clear();
         this.templateNodeMap.clear();
     }
