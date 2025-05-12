@@ -1,6 +1,7 @@
 import type { RectDimension, RectPosition } from "./rect";
 import { Orientation, Theme } from "@onlook/constants";
 
+
 export enum FrameType {
     WEB = 'web',
 }
