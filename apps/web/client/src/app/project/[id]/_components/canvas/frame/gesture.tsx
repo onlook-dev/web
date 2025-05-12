@@ -115,6 +115,8 @@ export const GestureScreen = observer(({ frame }: { frame: WebFrame }) => {
 
     const handleClick = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
+            console.log('handle click');
+            console.log(frame.id);
             editorEngine.frames.deselectAll();
             editorEngine.frames.select(frame);
         },
