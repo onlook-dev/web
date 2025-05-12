@@ -1,4 +1,3 @@
-import { FileEventBus, type FileEvent } from '@/components/store/editor/sandbox';
 import { type FileNode } from '@onlook/constants';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tree, type TreeApi } from 'react-arborist';
@@ -12,6 +11,7 @@ import useResizeObserver from 'use-resize-observer';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { useEditorEngine } from '@/components/store/editor';
+import { fileEventBus, type FileEvent } from '@/components/store/editor/sandbox/file-sync';
 
 interface FileTreeProps {
     onFileSelect: (filePath: string) => void;
@@ -69,7 +69,6 @@ export const FileTree = ({ onFileSelect }: FileTreeProps) => {
     useEffect(() => {
         const loadInitialData = async () => {
             const files = await editorEngine.sandbox.listAllFiles();
-            console.log(files);
             
             setTreeData(buildFileTree(files));
         };
@@ -78,8 +77,8 @@ export const FileTree = ({ onFileSelect }: FileTreeProps) => {
 
     // Subscribe to file events
     useEffect(() => {
-        const eventBus = FileEventBus.getInstance();
-        
+        const eventBus = fileEventBus;
+
         const handleFileEvent = async (event: FileEvent) => {
             const files = await editorEngine.sandbox.listAllFiles();
             setTreeData(buildFileTree(files));

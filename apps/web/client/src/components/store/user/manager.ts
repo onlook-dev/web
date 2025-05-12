@@ -27,8 +27,6 @@ export class UserManager {
 
     async fetchUser() {
         const { data, error } = await this.supabase.auth.getUser();
-        console.log('data', data);
-        console.log('error', error);
         if (error) {
             throw new Error(error.message);
         }
