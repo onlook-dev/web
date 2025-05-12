@@ -6,13 +6,13 @@ const model = await initModel(LLMProvider.ANTHROPIC, CLAUDE_MODELS.SONNET);
 const promptProvider = new PromptProvider();
 
 export async function POST(req: Request) {
-    const { messages, maxSteps, maxTokens } = await req.json();
+    const { messages, maxSteps } = await req.json();
 
     const result = streamText({
         model,
         system: promptProvider.getSystemPrompt(),
         messages,
-        maxSteps: 10,
+        maxSteps,
         tools: chatToolSet,
         toolCallStreaming: true,
         maxTokens: 64000,
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
                 schema: tool?.parameters,
                 prompt: [
                     `The model tried to call the tool "${toolCall.toolName}"` +
-                        ` with the following arguments:`,
+                    ` with the following arguments:`,
                     JSON.stringify(toolCall.args),
                     `The tool accepts the following schema:`,
                     JSON.stringify(parameterSchema(toolCall)),
