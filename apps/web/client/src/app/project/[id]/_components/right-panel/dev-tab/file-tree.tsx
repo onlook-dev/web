@@ -71,38 +71,7 @@ export const FileTree = ({ onFileSelect }: FileTreeProps) => {
             const files = await editorEngine.sandbox.listAllFiles();
             console.log(files);
             
-            setTreeData(buildFileTree([
-                "src/app/layout.tsx",
-                "src/app/page.tsx",
-                "src/app/about/page.tsx",
-                "src/app/dashboard/layout.tsx",
-                "src/app/dashboard/page.tsx",
-                "src/app/dashboard/analytics/page.tsx",
-                "src/app/dashboard/settings/page.tsx",
-                "src/components/ui/button.tsx",
-                "src/components/ui/input.tsx",
-                "src/components/file-tree/TreeNode.tsx",
-                "src/components/file-tree/TreeView.tsx",
-                "src/components/layout/Header.tsx",
-                "src/components/layout/Sidebar.tsx",
-                "src/components/layout/Footer.tsx",
-                "src/lib/utils/formatDate.ts",
-                "src/lib/utils/generateId.ts",
-                "src/lib/hooks/useToggle.ts",
-                "src/lib/constants/appConfig.ts",
-                "src/styles/globals.css",
-                "src/styles/components/button.css",
-                "public/favicon.ico",
-                "public/images/logo.png",
-                "public/assets/sample.json",
-                "tsconfig.json",
-                "next.config.js",
-                "package.json",
-                "README.md",
-                ".eslintrc.json",
-                ".gitignore"
-              ]
-              ));
+            setTreeData(buildFileTree(files));
         };
         loadInitialData();
     }, [editorEngine.sandbox]);
