@@ -28,14 +28,7 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
             return;
         }
         const { project, canvas, frames } = result;
-        projectManager.project = {
-            ...project,
-            settings: {
-                scale: canvas.scale,
-                frames: frames,
-                position: canvas.position,
-            },
-        };
+        projectManager.project = project;
 
         if (project.sandbox?.id) {
             editorEngine.sandbox.session.start(project.sandbox.id);

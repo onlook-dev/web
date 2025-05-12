@@ -133,13 +133,7 @@ export class CanvasManager {
 
     private undebouncedSaveSettings() {
         // TODO: Save settings in persistence
-        const settings: ProjectSettings = {
-            scale: this._scale,
-            position: this._position,
-            frames: Array.from(this.frames.values()),
-        };
         if (this.projects.project) {
-            this.projects.project.settings = settings;
             this.projects.updateProject(this.projects.project);
         }
     }

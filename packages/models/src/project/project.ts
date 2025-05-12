@@ -15,7 +15,6 @@ export interface Project {
         url: string;
     };
     domains: ProjectDomain;
-    settings: ProjectSettings;
 }
 
 export interface ProjectSettings {

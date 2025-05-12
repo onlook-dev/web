@@ -1,7 +1,7 @@
 import { useEditorEngine } from '@/components/store/editor';
 import type { FrameImpl } from '@/components/store/editor/canvas/frame';
 import { DefaultSettings, Orientation } from '@onlook/constants';
-import type { Frame } from '@onlook/models';
+import type { Frame, FrameType } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
 import { Input } from '@onlook/ui/input';
@@ -121,7 +121,7 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
         
         if (deviceName === 'Custom') {
             editorEngine.canvas.saveFrame(frame.id, {
-                device: device,
+                device: device as FrameType, 
             });
             return;
         }
@@ -140,7 +140,7 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
                 setHeight(parseInt(deviceHeight));
                 editorEngine.canvas.saveFrame(frame.id, {
                     dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
-                    device: device,
+                    device: device as FrameType,
                 });
                 if (aspectRatioLocked) {
                     setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
