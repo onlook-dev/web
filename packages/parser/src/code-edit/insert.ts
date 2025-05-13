@@ -94,7 +94,7 @@ export function insertAtIndex(
 
         const targetIndex = Math.min(index, jsxElements.length);
 
-        if (targetIndex === path.node.children.length) {
+        if (targetIndex === jsxElements.length) {
             path.node.children.push(newElement);
         } else {
             const targetChild = jsxElements[targetIndex];
