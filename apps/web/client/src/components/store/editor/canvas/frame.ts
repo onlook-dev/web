@@ -1,4 +1,3 @@
-import type { Orientation, Theme } from '@onlook/constants';
 import type { Frame, FrameType, RectDimension, RectPosition, WebFrame, WindowMetadata } from '@onlook/models';
 import { makeObservable, observable } from 'mobx';
 
@@ -9,12 +8,12 @@ export class FrameImpl implements Frame {
     type: FrameType;
     windowMetadata: WindowMetadata;
 
-    constructor({ id, position, dimension, type, windowMetadata }: Frame) {
-        this.id = id;
-        this.position = position;
-        this.dimension = dimension;
-        this.type = type;
-        this.windowMetadata = windowMetadata ?? {
+    constructor(frame: Frame) {
+        this.id = frame.id;
+        this.position = frame.position;
+        this.dimension = frame.dimension;
+        this.type = frame.type;
+        this.windowMetadata = frame.windowMetadata ?? {
             orientation: null,
             aspectRatioLocked: null,
             device: null,
@@ -38,9 +37,9 @@ export class FrameImpl implements Frame {
 export class WebFrameImpl extends FrameImpl implements WebFrame {
     url: string;
 
-    constructor({ id, position, dimension, type, url }: WebFrame) {
-        super({ id, position, dimension, type });
-        this.url = url;
+    constructor(frame: WebFrame) {
+        super(frame);
+        this.url = frame.url;
 
         makeObservable(this, {
             url: observable,

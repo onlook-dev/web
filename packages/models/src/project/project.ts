@@ -1,6 +1,3 @@
-import type { Frame } from './frame';
-import type { RectPosition } from './rect';
-
 export interface Project {
     id: string;
     name: string;
@@ -13,10 +10,4 @@ export interface Project {
         id: string;
         url: string;
     };
-}
-
-export interface ProjectSettings {
-    scale: number | null;
-    frames: Frame[] | null;
-    position: RectPosition | null;
 }

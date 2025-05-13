@@ -1,6 +1,6 @@
+import { deviceOptions, Orientation } from '@onlook/constants';
 import type { FrameType, WebFrame } from '@onlook/models';
 import type { Frame as DbFrame } from '../schema';
-import { deviceOptions, Orientation } from '@Onlook/constants';
 
 export const toFrame = (dbFrame: DbFrame): WebFrame => {
     return {

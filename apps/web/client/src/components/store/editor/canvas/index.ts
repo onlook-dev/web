@@ -1,11 +1,11 @@
 import { DefaultSettings } from '@onlook/constants';
-import type { Canvas, Frame, ProjectSettings, RectPosition, WebFrame } from '@onlook/models';
+import type { Canvas, Frame, RectPosition, WebFrame } from '@onlook/models';
 import { FrameType } from '@onlook/models';
 import { debounce } from 'lodash';
 import { makeAutoObservable } from 'mobx';
 import { v4 as uuidv4 } from 'uuid';
-import { FrameImpl, WebFrameImpl } from './frame';
 import type { ProjectManager } from '../../project/manager';
+import { FrameImpl, WebFrameImpl } from './frame';
 
 type SettingsObserver = (settings: Frame) => void;
 export class CanvasManager {
@@ -112,6 +112,12 @@ export class CanvasManager {
             position: defaults.position ?? DefaultSettings.FRAME_POSITION,
             dimension: defaults.dimension ?? DefaultSettings.FRAME_DIMENSION,
             type: FrameType.WEB,
+            windowMetadata: defaults.windowMetadata ?? {
+                orientation: null,
+                aspectRatioLocked: null,
+                device: null,
+                theme: null,
+            },
         };
     }
 
