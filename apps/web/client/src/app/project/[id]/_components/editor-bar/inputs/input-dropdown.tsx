@@ -64,8 +64,11 @@ export const InputDropdown = ({
                     value={localValue}
                     onChange={(e) => {
                         const newValue = e.target.value;
-                        setLocalValue(newValue);
-                        debouncedOnChange(newValue);
+                        // Only allow positive numbers or empty string
+                        if (newValue === '' || /^\d*\.?\d*$/.test(newValue)) {
+                            setLocalValue(newValue);
+                            debouncedOnChange(newValue);
+                        }
                     }}
                     className="w-[32px] bg-transparent text-sm text-white focus:outline-none text-left"
                 />

@@ -24,25 +24,7 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
     const { data: result, isLoading } = api.project.getFullProject.useQuery({ projectId });
     const leftPanelRef = useRef<HTMLDivElement>(null);
     const rightPanelRef = useRef<HTMLDivElement>(null);
-    const [center, setCenter] = useState<number | null>(null);
 
-    useEffect(() => {
-        setTimeout(() => {
-            updateCenter();
-        }, 100);
-        window.addEventListener('resize', updateCenter);
-        return () => {
-            window.removeEventListener('resize', updateCenter);
-        };
-    }, []);
-
-    function updateCenter() {
-        const left = leftPanelRef.current?.getBoundingClientRect();
-        const right = rightPanelRef.current?.getBoundingClientRect();
-        if (left && right) {
-            setCenter(left.right + (right.left - left.right) / 2);
-        }
-    }
 
     useEffect(() => {
         if (!result) {
@@ -125,10 +107,7 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
                     </div>
 
                     {/* Centered EditorBar */}
-                    <div
-                        className="absolute top-10 z-1"
-                        style={{ left: center ? center : '40%', transform: 'translateX(-50%)' }}
-                    >
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50">
                         <EditorBar />
                     </div>
 
