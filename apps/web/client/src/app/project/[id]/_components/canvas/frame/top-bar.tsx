@@ -46,15 +46,33 @@ export const TopBar = observer(
 
         return (
             <div
-                className='rounded bg-foreground-primary/10 hover:shadow h-6 m-auto flex flex-row items-center backdrop-blur-sm overflow-hidden relative shadow-sm border-input text-foreground'
+                className="bg-background-primary/10 hover:shadow h-6 flex flex-row items-center backdrop-blur-lg overflow-hidden relative shadow-sm border-input text-foreground/50 hover:text-foreground rounded-lg transition-colors duration-200 cursor-grab active:cursor-grabbing"
                 style={{
-                    transform: `scale(${1 / editorEngine.canvas.scale})`,
-                    width: `${frame.dimension.width * editorEngine.canvas.scale}px`,
-                    marginBottom: `${20 / editorEngine.canvas.scale}px`,
+                    height: `${28 / editorEngine.canvas.scale}px`,
+                    width: `${frame.dimension.width}px`,
+                    marginBottom: `${10 / editorEngine.canvas.scale}px`,
                 }}
-                onMouseDown={startMove}
+                onMouseDown={handleMouseDown}
             >
-                {children}
+                <div
+                    className="flex flex-row items-center justify-between gap-1 w-full"
+                    style={{
+                        transform: `scale(${1 / editorEngine.canvas.scale})`,
+                        transformOrigin: 'left center',
+                    }}
+                >
+                    <Button variant="ghost" size="icon" onClick={handleReload} className="transition-colors duration-200 hover:bg-background-primary cursor-default">
+                        <Icons.Reload />
+                    </Button>
+                    <div className="text-small overflow-hidden text-ellipsis whitespace-nowrap">
+                        {frame.url}
+                    </div>
+                    <Link className="ml-auto" href={frame.url} target="_blank">
+                        <Button variant="ghost" size="icon" className="transition-colors duration-200">
+                            <Icons.ExternalLink />
+                        </Button>
+                    </Link>
+                </div>
             </div>
         );
     },

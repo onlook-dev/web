@@ -220,6 +220,61 @@ export const TextSelected = () => {
                 </DropdownMenu>
                 <ViewButtons />
             </div>
-        </motion.div>
+        </div>
     );
 };
+
+const TextColor = 
+    ({
+        handleTextColorChange,
+        textColor,
+    }: {
+        handleTextColorChange: (color: string) => void;
+        textColor: string;
+    }) => {
+        const [tempColor, setTempColor] = useState<Color>(Color.from(textColor));
+        
+
+        const handleColorChange = (newColor: Color) => {
+            try {
+                setTempColor(newColor);
+            } catch (error) {
+                console.error('Error converting color:', error);
+            }
+        };
+
+        const handleColorChangeEnd = (newColor: Color) => {
+            try {
+                setTempColor(newColor);
+                handleTextColorChange(newColor.toHex());
+                
+            } catch (error) {
+                console.error('Error converting color:', error);
+            }
+        };
+
+        return (
+            <Popover>
+                <PopoverTrigger>
+                    <div className="text-muted-foreground border-border/0 hover:bg-background-tertiary/20 hover:border-border data-[state=open]:bg-background-tertiary/20 data-[state=open]:border-border flex h-9 w-9 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border px-2 hover:border hover:text-white focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none active:border-0 data-[state=open]:border data-[state=open]:text-white">
+                        <Icons.TextColorSymbol className="h-3.5 w-3.5" />
+                        <div
+                            className="h-[5px] w-6 rounded-full bg-current border-[0.5px] border-background-primary"
+                            style={{ backgroundColor: tempColor.toHex() || '#000000' }}
+                        />
+                    </div>
+                </PopoverTrigger>
+                <PopoverContent
+                    className="z-10 w-[280px] overflow-hidden rounded-lg p-0 shadow-xl backdrop-blur-lg"
+                    side="bottom"
+                    align="start"
+                >
+                    <ColorPickerContent
+                        color={tempColor}
+                        onChange={handleColorChange}
+                        onChangeEnd={handleColorChangeEnd}
+                    />
+                </PopoverContent>
+            </Popover>
+        );
+    }
