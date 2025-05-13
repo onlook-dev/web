@@ -424,7 +424,6 @@ export const DevTab = observer(() => {
         };
     }, []);
 
-
     return (
         <div className="h-full flex flex-col w-full border-l-[0.5px] border-t-[0.5px] border-b-[0.5px] backdrop-blur shadow rounded-tl-xl">
             <div className="flex items-center justify-between h-11 pl-4 pr-2 rounded-tl-xl border-b-[0.5px]">
@@ -470,9 +469,7 @@ export const DevTab = observer(() => {
             </div>
 
             <div className="flex flex-1 min-h-0 overflow-hidden">
-                {isFilesVisible && (
-                    <FileTree onFileSelect={loadFile} />
-                )}
+                {isFilesVisible && <FileTree onFileSelect={loadFile} />}
 
                 {/* Editor section */}
                 <div className="flex flex-col flex-1 min-w-0 overflow-hidden">

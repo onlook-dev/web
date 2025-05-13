@@ -226,13 +226,6 @@ export class SandboxManager {
         this.fileWatcher = new FileWatcher({
             session: this.session.session,
             onFileChange: async (event) => {
-                // Publish the event to all subscribers through FileEventBus
-                fileEventBus.publish({
-                    type: event.type,
-                    paths: event.paths,
-                    timestamp: Date.now()
-                });
-
                 // Handle file changes
                 await this.handleFileChange(event);
             },
