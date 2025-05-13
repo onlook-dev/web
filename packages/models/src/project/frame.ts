@@ -1,5 +1,5 @@
-import type { RectDimension, RectPosition } from './rect';
 import { Orientation, Theme } from '@onlook/constants';
+import type { RectDimension, RectPosition } from './rect';
 
 export enum FrameType {
     WEB = 'web',
@@ -19,8 +19,8 @@ export interface WebFrame extends Frame {
 }
 
 export interface WindowMetadata {
-    orientation?: Orientation | null;
-    aspectRatioLocked?: boolean | null;
-    device?: string | null;
-    theme?: Theme | null;
+    orientation: Orientation;
+    aspectRatioLocked: boolean;
+    device: string;
+    theme: Theme;
 }
