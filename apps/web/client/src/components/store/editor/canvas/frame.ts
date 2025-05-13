@@ -1,5 +1,5 @@
 import type { Orientation, Theme } from '@onlook/constants';
-import type { Frame, FrameType, RectDimension, RectPosition, WebFrame } from '@onlook/models';
+import type { Frame, FrameType, RectDimension, RectPosition, WebFrame, WindowMetadata } from '@onlook/models';
 import { makeObservable, observable } from 'mobx';
 
 export class FrameImpl implements Frame {
@@ -7,26 +7,26 @@ export class FrameImpl implements Frame {
     position: RectPosition;
     dimension: RectDimension;
     type: FrameType;
-    device: string | null;
-    orientation: Orientation | null;
-    aspectRatioLocked: boolean | null;
-    theme: Theme | null;
+    windowMetadata: WindowMetadata;
 
-    constructor({ id, position, dimension, type, device, orientation, aspectRatioLocked, theme }: Frame) {
+    constructor({ id, position, dimension, type, windowMetadata }: Frame) {
         this.id = id;
         this.position = position;
         this.dimension = dimension;
         this.type = type;
-        this.device = device;
-        this.orientation = orientation;
-        this.aspectRatioLocked = aspectRatioLocked;
-        this.theme = theme;
+        this.windowMetadata = windowMetadata ?? {
+            orientation: null,
+            aspectRatioLocked: null,
+            device: null,
+            theme: null,
+        };
 
         makeObservable(this, {
             id: observable,
             position: observable,
             dimension: observable,
             type: observable,
+            windowMetadata: observable
         });
     }
 

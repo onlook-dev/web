@@ -1,6 +1,6 @@
 import { useEditorEngine } from '@/components/store/editor';
 import type { FrameImpl } from '@/components/store/editor/canvas/frame';
-import { DefaultSettings, Orientation } from '@onlook/constants';
+import { DefaultSettings, deviceOptions, Orientation } from '@onlook/constants';
 import type { Frame, FrameType } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
@@ -17,62 +17,11 @@ import {
 import { Separator } from '@onlook/ui/separator';
 import { Fragment, useEffect, useState } from 'react';
 
-type DeviceOptions = Record<string, Record<string, string>>;
-
-const deviceOptions: DeviceOptions = {
-    Custom: {
-        Custom: 'Custom',
-    },
-    Phone: {
-        'Android Compact': '412x917',
-        'Android Medium': '700x840',
-        'Android Small': '360x640',
-        'Android Large': '360x800',
-        'iPhone 16': '393x852',
-        'iPhone 16 Pro': '402x874',
-        'iPhone 16 Pro Max': '440x956',
-        'iPhone 16 Plus': '430x932',
-        'iPhone 14 & 15 Pro': '430x932',
-        'iPhone 14 & 15': '393x852',
-        'iPhone 13 & 14': '390x844',
-        'iPhone 13 Pro Max': '428x926',
-        'iPhone 13 / 13 Pro': '390x844',
-        'iPhone 11 Pro Max': '414x896',
-        'iPhone 11 Pro / X': '375x812',
-        'iPhone 8 Plus': '414x736',
-        'iPhone 8': '375x667',
-        'iPhone SE': '320x568',
-    },
-    Tablet: {
-        'Android Expanded': '1280x800',
-        'Surface Pro 8': '1440x960',
-        'Surface Pro 4': '1368x912',
-        'iPad Mini 8.3': '744x1133',
-        'iPad Mini 5': '768x1024',
-        'iPad Pro 11': '834x1194',
-        'iPad Pro 12.9': '1024x1366',
-    },
-    Laptop: {
-        'MacBook Air': '1280x832',
-        MacBook: '1152x700',
-        'MacBook Pro 14': '1512x982',
-        'MacBook Pro 16': '1728x1117',
-        'MacBook Pro': '1440x900',
-        'Surface Book': '1500x1000',
-    },
-    Desktop: {
-        Desktop: '1440x1024',
-        Wireframe: '1440x1024',
-        TV: '1280x720',
-        iMac: '1280x720',
-    },
-};
-
 export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
     const editorEngine = useEditorEngine();
-    const [device, setDevice] = useState(frame.device ?? DefaultSettings.DEVICE);
+    const [device, setDevice] = useState(frame.windowMetadata.device ?? DefaultSettings.DEVICE);
     const [orientation, setOrientation] = useState(
-        frame.orientation ?? DefaultSettings.ORIENTATION,
+        frame.windowMetadata.orientation ?? DefaultSettings.ORIENTATION,
     );
     const [width, setWidth] = useState(
         frame.dimension.width ?? DefaultSettings.FRAME_DIMENSION.width,
@@ -82,7 +31,7 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
     );
     // const [responsive, setResponsive] = useState('Closest Size');
     const [aspectRatioLocked, setAspectRatioLocked] = useState(
-        frame.aspectRatioLocked ?? DefaultSettings.ASPECT_RATIO_LOCKED,
+        frame.windowMetadata.aspectRatioLocked ?? DefaultSettings.ASPECT_RATIO_LOCKED,
     );
     const [aspectRatio, setAspectRatio] = useState(width / height);
     const [step, setStep] = useState(1);
@@ -107,11 +56,11 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
     }, []);
 
     useEffect(() => {
-        setDevice(frame.device || DefaultSettings.DEVICE);
-        setOrientation(frame.orientation || DefaultSettings.ORIENTATION);
+        setDevice(frame.windowMetadata.device || DefaultSettings.DEVICE);
+        setOrientation(frame.windowMetadata.orientation || DefaultSettings.ORIENTATION);
         setWidth(frame.dimension.width || DefaultSettings.FRAME_DIMENSION.width);
         setHeight(frame.dimension.height || DefaultSettings.FRAME_DIMENSION.height);
-        setAspectRatioLocked(frame.aspectRatioLocked || DefaultSettings.ASPECT_RATIO_LOCKED);
+        setAspectRatioLocked(frame.windowMetadata.aspectRatioLocked || DefaultSettings.ASPECT_RATIO_LOCKED);
     }, [frame.id]);
 
     useEffect(() => {
@@ -121,7 +70,9 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
         
         if (deviceName === 'Custom') {
             editorEngine.canvas.saveFrame(frame.id, {
-                device: device as FrameType, 
+                windowMetadata: {
+                    device:  device as FrameType, 
+                }
             });
             return;
         }
@@ -140,7 +91,9 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
                 setHeight(parseInt(deviceHeight));
                 editorEngine.canvas.saveFrame(frame.id, {
                     dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
-                    device: device as FrameType,
+                    windowMetadata: {
+                        device: device as FrameType,
+                    }
                 });
                 if (aspectRatioLocked) {
                     setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
@@ -205,13 +158,17 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
             });
         }
         editorEngine.canvas.saveFrame(frame.id, {
-            aspectRatioLocked: aspectRatioLocked,
+            windowMetadata: {
+                aspectRatioLocked: aspectRatioLocked,
+            }
         });
     }, [aspectRatioLocked]);
 
     useEffect(() => {
         editorEngine.canvas.saveFrame(frame.id, {
-            orientation: orientation,
+            windowMetadata: {
+                orientation: orientation,
+            }
         });
     }, [orientation]);
 
@@ -327,7 +284,9 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
     const handleAspectRatioLock = () => {
         setAspectRatioLocked((prev) => !prev);
         editorEngine.canvas.saveFrame(frame.id, {
-            aspectRatioLocked: !aspectRatioLocked,
+            windowMetadata: {
+                aspectRatioLocked: !aspectRatioLocked,
+            }
         });
     };
 

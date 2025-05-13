@@ -5,4 +5,4 @@ export * from './files';
 export * from './freestyle';
 export * from './language';
 export * from './links';
-export * from './frame'
+export * from './frame';
