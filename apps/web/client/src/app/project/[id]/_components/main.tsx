@@ -27,6 +27,19 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
     const [center, setCenter] = useState<number | null>(null);
 
     useEffect(() => {
+        function updateCenter() {
+            const left = leftPanelRef.current?.getBoundingClientRect();
+            const right = rightPanelRef.current?.getBoundingClientRect();
+            if (left && right) {
+                setCenter(left.right + (right.left - left.right) / 2);
+            }
+        }
+        updateCenter();
+        window.addEventListener('resize', updateCenter);
+        return () => window.removeEventListener('resize', updateCenter);
+    }, []);
+
+    useEffect(() => {
         if (!result) {
             return;
         }
