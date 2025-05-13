@@ -266,7 +266,17 @@ export class SandboxManager {
 
         this.fileWatcher = new FileWatcher({
             session: this.session.session,
-            onFileChange: this.handleFileChange.bind(this),
+            onFileChange: async (event) => {
+                // Publish the event to all subscribers through FileEventBus
+                fileEventBus.publish({
+                    type: event.type,
+                    paths: event.paths,
+                    timestamp: Date.now()
+                });
+
+                // Handle file changes
+                await this.handleFileChange(event);
+            },
             excludePatterns,
         });
 
@@ -285,7 +295,7 @@ export class SandboxManager {
                 await this.fileSync.delete(normalizedPath);
             } else if (eventType === 'change' || eventType === 'add') {
                 const content = (await this.readRemoteFile(normalizedPath)) ?? '';
-                await this.fileSync.updateCache(normalizedPath, content);
+                await this.fileSync.syncFromRemote(normalizedPath, content);
                 await this.processFileForMapping(normalizedPath);
             }
         }

@@ -5,8 +5,7 @@ export class FileSyncManager {
     private storageKey = 'file-sync-cache';
 
     constructor() {
-        this.cache = new Map<string, string>();
-        
+        this.cache = new Map();
         this.restoreFromLocalStorage();
         makeAutoObservable(this);
     }
@@ -42,13 +41,22 @@ export class FileSyncManager {
         writeFile: (path: string, content: string) => Promise<boolean>,
     ): Promise<boolean> {
         try {
+            // Write to cache first
+            this.cache.set(filePath, content);
+            await this.saveToLocalStorage();
+
+            // Then write to remote
             const success = await writeFile(filePath, content);
-            if (success) {
-                this.cache.set(filePath, content);
+            if (!success) {
+                // If remote write fails, remove from cache
+                this.cache.delete(filePath);
                 await this.saveToLocalStorage();
             }
             return success;
         } catch (error) {
+            // If any error occurs, remove from cache
+            this.cache.delete(filePath);
+            await this.saveToLocalStorage();
             console.error(`Error writing file ${filePath}:`, error);
             return false;
         }
@@ -95,6 +103,16 @@ export class FileSyncManager {
             await localforage.removeItem(this.storageKey);
         } catch (error) {
             console.error('Error clearing localForage:', error);
+        }
+    }
+    async syncFromRemote(
+        filePath: string,
+        remoteContent: string,
+    ): Promise<void> {
+        const cachedContent = this.cache.get(filePath);
+        if (cachedContent !== remoteContent) {
+            // Only update cache if content is different
+            await this.updateCache(filePath, remoteContent);
         }
     }
 
@@ -200,8 +218,8 @@ export class FileEventBus {
             this.subscribers.delete(eventType);
         } else {
             this.subscribers.clear();
-        }
     }
+}
 }
 
 export const fileEventBus = FileEventBus.getInstance();
