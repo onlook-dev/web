@@ -9,19 +9,13 @@ export enum Theme {
     System = 'system',
 }
 
-export enum DeviceCategory {
-    Custom = 'Custom',
-    Phone = 'Phone',
-    Tablet = 'Tablet',
-    Laptop = 'Laptop',
-    Desktop = 'Desktop',
-}
+type DeviceOptions = Record<string, Record<string, string>>;
 
-export const DEVICE_OPTIONS: Record<DeviceCategory, Record<string, string>> = {
-    [DeviceCategory.Custom]: {
+export const DEVICE_OPTIONS: DeviceOptions = {
+    Custom: {
         Custom: 'Custom',
     },
-    [DeviceCategory.Phone]: {
+    Phone: {
         'Android Compact': '412x917',
         'Android Medium': '700x840',
         'Android Small': '360x640',
@@ -41,7 +35,7 @@ export const DEVICE_OPTIONS: Record<DeviceCategory, Record<string, string>> = {
         'iPhone 8': '375x667',
         'iPhone SE': '320x568',
     },
-    [DeviceCategory.Tablet]: {
+    Tablet: {
         'Android Expanded': '1280x800',
         'Surface Pro 8': '1440x960',
         'Surface Pro 4': '1368x912',
@@ -50,7 +44,7 @@ export const DEVICE_OPTIONS: Record<DeviceCategory, Record<string, string>> = {
         'iPad Pro 11': '834x1194',
         'iPad Pro 12.9': '1024x1366',
     },
-    [DeviceCategory.Laptop]: {
+    Laptop: {
         'MacBook Air': '1280x832',
         MacBook: '1152x700',
         'MacBook Pro 14': '1512x982',
@@ -58,7 +52,7 @@ export const DEVICE_OPTIONS: Record<DeviceCategory, Record<string, string>> = {
         'MacBook Pro': '1440x900',
         'Surface Book': '1500x1000',
     },
-    [DeviceCategory.Desktop]: {
+    Desktop: {
         Desktop: '1440x1024',
         Wireframe: '1440x1024',
         TV: '1280x720',

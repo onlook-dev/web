@@ -1,6 +1,6 @@
 import { useEditorEngine } from '@/components/store/editor';
 import type { FrameImpl } from '@/components/store/editor/canvas/frame';
-import { DefaultSettings, deviceOptions, Orientation } from '@onlook/constants';
+import { DefaultSettings, DEVICE_OPTIONS, Orientation } from '@onlook/constants';
 import type { Frame, FrameType } from '@onlook/models';
 import { Button } from '@onlook/ui/button';
 import { Icons } from '@onlook/ui/icons/index';
@@ -67,53 +67,53 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
         const [deviceCategory, deviceName] = device.split(':');
         if (deviceCategory && deviceName) {
 
-        
-        if (deviceName === 'Custom') {
-            editorEngine.canvas.saveFrame(frame.id, {
-                windowMetadata: {
-                    device:  device as FrameType, 
-                }
-            });
-            return;
-        }
 
-            if (!deviceOptions[deviceCategory]?.[deviceName]) {
-                setDevice('Custom:Custom');
-                return;
-            }
-
-        const [deviceWidth, deviceHeight] = deviceOptions[deviceCategory][deviceName].split('x');
-        if(deviceWidth && deviceHeight){
-            if (width === parseInt(deviceHeight) && height === parseInt(deviceWidth)) {
-                return;
-            } else {
-                setWidth(parseInt(deviceWidth));
-                setHeight(parseInt(deviceHeight));
+            if (deviceName === 'Custom') {
                 editorEngine.canvas.saveFrame(frame.id, {
-                    dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
                     windowMetadata: {
                         device: device as FrameType,
                     }
                 });
-                if (aspectRatioLocked) {
-                    setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
+                return;
+            }
+
+            if (!DEVICE_OPTIONS[deviceCategory]?.[deviceName]) {
+                setDevice('Custom:Custom');
+                return;
+            }
+
+            const [deviceWidth, deviceHeight] = DEVICE_OPTIONS[deviceCategory][deviceName].split('x');
+            if (deviceWidth && deviceHeight) {
+                if (width === parseInt(deviceHeight) && height === parseInt(deviceWidth)) {
+                    return;
+                } else {
+                    setWidth(parseInt(deviceWidth));
+                    setHeight(parseInt(deviceHeight));
+                    editorEngine.canvas.saveFrame(frame.id, {
+                        dimension: { width: parseInt(deviceWidth), height: parseInt(deviceHeight) },
+                        windowMetadata: {
+                            device: device as FrameType,
+                        }
+                    });
+                    if (aspectRatioLocked) {
+                        setAspectRatio(parseInt(deviceWidth) / parseInt(deviceHeight));
+                    }
                 }
             }
         }
-    }
     }, [device]);
 
     useEffect(() => {
         const [deviceCategory, deviceName] = device.split(':');
 
         if (deviceCategory && deviceName) {
-            if (!deviceOptions[deviceCategory]?.[deviceName]) {
+            if (!DEVICE_OPTIONS[deviceCategory]?.[deviceName]) {
                 setDevice('Custom:Custom');
                 return;
             }
 
             const [deviceWidth, deviceHeight] =
-                deviceOptions[deviceCategory][deviceName].split('x');
+                DEVICE_OPTIONS[deviceCategory][deviceName].split('x');
 
             if (deviceWidth && deviceHeight) {
                 if (
@@ -300,7 +300,7 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
                         <SelectValue placeholder="Select device" />
                     </SelectTrigger>
                     <SelectContent className="rounded-md bg-background-secondary">
-                        {Object.entries(deviceOptions).map(([category, devices], index) =>
+                        {Object.entries(DEVICE_OPTIONS).map(([category, devices], index) =>
                             category !== 'Custom' ? (
                                 <Fragment key={index}>
                                     <SelectGroup key={index}>
@@ -315,7 +315,7 @@ export const FrameDimensions = ({ frame }: { frame: FrameImpl }) => {
                                             </SelectItem>
                                         ))}
                                     </SelectGroup>
-                                    {index < Object.entries(deviceOptions).length - 1 && (
+                                    {index < Object.entries(DEVICE_OPTIONS).length - 1 && (
                                         <Separator className="text-white" />
                                     )}
                                 </Fragment>

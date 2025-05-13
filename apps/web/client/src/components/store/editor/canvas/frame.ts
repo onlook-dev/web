@@ -13,13 +13,7 @@ export class FrameImpl implements Frame {
         this.position = frame.position;
         this.dimension = frame.dimension;
         this.type = frame.type;
-        this.windowMetadata = frame.windowMetadata ?? {
-            orientation: null,
-            aspectRatioLocked: null,
-            device: null,
-            theme: null,
-        };
-
+        this.windowMetadata = frame.windowMetadata ?? {};
         makeObservable(this, {
             id: observable,
             position: observable,

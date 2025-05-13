@@ -19,8 +19,8 @@ export interface WebFrame extends Frame {
 }
 
 export interface WindowMetadata {
-    orientation: Orientation;
-    aspectRatioLocked: boolean;
-    device: string;
-    theme: Theme;
+    orientation?: Orientation;
+    aspectRatioLocked?: boolean;
+    device?: string;
+    theme?: Theme;
 }
