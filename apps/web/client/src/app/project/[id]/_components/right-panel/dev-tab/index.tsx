@@ -13,11 +13,8 @@ import { observer } from 'mobx-react-lite';
 import { nanoid } from 'nanoid';
 import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
-import { type TreeApi } from 'react-arborist';
-import useResizeObserver from 'use-resize-observer';
 import { getBasicSetup, getExtensions, getLanguageFromFileName } from './code-mirror-config';
 import { FileTab } from './file-tab';
-import type { FileNode } from '@onlook/constants';
 import { FileTree } from './file-tree';
 import { useEditorEngine } from '@/components/store/editor';
 

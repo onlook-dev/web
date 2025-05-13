@@ -1,4 +1,4 @@
-import { type FileNode } from '@onlook/constants';
+import { type FileNode } from '@onlook/models';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Tree, type TreeApi } from 'react-arborist';
 import { FileTreeNode } from './file-tree-node';
@@ -11,7 +11,8 @@ import useResizeObserver from 'use-resize-observer';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { useEditorEngine } from '@/components/store/editor';
-import { fileEventBus, type FileEvent } from '@/components/store/editor/sandbox/file-sync';
+import type { FileEvent } from '@/components/store/editor/sandbox/file-event-bus';
+import { fileEventBus } from '@/components/store/editor/sandbox/file-event-bus';
 
 interface FileTreeProps {
     onFileSelect: (filePath: string) => void;

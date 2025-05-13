@@ -9,7 +9,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { motion } from 'motion/react';
 import type { NodeApi } from 'react-arborist';
-import type { FileNode } from '@onlook/constants';
+import type { FileNode } from '@onlook/models';
 import { useEditorEngine } from '@/components/store/editor';
 
 interface FileTreeNodeProps {

@@ -1,62 +1,15 @@
-import type { SandboxSession, Watcher, WatchEvent } from '@codesandbox/sdk';
-import { IGNORED_DIRECTORIES, JS_FILE_EXTENSIONS, JSX_FILE_EXTENSIONS, type FileNode } from '@onlook/constants';
+import type { WatchEvent } from '@codesandbox/sdk';
+import { IGNORED_DIRECTORIES, JS_FILE_EXTENSIONS, JSX_FILE_EXTENSIONS } from '@onlook/constants';
 import type { TemplateNode } from '@onlook/models';
 import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable, reaction } from 'mobx';
-import { fileEventBus, FileSyncManager } from './file-sync';
+import { FileSyncManager } from './file-sync';
 import { isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 import { SessionManager } from './session';
-
-interface FileWatcherOptions {
-    session: SandboxSession;
-    onFileChange: (event: WatchEvent) => Promise<void>;
-    excludePatterns?: string[];
-}
-
-class FileWatcher {
-    private watcher: Watcher | null = null;
-    private readonly session: SandboxSession;
-    private readonly onFileChange: (event: WatchEvent) => Promise<void>;
-    private readonly excludePatterns: string[];
-    private readonly eventBus = fileEventBus;
-
-    constructor({ session, onFileChange, excludePatterns = [] }: FileWatcherOptions) {
-        this.session = session;
-        this.onFileChange = onFileChange;
-        this.excludePatterns = excludePatterns;
-    }
-
-    async start(): Promise<void> {
-        try {
-            this.watcher = await this.session.fs.watch('./', {
-                recursive: true,
-                excludes: this.excludePatterns,
-            });
-
-            this.watcher.onEvent(async (event) => {
-                // Publish the event to all subscribers
-                this.eventBus.publish({
-                    type: event.type,
-                    paths: event.paths,
-                    timestamp: Date.now()
-                });
-
-                // Notify about file changes
-                await this.onFileChange(event);
-            });
-        } catch (error) {
-            console.error('Failed to start file watcher:', error);
-            throw error;
-        }
-    }
-
-    dispose(): void {
-        this.watcher?.dispose();
-        this.watcher = null;
-    }
-}
+import { fileEventBus } from './file-event-bus';
+import { FileWatcher } from './file-watcher';
 
 export class SandboxManager {
     readonly session: SessionManager = new SessionManager();
@@ -93,7 +46,7 @@ export class SandboxManager {
         for (const file of files) {
             const normalizedPath = normalizePath(file);
             const content = await this.readFile(normalizedPath);
-            if (!content) {
+            if (content === null) {
                 console.error(`Failed to read file ${normalizedPath}`);
                 continue;
             }
@@ -261,6 +214,12 @@ export class SandboxManager {
             return;
         }
 
+        // Dispose of existing watcher if it exists
+        if (this.fileWatcher) {
+            this.fileWatcher.dispose();
+            this.fileWatcher = null;
+        }
+
         // Convert ignored directories to glob patterns with ** wildcard
         const excludePatterns = IGNORED_DIRECTORIES.map((dir) => `${dir}/**`);
 
@@ -294,9 +253,11 @@ export class SandboxManager {
             if (event.type === 'remove') {
                 await this.fileSync.delete(normalizedPath);
             } else if (eventType === 'change' || eventType === 'add') {
-                const content = (await this.readRemoteFile(normalizedPath)) ?? '';
-                await this.fileSync.syncFromRemote(normalizedPath, content);
-                await this.processFileForMapping(normalizedPath);
+                const content = await this.readRemoteFile(normalizedPath);      
+                if (content !== null) {
+                    await this.fileSync.syncFromRemote(normalizedPath, content);
+                    await this.processFileForMapping(normalizedPath);
+                }
             }
         }
     }
