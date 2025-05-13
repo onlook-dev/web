@@ -24,6 +24,7 @@ import { StyleManager } from './style';
 import { TextEditingManager } from './text';
 import { ThemeManager } from './theme';
 import { WindowManager } from './window';
+import { FileEventBus } from './sandbox/file-event-bus';
 
 export class EditorEngine {
     readonly chat: ChatManager;
@@ -35,7 +36,8 @@ export class EditorEngine {
 
     readonly canvas: CanvasManager = new CanvasManager();
     readonly state: StateManager = new StateManager();
-    readonly sandbox: SandboxManager = new SandboxManager();
+    private readonly fileEventBus: FileEventBus = new FileEventBus();
+    readonly sandbox: SandboxManager = new SandboxManager(this.fileEventBus);
     readonly history: HistoryManager = new HistoryManager(this);
     readonly elements: ElementsManager = new ElementsManager(this);
     readonly overlay: OverlayManager = new OverlayManager(this);

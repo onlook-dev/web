@@ -7,18 +7,10 @@ export interface FileEvent {
 }
 
 export class FileEventBus {
-    private static instance: FileEventBus;
     private subscribers: Map<string, Set<(event: FileEvent) => void>> = new Map();
     private errorHandler: ((error: Error, event: FileEvent) => void) | null = null;
 
-    private constructor() {}
-
-    static getInstance(): FileEventBus {
-        if (!FileEventBus.instance) {
-            FileEventBus.instance = new FileEventBus();
-        }
-        return FileEventBus.instance;
-    }
+    constructor() {}
 
     /**
      * Subscribe to file events
@@ -94,6 +86,4 @@ export class FileEventBus {
             this.subscribers.clear();
         }
     }
-}
-
-export const fileEventBus = FileEventBus.getInstance(); 
+} 

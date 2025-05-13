@@ -8,15 +8,7 @@ describe('FileEventBus', () => {
     let bus: FileEventBus;
 
     beforeEach(() => {
-        // Reset the singleton instance before each test
-        (FileEventBus as any).instance = undefined;
-        bus = FileEventBus.getInstance();
-    });
-
-    test('getInstance should return the same instance on multiple calls', () => {
-        const instance1 = FileEventBus.getInstance();
-        const instance2 = FileEventBus.getInstance();
-        expect(instance1).toBe(instance2);
+        bus = new FileEventBus();
     });
 
     test('should call subscribers when publishing matching events', () => {

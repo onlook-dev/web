@@ -12,7 +12,6 @@ import { nanoid } from 'nanoid';
 import path from 'path';
 import { useEditorEngine } from '@/components/store/editor';
 import type { FileEvent } from '@/components/store/editor/sandbox/file-event-bus';
-import { fileEventBus } from '@/components/store/editor/sandbox/file-event-bus';
 
 interface FileTreeProps {
     onFileSelect: (filePath: string) => void;
@@ -78,15 +77,13 @@ export const FileTree = ({ onFileSelect }: FileTreeProps) => {
 
     // Subscribe to file events
     useEffect(() => {
-        const eventBus = fileEventBus;
-
         const handleFileEvent = async (event: FileEvent) => {
             const files = await editorEngine.sandbox.listAllFiles();
             setTreeData(buildFileTree(files));
         };
 
         // Subscribe to all file events
-        const unsubscribe = eventBus.subscribe('*', handleFileEvent);
+        const unsubscribe = editorEngine.sandbox.fileEventBus.subscribe('*', handleFileEvent);
 
         return () => {
             unsubscribe();

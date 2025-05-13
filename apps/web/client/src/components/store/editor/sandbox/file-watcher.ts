@@ -1,10 +1,11 @@
 import type { SandboxSession, WatchEvent, Watcher } from '@codesandbox/sdk';
-import { fileEventBus } from './file-event-bus';
+import { FileEventBus } from './file-event-bus';
 
 interface FileWatcherOptions {
     session: SandboxSession;
     onFileChange: (event: WatchEvent) => Promise<void>;
     excludePatterns?: string[];
+    fileEventBus: FileEventBus;
 }
 
 export class FileWatcher {
@@ -12,12 +13,13 @@ export class FileWatcher {
     private readonly session: SandboxSession;
     private readonly onFileChange: (event: WatchEvent) => Promise<void>;
     private readonly excludePatterns: string[];
-    private readonly eventBus = fileEventBus;
+    private readonly eventBus: FileEventBus;
 
-    constructor({ session, onFileChange, excludePatterns = [] }: FileWatcherOptions) {
+    constructor({ session, onFileChange, excludePatterns = [], fileEventBus }: FileWatcherOptions) {
         this.session = session;
         this.onFileChange = onFileChange;
         this.excludePatterns = excludePatterns;
+        this.eventBus = fileEventBus;
     }
 
     async start(): Promise<void> {

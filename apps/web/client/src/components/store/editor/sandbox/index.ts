@@ -8,17 +8,19 @@ import { FileSyncManager } from './file-sync';
 import { isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 import { SessionManager } from './session';
-import { fileEventBus } from './file-event-bus';
+import { FileEventBus } from './file-event-bus';
 import { FileWatcher } from './file-watcher';
 
 export class SandboxManager {
     readonly session: SessionManager = new SessionManager();
+    readonly fileEventBus: FileEventBus;
 
     private fileWatcher: FileWatcher | null = null;
     private fileSync: FileSyncManager = new FileSyncManager();
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
 
-    constructor() {
+    constructor(fileEventBus: FileEventBus) {
+        this.fileEventBus = fileEventBus;
         makeAutoObservable(this);
 
         reaction(
@@ -230,6 +232,7 @@ export class SandboxManager {
                 await this.handleFileChange(event);
             },
             excludePatterns,
+            fileEventBus: this.fileEventBus
         });
 
         await this.fileWatcher.start();
@@ -252,6 +255,11 @@ export class SandboxManager {
                     await this.processFileForMapping(normalizedPath);
                 }
             }
+            this.fileEventBus.publish({
+                type: eventType,
+                paths: [normalizedPath],
+                timestamp: Date.now()
+            });
         }
     }
 
