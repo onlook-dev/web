@@ -55,7 +55,23 @@ export function Create() {
             });
             return;
         }
-        router.push(`/project/${project.id}`);
+        
+        const extraData = {
+            prompt,
+            isNewProject: true,
+            creationTime: new Date().toISOString(),
+            hasImages: images.length > 0,
+            testData: {
+                templateId: 'blank-template',
+                stage: 'initial-creation',
+                requiresSetup: true
+            }
+        };
+        
+        const queryParams = new URLSearchParams();
+        queryParams.set('extraData', JSON.stringify(extraData));
+        
+        router.push(`/project/${project.id}?${queryParams.toString()}`);
     };
 
     const handleDragOver = (e: React.DragEvent) => {

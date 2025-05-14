@@ -17,7 +17,7 @@ import { LeftPanel } from './left-panel';
 import { RightPanel } from './right-panel';
 import { TopBar } from './top-bar';
 
-export const Main = observer(({ projectId }: { projectId: string }) => {
+export const Main = observer(({ projectId, extraData }: { projectId: string, extraData?: any }) => {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectManager();
     const { tabState } = useTabActive();
@@ -68,11 +68,24 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
         } else {
             console.error('No frames');
         }
+        
+        if (extraData) {
+            console.log('Using extra data for project creation continuation:', extraData);
+            if (extraData.prompt) {
+                projectManager.updatePartialProject({
+                    metadata: {
+                        ...project.metadata,
+                        initialPrompt: extraData.prompt,
+                        creationInfo: extraData.testData
+                    }
+                });
+            }
+        }
 
         return () => {
             editorEngine.sandbox.clear();
         };
-    }, [result]);
+    }, [result, extraData]);
 
     useEffect(() => {
         if (tabState === 'reactivated' && editorEngine.sandbox.session.session) {
