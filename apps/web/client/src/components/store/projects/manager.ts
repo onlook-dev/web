@@ -1,4 +1,5 @@
 import { api } from '@/trpc/client';
+import { fromProject } from '@onlook/db';
 import type { Project } from '@onlook/models';
 import { makeAutoObservable, reaction } from 'mobx';
 import type { UserManager } from '../user/manager';
@@ -36,7 +37,16 @@ export class ProjectsManager {
         this._projects = newProjects;
     }
 
-    deleteProject(project: Project) {
-        api.project.delete.mutate({ id: project.id });
+    async deleteProject(project: Project) {
+        this.projects = this.projects.filter((p) => p.id !== project.id);
+        await api.project.delete.mutate({ id: project.id });
+        await api.sandbox.delete.mutate({ sandboxId: project.sandbox.id });
+    }
+
+    async updateProject(project: Project) {
+        this.projects = this.projects.map((p) => (p.id === project.id ? project : p));
+
+        const dbProject = fromProject(project);
+        await api.project.update.mutate(dbProject);
     }
 }

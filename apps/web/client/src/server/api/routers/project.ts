@@ -87,4 +87,12 @@ export const projectRouter = createTRPCRouter({
             });
             return projects.map((project) => toProject(project.project));
         }),
+    update: protectedProcedure
+        .input(projectInsertSchema)
+        .mutation(async ({ ctx, input }) => {
+            if (!input.id) {
+                throw new Error('Project ID is required');
+            }
+            await ctx.db.update(projects).set(input).where(eq(projects.id, input.id));
+        }),
 });
