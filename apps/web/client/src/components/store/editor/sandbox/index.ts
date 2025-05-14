@@ -16,7 +16,7 @@ export class SandboxManager {
     private fileWatcher: FileWatcher | null = null;
     private fileSync: FileSyncManager = new FileSyncManager();
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
-    private readonly fileEventBus: FileEventBus = new FileEventBus();
+    readonly fileEventBus: FileEventBus = new FileEventBus();
 
     constructor() {
         makeAutoObservable(this);
@@ -252,8 +252,10 @@ export class SandboxManager {
                     console.error(`File content for ${normalizedPath} not found`);
                     continue;
                 }
-                await this.fileSync.syncFromRemote(normalizedPath, content);
-                await this.processFileForMapping(normalizedPath);
+                const contentChanged = await this.fileSync.syncFromRemote(normalizedPath, content);
+                if (contentChanged) {
+                    await this.processFileForMapping(normalizedPath);
+                }
             }
             this.fileEventBus.publish({
                 type: eventType,

@@ -19,7 +19,6 @@ import { MoveManager } from './move';
 import { OverlayManager } from './overlay';
 import { PagesManager } from './pages';
 import { SandboxManager } from './sandbox';
-import { FileEventBus } from './sandbox/file-event-bus';
 import { StateManager } from './state';
 import { StyleManager } from './style';
 import { TextEditingManager } from './text';

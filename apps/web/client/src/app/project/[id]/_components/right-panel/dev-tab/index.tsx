@@ -1,5 +1,6 @@
+import { useEditorEngine } from '@/components/store/editor';
 import { EditorView } from '@codemirror/view';
-import { EditorTabValue, SystemTheme } from '@onlook/models';
+import { SystemTheme } from '@onlook/models';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -16,7 +17,6 @@ import { useEffect, useRef, useState } from 'react';
 import { getBasicSetup, getExtensions, getLanguageFromFileName } from './code-mirror-config';
 import { FileTab } from './file-tab';
 import { FileTree } from './file-tree';
-import { useEditorEngine } from '@/components/store/editor';
 
 enum TabValue {
     CONSOLE = 'console',
@@ -60,45 +60,6 @@ export const DevTab = observer(() => {
         }
         return editorViewsRef.current.get(activeFile.id);
     };
-
-    useEffect(() => {
-        const handleOpenCodeInOnlook = async (data: any) => {
-            if (data?.filePath) {
-                editorEngine.state.rightPanelTab = EditorTabValue.DEV;
-
-                const file = await loadFile(data.filePath);
-
-                // Only set highlight range if file was successfully loaded
-                if (file) {
-                    setTimeout(() => {
-                        if (data.startLine) {
-                            setHighlightRange({
-                                startLineNumber: data.startLine,
-                                startColumn: data.startColumn || 1,
-                                endLineNumber: data.endLine || data.startLine,
-                                endColumn: data.endColumn || 80,
-                            });
-                        } else if (data.line) {
-                            setHighlightRange({
-                                startLineNumber: data.line,
-                                startColumn: 1,
-                                endLineNumber: data.line,
-                                endColumn: 80,
-                            });
-                        }
-                    }, 300);
-                }
-            }
-        };
-
-        // Subscribe to the event using the standard IPC API
-        // window.api.on(MainChannels.VIEW_CODE_IN_ONLOOK, handleOpenCodeInOnlook);
-
-        // Cleanup
-        // return () => {
-        //     window.api.removeListener(MainChannels.VIEW_CODE_IN_ONLOOK, handleOpenCodeInOnlook);
-        // };
-    }, [editorEngine]);
 
     useEffect(() => {
         const checkSelectedElement = async () => {
@@ -396,10 +357,10 @@ export const DevTab = observer(() => {
         const updatedFiles = openedFiles.map((file) =>
             file.id === fileId
                 ? {
-                      ...file,
-                      content: content,
-                      isDirty: hasChanged,
-                  }
+                    ...file,
+                    content: content,
+                    isDirty: hasChanged,
+                }
                 : file,
         );
 

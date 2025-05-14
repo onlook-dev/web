@@ -47,8 +47,7 @@ export class FileSyncManager {
             // Then write to remote
             const success = await writeFile(filePath, content);
             if (!success) {
-                // If remote write fails, remove from cache
-                this.delete(filePath);
+                throw new Error(`Failed to write file ${filePath}`);
             }
             return success;
         } catch (error) {
@@ -102,15 +101,18 @@ export class FileSyncManager {
             console.error('Error clearing localForage:', error);
         }
     }
+
     async syncFromRemote(
         filePath: string,
         remoteContent: string,
-    ): Promise<void> {
+    ): Promise<boolean> {
         const cachedContent = this.cache.get(filePath);
-        if (cachedContent !== remoteContent) {
+        const contentChanged = cachedContent !== remoteContent;
+        if (contentChanged) {
             // Only update cache if content is different
             await this.updateCache(filePath, remoteContent);
         }
+        return contentChanged;
     }
 
     async clear() {
