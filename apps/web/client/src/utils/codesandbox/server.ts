@@ -27,3 +27,9 @@ export const list = async () => {
     const listResponse = await sdk.sandbox.list();
     return listResponse;
 };
+
+// Reconnect to a sandbox
+export const reconnect = async (sandboxId: string) => {
+    const startData = await sdk.sandbox.start(sandboxId);
+    return startData;
+};

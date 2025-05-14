@@ -1,4 +1,4 @@
-import { create, hibernate, list, start } from '@/utils/codesandbox/server';
+import { create, hibernate, list, reconnect, start } from '@/utils/codesandbox/server';
 import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../trpc';
 
@@ -8,7 +8,7 @@ export const sandboxRouter = createTRPCRouter({
     }),
     // Same as start - Separate endpoint for different state management
     reconnect: publicProcedure.input(z.string()).mutation(async ({ input }) => {
-        return await start(input);
+        return await reconnect(input);
     }),
     hibernate: publicProcedure.input(z.string()).mutation(async ({ input }) => {
         return await hibernate(input);

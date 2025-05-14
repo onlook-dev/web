@@ -27,9 +27,11 @@ export class SessionManager {
             console.error('No session found');
             return;
         }
-        
+        const sessionId = this.session.id;
+        await this.session.disconnect();
+        this.session = null;
         this.isConnecting = true;
-        const startData = await api.sandbox.reconnect.mutate(this.session.id);
+        const startData = await api.sandbox.reconnect.mutate(sessionId);
         this.session = await connectToSandbox(startData);
         this.isConnecting = false;
     }
