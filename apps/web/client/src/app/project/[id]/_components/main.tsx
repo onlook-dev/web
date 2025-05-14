@@ -1,6 +1,7 @@
 'use client';
 
 import { ChatProvider } from '@/app/project/[id]/_hooks/use-chat';
+import { useCreateManager } from '@/components/store/create';
 import { useEditorEngine } from '@/components/store/editor';
 import { useProjectManager } from '@/components/store/project';
 import { api } from '@/trpc/react';
@@ -20,11 +21,13 @@ import { TopBar } from './top-bar';
 export const Main = observer(({ projectId }: { projectId: string }) => {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectManager();
+    const createManager = useCreateManager();
     const { tabState } = useTabActive();
     const { data: result, isLoading } = api.project.getFullProject.useQuery({ projectId });
     const leftPanelRef = useRef<HTMLDivElement>(null);
     const rightPanelRef = useRef<HTMLDivElement>(null);
     const [center, setCenter] = useState<number | null>(null);
+    const creationData = createManager.pendingCreationData;
 
     useEffect(() => {
         setTimeout(() => {
@@ -69,10 +72,13 @@ export const Main = observer(({ projectId }: { projectId: string }) => {
             console.error('No frames');
         }
 
+        if (creationData) {
+            createManager.resumeCreate();
+        }
         return () => {
             editorEngine.sandbox.clear();
         };
-    }, [result]);
+    }, [result, creationData]);
 
     useEffect(() => {
         if (tabState === 'reactivated' && editorEngine.sandbox.session.session) {

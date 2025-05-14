@@ -1,3 +1,4 @@
+import { useProjectsManager } from '@/components/store/projects';
 import type { Project } from '@onlook/models';
 import {
     AlertDialog,
@@ -8,7 +9,6 @@ import {
     AlertDialogTitle,
 } from '@onlook/ui/alert-dialog';
 import { Button } from '@onlook/ui/button';
-import { Checkbox } from '@onlook/ui/checkbox';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,10 +23,9 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 export function Settings({ project }: { project: Project }) {
-    // const projectsManager = useProjectsManager();
+    const projectsManager = useProjectsManager();
     const t = useTranslations();
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [deleteProjectFolder, setDeleteProjectFolder] = useState(false);
     const [showRenameDialog, setShowRenameDialog] = useState(false);
     const [projectName, setProjectName] = useState(project.name);
     const isProjectNameEmpty = useMemo(() => projectName.length === 0, [projectName]);
@@ -37,19 +36,13 @@ export function Settings({ project }: { project: Project }) {
     }, [project.name]);
 
     const handleDeleteProject = () => {
-        // projectsManager.deleteProject(project, deleteProjectFolder);
+        projectsManager.deleteProject(project);
         setShowDeleteDialog(false);
     };
 
     const handleRenameProject = () => {
-        // projectsManager.updateProject({ ...project, name: projectName });
+        projectsManager.updateProject({ ...project, name: projectName });
         setShowRenameDialog(false);
-    };
-
-    const handleOpenProjectFolder = () => {
-        // if (project.folderPath) {
-        // invokeMainChannel(MainChannels.OPEN_IN_EXPLORER, project.folderPath);
-        // }
     };
 
     return (
@@ -62,19 +55,6 @@ export function Settings({ project }: { project: Project }) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuItem
-                        onSelect={handleOpenProjectFolder}
-                        onMouseEnter={() => setIsDirectoryHovered(true)}
-                        onMouseLeave={() => setIsDirectoryHovered(false)}
-                        className="text-foreground-active hover:!bg-background-onlook hover:!text-foreground-active gap-2"
-                    >
-                        {isDirectoryHovered ? (
-                            <Icons.DirectoryOpen className="w-4 h-4" />
-                        ) : (
-                            <Icons.Directory className="w-4 h-4" />
-                        )}
-                        {t('projects.actions.showInExplorer')}
-                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onSelect={() => setShowRenameDialog(true)}
                         className="text-foreground-active hover:!bg-background-onlook hover:!text-foreground-active gap-2"
@@ -100,18 +80,6 @@ export function Settings({ project }: { project: Project }) {
                             {t('projects.dialogs.delete.description')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="deleteFolder"
-                            checked={deleteProjectFolder}
-                            onCheckedChange={(checked) =>
-                                setDeleteProjectFolder(checked as boolean)
-                            }
-                        />
-                        <Label htmlFor="deleteFolder">
-                            {t('projects.dialogs.delete.moveToTrash')}
-                        </Label>
-                    </div>
                     <AlertDialogFooter>
                         <Button variant={'ghost'} onClick={() => setShowDeleteDialog(false)}>
                             {t('projects.actions.cancel')}

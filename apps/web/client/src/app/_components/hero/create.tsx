@@ -1,7 +1,8 @@
 'use client';
 
 import { DraftImagePill } from '@/app/project/[id]/_components/right-panel/chat-tab/context-pills/draft-image-pill';
-import { useProjectsManager } from '@/components/store/projects';
+import { useCreateManager } from '@/components/store/create';
+import { userManager } from '@/components/store/user';
 import { MessageContextType, type ImageMessageContext } from '@onlook/models/chat';
 import { Button } from '@onlook/ui/button';
 import { Card, CardContent, CardHeader } from '@onlook/ui/card';
@@ -18,7 +19,7 @@ import { useRef, useState } from 'react';
 
 export function Create() {
     const t = useTranslations();
-    const projectsManager = useProjectsManager();
+    const createManager = useCreateManager();
     const router = useRouter();
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,12 +41,15 @@ export function Create() {
     };
 
     const handleBlankSubmit = async () => {
-        // projectsManager.create.sendPrompt(inputValue, selectedImages, false);
         createProject(inputValue, []);
     };
 
     const createProject = async (prompt: string, images: ImageMessageContext[]) => {
-        const project = await projectsManager.createProject();
+        if (!userManager.user?.id) {
+            console.error('No user ID found');
+            return;
+        }
+        const project = await createManager.startCreate(userManager.user?.id, prompt, images);
         if (!project) {
             console.error('Failed to create project');
             toast({
