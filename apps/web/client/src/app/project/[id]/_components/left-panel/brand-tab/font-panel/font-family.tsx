@@ -110,7 +110,7 @@ export const FontFamily = ({
                                     <Icons.DotsHorizontal className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="min-w-fit">
+                            <DropdownMenuContent align="end" className="min-w-fit z-100">
                                 <DropdownMenuCheckboxItem
                                     checked={isDefault}
                                     onCheckedChange={handleToggleDefault}
