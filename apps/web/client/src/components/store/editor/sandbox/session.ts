@@ -27,6 +27,7 @@ export class SessionManager {
             console.error('No session found');
             return;
         }
+        
         this.isConnecting = true;
         const startData = await api.sandbox.reconnect.mutate(this.session.id);
         this.session = await connectToSandbox(startData);

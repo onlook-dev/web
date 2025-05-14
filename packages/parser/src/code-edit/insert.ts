@@ -38,12 +38,13 @@ export function createInsertedElement(insertedChild: CodeInsert): T.JSXElement {
     if (insertedChild.pasteParams) {
         addPasteParamsToElement(element, insertedChild.pasteParams);
     }
-    addKeyToElement(element);
+    // With new elements, always replace the key
+    addKeyToElement(element, true);
     return element;
 }
 
 function addPasteParamsToElement(element: T.JSXElement, pasteParams: PasteParams): void {
-    addParamToElement(element, EditorAttributes.DATA_ONLOOK_ID, pasteParams.oid);
+    addParamToElement(element, EditorAttributes.DATA_ONLOOK_ID, pasteParams.oid, true);
 }
 
 function createJSXElement(insertedChild: CodeInsert): T.JSXElement {
