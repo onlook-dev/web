@@ -34,8 +34,6 @@ export async function formatContent(filePath: string, content: string): Promise<
             plugins: [parserEstree, parserTypescript],
             parser: 'typescript',
         });
-        console.log('before', content)
-        console.log('after', formattedContent)
         return formattedContent;
     } catch (error: any) {
         console.error('Error formatting file:', error);
