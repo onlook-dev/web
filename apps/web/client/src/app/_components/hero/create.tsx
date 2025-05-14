@@ -64,14 +64,33 @@ export function Create() {
             testData: {
                 templateId: 'blank-template',
                 stage: 'initial-creation',
-                requiresSetup: true
+                requiresSetup: true,
+                configuration: {
+                    theme: 'default',
+                    layout: 'standard',
+                    preferences: {
+                        autoSave: true,
+                        showLineNumbers: true,
+                        tabSize: 2,
+                        useSoftTabs: true
+                    },
+                    extensions: [
+                        { id: 'syntax-highlighter', enabled: true },
+                        { id: 'code-formatter', enabled: true },
+                        { id: 'auto-complete', enabled: true }
+                    ]
+                },
+                resources: {
+                    templates: ['basic', 'advanced', 'professional'],
+                    components: ['header', 'footer', 'sidebar', 'main'],
+                    assets: ['logo.png', 'background.jpg', 'icon-set.svg']
+                }
             }
         };
         
-        const queryParams = new URLSearchParams();
-        queryParams.set('extraData', JSON.stringify(extraData));
+        projectsManager.setCreationData(project.id, extraData);
         
-        router.push(`/project/${project.id}?${queryParams.toString()}`);
+        router.push(`/project/${project.id}`);
     };
 
     const handleDragOver = (e: React.DragEvent) => {

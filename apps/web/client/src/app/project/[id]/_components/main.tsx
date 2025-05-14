@@ -3,6 +3,7 @@
 import { ChatProvider } from '@/app/project/[id]/_hooks/use-chat';
 import { useEditorEngine } from '@/components/store/editor';
 import { useProjectManager } from '@/components/store/project';
+import { useProjectsManager } from '@/components/store/projects';
 import { api } from '@/trpc/react';
 import { Routes } from '@/utils/constants';
 import { TooltipProvider } from '@onlook/ui/tooltip';
@@ -17,11 +18,13 @@ import { LeftPanel } from './left-panel';
 import { RightPanel } from './right-panel';
 import { TopBar } from './top-bar';
 
-export const Main = observer(({ projectId, extraData }: { projectId: string, extraData?: any }) => {
+export const Main = observer(({ projectId }: { projectId: string }) => {
     const editorEngine = useEditorEngine();
     const projectManager = useProjectManager();
+    const projectsManager = useProjectsManager();
     const { tabState } = useTabActive();
     const { data: result, isLoading } = api.project.getFullProject.useQuery({ projectId });
+    const creationData = projectsManager.getCreationData(projectId);
     const leftPanelRef = useRef<HTMLDivElement>(null);
     const rightPanelRef = useRef<HTMLDivElement>(null);
     const [center, setCenter] = useState<number | null>(null);
@@ -69,23 +72,25 @@ export const Main = observer(({ projectId, extraData }: { projectId: string, ext
             console.error('No frames');
         }
         
-        if (extraData) {
-            console.log('Using extra data for project creation continuation:', extraData);
-            if (extraData.prompt) {
+        if (creationData) {
+            console.log('Using creation data from store for project continuation:', creationData);
+            if (creationData.prompt) {
                 projectManager.updatePartialProject({
                     metadata: {
                         ...project.metadata,
-                        initialPrompt: extraData.prompt,
-                        creationInfo: extraData.testData
+                        initialPrompt: creationData.prompt,
+                        creationInfo: creationData.testData
                     }
                 });
+                
+                projectsManager.clearCreationData();
             }
         }
 
         return () => {
             editorEngine.sandbox.clear();
         };
-    }, [result, extraData]);
+    }, [result, creationData, projectsManager]);
 
     useEffect(() => {
         if (tabState === 'reactivated' && editorEngine.sandbox.session.session) {

@@ -8,6 +8,7 @@ import type { UserManager } from '../user/manager';
 
 export class ProjectsManager {
     private _projects: Project[] = [];
+    private _creationData: Record<string, any> | null = null;
     isFetching = false;
 
     constructor(private userManager: UserManager) {
@@ -17,6 +18,21 @@ export class ProjectsManager {
             () => this.userManager.user?.id,
             () => this.fetchProjects(),
         );
+    }
+    
+    setCreationData(projectId: string, data: Record<string, any>) {
+        this._creationData = { projectId, ...data };
+    }
+    
+    getCreationData(projectId: string) {
+        if (this._creationData && this._creationData.projectId === projectId) {
+            return this._creationData;
+        }
+        return null;
+    }
+    
+    clearCreationData() {
+        this._creationData = null;
     }
 
     async createProject() {
