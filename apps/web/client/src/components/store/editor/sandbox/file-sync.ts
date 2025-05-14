@@ -24,10 +24,10 @@ export class FileSyncManager {
 
         try {
             const content = await readFile(filePath);
-            if (content !== null) {
-                this.cache.set(filePath, content);
-                await this.saveToLocalStorage();
+            if (content === null) {
+                throw new Error(`File content for ${filePath} not found`);
             }
+            this.updateCache(filePath, content);
             return content;
         } catch (error) {
             console.error(`Error reading file ${filePath}:`, error);
@@ -42,21 +42,18 @@ export class FileSyncManager {
     ): Promise<boolean> {
         try {
             // Write to cache first
-            this.cache.set(filePath, content);
-            await this.saveToLocalStorage();
+            this.updateCache(filePath, content);
 
             // Then write to remote
             const success = await writeFile(filePath, content);
             if (!success) {
                 // If remote write fails, remove from cache
-                this.cache.delete(filePath);
-                await this.saveToLocalStorage();
+                this.delete(filePath);
             }
             return success;
         } catch (error) {
             // If any error occurs, remove from cache
-            this.cache.delete(filePath);
-            await this.saveToLocalStorage();
+            this.delete(filePath);
             console.error(`Error writing file ${filePath}:`, error);
             return false;
         }

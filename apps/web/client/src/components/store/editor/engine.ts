@@ -19,12 +19,12 @@ import { MoveManager } from './move';
 import { OverlayManager } from './overlay';
 import { PagesManager } from './pages';
 import { SandboxManager } from './sandbox';
+import { FileEventBus } from './sandbox/file-event-bus';
 import { StateManager } from './state';
 import { StyleManager } from './style';
 import { TextEditingManager } from './text';
 import { ThemeManager } from './theme';
 import { WindowManager } from './window';
-import { FileEventBus } from './sandbox/file-event-bus';
 
 export class EditorEngine {
     readonly chat: ChatManager;
@@ -33,11 +33,10 @@ export class EditorEngine {
     readonly theme: ThemeManager;
     readonly font: FontManager;
     readonly pages: PagesManager;
+    readonly canvas: CanvasManager;
 
-    readonly canvas: CanvasManager = new CanvasManager();
     readonly state: StateManager = new StateManager();
-    private readonly fileEventBus: FileEventBus = new FileEventBus();
-    readonly sandbox: SandboxManager = new SandboxManager(this.fileEventBus);
+    readonly sandbox: SandboxManager = new SandboxManager();
     readonly history: HistoryManager = new HistoryManager(this);
     readonly elements: ElementsManager = new ElementsManager(this);
     readonly overlay: OverlayManager = new OverlayManager(this);
@@ -65,11 +64,11 @@ export class EditorEngine {
         this.image = new ImageManager(this, this.projectManager);
         this.theme = new ThemeManager(this, this.projectManager);
         this.font = new FontManager(this, this.projectManager);
+        this.canvas = new CanvasManager(this.projectManager)
         makeAutoObservable(this);
     }
 
     clear() {
-        // TODO: Choose dispose or clear
         this.elements.clear();
         this.frames.clear();
         this.history.clear();

@@ -4,23 +4,21 @@ import type { TemplateNode } from '@onlook/models';
 import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable, reaction } from 'mobx';
+import { FileEventBus } from './file-event-bus';
 import { FileSyncManager } from './file-sync';
+import { FileWatcher } from './file-watcher';
 import { isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 import { SessionManager } from './session';
-import { FileEventBus } from './file-event-bus';
-import { FileWatcher } from './file-watcher';
 
 export class SandboxManager {
     readonly session: SessionManager = new SessionManager();
-    readonly fileEventBus: FileEventBus;
-
     private fileWatcher: FileWatcher | null = null;
     private fileSync: FileSyncManager = new FileSyncManager();
     private templateNodeMap: TemplateNodeMapper = new TemplateNodeMapper(localforage);
+    private readonly fileEventBus: FileEventBus = new FileEventBus();
 
-    constructor(fileEventBus: FileEventBus) {
-        this.fileEventBus = fileEventBus;
+    constructor() {
         makeAutoObservable(this);
 
         reaction(
@@ -39,7 +37,7 @@ export class SandboxManager {
             console.error('No session found');
             return;
         }
-        
+
         const files = await this.listFilesRecursively('./', IGNORED_DIRECTORIES, [
             ...JSX_FILE_EXTENSIONS,
             ...JS_FILE_EXTENSIONS,
@@ -249,11 +247,13 @@ export class SandboxManager {
             if (event.type === 'remove') {
                 await this.fileSync.delete(normalizedPath);
             } else if (eventType === 'change' || eventType === 'add') {
-                const content = await this.readRemoteFile(normalizedPath);      
-                if (content !== null) {
-                    await this.fileSync.syncFromRemote(normalizedPath, content);
-                    await this.processFileForMapping(normalizedPath);
+                const content = await this.readRemoteFile(normalizedPath);
+                if (content === null) {
+                    console.error(`File content for ${normalizedPath} not found`);
+                    continue;
                 }
+                await this.fileSync.syncFromRemote(normalizedPath, content);
+                await this.processFileForMapping(normalizedPath);
             }
             this.fileEventBus.publish({
                 type: eventType,

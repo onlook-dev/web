@@ -1,16 +1,16 @@
-import { Icons } from '@onlook/ui/icons';
-import { cn } from '@onlook/ui/utils';
+import { useEditorEngine } from '@/components/store/editor';
+import type { FileNode } from '@onlook/models';
 import {
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
     ContextMenuTrigger,
 } from '@onlook/ui/context-menu';
+import { Icons } from '@onlook/ui/icons';
+import { cn } from '@onlook/ui/utils';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'motion/react';
 import type { NodeApi } from 'react-arborist';
-import type { FileNode } from '@onlook/models';
-import { useEditorEngine } from '@/components/store/editor';
 
 interface FileTreeNodeProps {
     node: NodeApi<FileNode>;
@@ -29,12 +29,12 @@ export const FileTreeNode: React.FC<FileTreeNodeProps> = observer(({ node, style
 
         // Load the file into the editor
         try {
-            await editorEngine.sandbox.readFile(node.data.path).then((content) => {
-                if (content !== null) {
-                    // This will be handled in the parent component
-                    node.select();
-                }
-            });
+            const content = await editorEngine.sandbox.readFile(node.data.path);
+            if (content === null) {
+                throw new Error(`File content for ${node.data.path} not found`);
+            }
+            // This will be handled in the parent component
+            node.select();
         } catch (error) {
             console.error('Failed to load file:', error);
         }
