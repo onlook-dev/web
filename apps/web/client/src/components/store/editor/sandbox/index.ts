@@ -5,7 +5,7 @@ import { getContentFromTemplateNode } from '@onlook/parser';
 import localforage from 'localforage';
 import { makeAutoObservable, reaction } from 'mobx';
 import { FileSyncManager } from './file-sync';
-import { isSubdirectory, normalizePath } from './helpers';
+import { formatContent, isSubdirectory, normalizePath } from './helpers';
 import { TemplateNodeMapper } from './mapping';
 import { SessionManager } from './session';
 
@@ -144,7 +144,8 @@ export class SandboxManager {
 
     async writeFile(path: string, content: string): Promise<boolean> {
         const normalizedPath = normalizePath(path);
-        return this.fileSync.write(normalizedPath, content, this.writeRemoteFile.bind(this));
+        const formattedContent = await formatContent(normalizedPath, content);
+        return this.fileSync.write(normalizedPath, formattedContent, this.writeRemoteFile.bind(this));
     }
 
     listAllFiles() {

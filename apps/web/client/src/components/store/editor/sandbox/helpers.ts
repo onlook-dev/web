@@ -1,4 +1,5 @@
 import path from 'path';
+import prettier from 'prettier';
 
 const SANDBOX_ROOT = '/project/sandbox';
 
@@ -21,4 +22,19 @@ export function isSubdirectory(filePath: string, directories: string[]): boolean
         }
     }
     return false;
+}
+
+export async function formatContent(filePath: string, content: string): Promise<string> {
+    try {
+        const config = (await prettier.resolveConfig(filePath)) || {};
+        const formattedContent = await prettier.format(content, {
+            ...config,
+            filepath: filePath,
+            plugins: [], // This prevents us from using plugins we don't have installed
+        });
+        return formattedContent;
+    } catch (error: any) {
+        console.error('Error formatting file:', error);
+        return content;
+    }
 }
