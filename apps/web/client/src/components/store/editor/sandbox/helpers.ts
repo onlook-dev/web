@@ -1,5 +1,7 @@
 import path from 'path';
-import prettier from 'prettier';
+import parserEstree from 'prettier/plugins/estree';
+import parserTypescript from 'prettier/plugins/typescript';
+import prettier from 'prettier/standalone';
 
 const SANDBOX_ROOT = '/project/sandbox';
 
@@ -26,12 +28,14 @@ export function isSubdirectory(filePath: string, directories: string[]): boolean
 
 export async function formatContent(filePath: string, content: string): Promise<string> {
     try {
-        const config = (await prettier.resolveConfig(filePath)) || {};
+        // Use browser standalone version with necessary plugins
         const formattedContent = await prettier.format(content, {
-            ...config,
             filepath: filePath,
-            plugins: [], // This prevents us from using plugins we don't have installed
+            plugins: [parserEstree, parserTypescript],
+            parser: 'typescript',
         });
+        console.log('before', content)
+        console.log('after', formattedContent)
         return formattedContent;
     } catch (error: any) {
         console.error('Error formatting file:', error);

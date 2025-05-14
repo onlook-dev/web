@@ -117,9 +117,9 @@ export class FontManager {
 
         // React to sandbox connection status
         const sandboxDisposer = reaction(
-            () => this.editorEngine.sandbox,
-            (sandbox) => {
-                if (sandbox) {
+            () => this.editorEngine.sandbox?.session.session,
+            (session) => {
+                if (session) {
                     this.loadInitialFonts();
                 }
             },
@@ -612,8 +612,7 @@ export class FontManager {
                                     declarator &&
                                     isValidLocalFontDeclaration(declarator, fontName)
                                 ) {
-                                    const configObject = declarator.init
-                                        ?.arguments[0] as t.ObjectExpression;
+                                    const configObject = declarator.init?.arguments[0] as t.ObjectExpression;
                                     const srcProp = configObject.properties.find((prop) =>
                                         isPropertyWithName(prop, 'src'),
                                     );

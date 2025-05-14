@@ -7,11 +7,11 @@ import {
     DropdownMenuTrigger,
 } from '@onlook/ui/dropdown-menu';
 import { Icons } from '@onlook/ui/icons';
-import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipPortal, TooltipTrigger } from '@onlook/ui/tooltip';
-import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { cn } from '@onlook/ui/utils';
+import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { camelCase } from 'lodash';
+import { useState } from 'react';
 
 interface FontVariantProps {
     name: string;
@@ -110,7 +110,7 @@ export const FontFamily = ({
                                     <Icons.DotsHorizontal className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="min-w-fit z-100">
+                            <DropdownMenuContent align="end" className="min-w-fit">
                                 <DropdownMenuCheckboxItem
                                     checked={isDefault}
                                     onCheckedChange={handleToggleDefault}
